@@ -87,8 +87,47 @@ module Polyrun
             Polyrun::Debug.log("[parent pid=#{$$}] run-shards: Process.wait child_pid=#{h[:pid]} shard=#{h[:shard]} exit=#{exitstatus} success=#{ok}")
             shard_results << {shard: h[:shard], exitstatus: exitstatus, success: ok}
           end
+        rescue Interrupt
+          # Do not trap SIGINT: Process.wait raises Interrupt; a trap races and prints Interrupt + SystemExit traces.
+          run_shards_shutdown_on_signal!(pids, 130)
+        rescue SignalException => e
+          raise unless e.signm == "SIGTERM"
+
+          run_shards_shutdown_on_signal!(pids, 143)
         end
         shard_results
+      end
+
+      # Best-effort worker teardown then exit. Does not return.
+      def run_shards_shutdown_on_signal!(pids, code)
+        run_shards_terminate_children!(pids)
+        exit(code)
+      rescue Interrupt
+        pids.each do |h|
+          Process.kill(:KILL, h[:pid])
+        rescue Errno::ESRCH
+          # already reaped
+        end
+        pids.each do |h|
+          Process.wait(h[:pid])
+        rescue Errno::ESRCH, Errno::ECHILD, Interrupt
+          # already reaped or give up
+        end
+        exit(code)
+      end
+
+      # Send SIGTERM to each worker PID and wait so Ctrl+C / SIGTERM does not leave orphans.
+      def run_shards_terminate_children!(pids)
+        pids.each do |h|
+          Process.kill(:TERM, h[:pid])
+        rescue Errno::ESRCH
+          # already reaped
+        end
+        pids.each do |h|
+          Process.wait(h[:pid])
+        rescue Errno::ESRCH, Errno::ECHILD
+          # already reaped
+        end
       end
 
       def run_shards_merge_or_hint_coverage(ctx)
