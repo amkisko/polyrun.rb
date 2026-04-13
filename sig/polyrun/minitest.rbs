@@ -1,0 +1,5 @@
+module Polyrun
+  module Minitest
+    def self.install_parallel_provisioning!: () -> void
+  end
+end

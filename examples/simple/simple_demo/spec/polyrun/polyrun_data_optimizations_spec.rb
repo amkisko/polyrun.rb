@@ -4,7 +4,7 @@ RSpec.describe "Polyrun data helpers (demo)" do
   describe "CachedFixtures" do
     after(:all) { Polyrun::Data::CachedFixtures.reset! }
 
-    it "builds once per process per key (TestProf AnyFixture–style)" do
+    it "builds once per process per key (memoized register)" do
       builds = 0
       a = Polyrun::Data::CachedFixtures.fetch(:polyrun_demo_counter) do
         builds += 1

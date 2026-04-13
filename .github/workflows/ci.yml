@@ -32,6 +32,9 @@ jobs:
       - name: RuboCop
         run: bundle exec rubocop
 
+      - name: RBS
+        run: bundle exec rake rbs
+
   appraisal:
     runs-on: ubuntu-latest
     strategy:

@@ -1,4 +1,4 @@
-# Monorepo-style root: run polyrun from examples/complex with -c polyrepo/polyrun.yml
+# Monorepo root: run polyrun from examples/complex with -c polyrepo/polyrun.yml
 # (adjust paths to your checkout). The runnable app lives in ../polyrepo_demo/.
 partition:
   paths_file: ../polyrepo_demo/spec/paths.txt

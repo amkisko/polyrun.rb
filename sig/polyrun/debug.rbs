@@ -1,0 +1,12 @@
+module Polyrun
+  module Debug
+    def self.enabled?: () -> bool
+    def self.log: (String message) -> void
+    def self.log_kv: (untyped pairs) -> void
+    def self.log_worker: (String message) -> void
+    def self.log_worker_kv: (untyped pairs) -> void
+    def self.parallel_worker_process?: () -> bool
+    def self.time: [T] (String label) { () -> T } -> T
+    def self.wall_clock: () -> String
+  end
+end

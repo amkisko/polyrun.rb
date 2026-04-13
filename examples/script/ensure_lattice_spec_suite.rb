@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # Loaded from each example app's spec/spec_helper.rb before RSpec discovers *_spec.rb files.
 # Uses a lock so parallel run-shards workers serialize generation.
 require "fileutils"

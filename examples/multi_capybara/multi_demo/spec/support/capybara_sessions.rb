@@ -1,5 +1,5 @@
 # Named Capybara sessions for parallel "apps" in one Rails process (same host/port).
-# Playwright-backed system specs can use using_session(:admin) / :store / :platform (substrate-style multi-Capybara).
+# Playwright-backed system specs can use using_session(:admin) / :store / :platform (multiple Capybara sessions).
 #
 # Example:
 #   using_session(:admin) { visit admin_root_path }

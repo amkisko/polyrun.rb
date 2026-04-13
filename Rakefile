@@ -7,6 +7,11 @@ RuboCop::RakeTask.new(:rubocop) do |t|
   t.options = %w[--parallel]
 end
 
+desc "Validate RBS signatures under sig/"
+task :rbs do
+  sh "bundle exec rbs -I sig validate"
+end
+
 task default: :spec
 task ci: %i[spec rubocop]
 

@@ -103,7 +103,7 @@ RSpec.describe Polyrun::Coverage::Merge do
   end
 
   describe ".emit_cobertura" do
-    it "emits class and line elements with geninfo-style root metrics" do
+    it "emits class and line elements with geninfo root metrics" do
       xml = described_class.emit_cobertura({"/app/x.rb" => {"lines" => [nil, 3]}})
       expect(xml).to include("<!DOCTYPE coverage SYSTEM")
       expect(xml).to include('lines-valid="1"')

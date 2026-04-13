@@ -37,13 +37,13 @@ Shared assets, fixtures, database contention, and the Ruby GVL are covered in [T
 | Coverage across shards | `Polyrun::Coverage::Rails` in spec_helper → `coverage/polyrun-fragment-<shard>.json` → merge-coverage |
 | CPU-bound Ruby | Multi-process splits (`run-shards`), not threads alone |
 | Cached expensive fixture setup | `Polyrun::Data::CachedFixtures` (see fixtures_and_parallel_data.md) |
-| Serial vs parallel DB seeds | `Polyrun::Data::ParallelProvisioning` + `polyrun/rspec` |
+| Serial vs parallel DB seeds | `Polyrun::Data::ParallelProvisioning` + `polyrun/rspec` or `polyrun/minitest` |
 
 The [multi_capybara](multi_capybara/README.md) demo covers named Capybara sessions (admin, store, platform), Playwright options, and REST, GraphQL, and gRPC over the same domain—useful for coverage maps and partition splits under `spec/grpc`, `spec/requests`, `spec/integration`, and `spec/system`.
 
 ## Rails databases in every demo
 
-| Example | Primary + cache (SQLite) | Shard-style naming (`polyrun.yml` → Postgres) | Front-end asset sources |
+| Example | Primary + cache (SQLite) | Shard DB naming (`polyrun.yml` → Postgres) | Front-end asset sources |
 |--------|---------------------------|-----------------------------------------------|-------------------------|
 | [simple](simple/README.md) | Yes: `primary` + `cache`, `db/cache_migrate/` | Yes: `databases:` block | Propshaft only |
 | [multi_database](multi_database/README.md) | Same SQLite multi-DB layout | Yes: shared [docker-compose.yml](docker-compose.yml) + `bin/polyrun env` | Propshaft |

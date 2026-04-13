@@ -5,12 +5,12 @@ Gem::Specification.new do |spec|
   spec.version = Polyrun::VERSION
   spec.authors = ["Andrei Makarov"]
   spec.email = ["contact@kiskolabs.com"]
-  spec.summary = "Parallel tests, coverage (SimpleCov-shaped) formatters, fixtures/snapshots, assets & DB provisioning—zero runtime deps"
+  spec.summary = "Parallel tests, coverage (SimpleCov-compatible) formatters, fixtures/snapshots, assets & DB provisioning—zero runtime deps"
   spec.homepage = "https://github.com/amkisko/polyrun.rb"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.1.0"
 
-  spec.files = Dir["lib/**/*", "bin/polyrun", "README.md", "docs/SETUP_PROFILE.md", "LICENSE", "CONTRIBUTING.md", "CODE_OF_CONDUCT.md", "SECURITY.md", "polyrun.gemspec"].reject { |f| File.directory?(f) }
+  spec.files = Dir["lib/**/*", "sig/**/*.rbs", "bin/polyrun", "README.md", "docs/SETUP_PROFILE.md", "LICENSE", "CONTRIBUTING.md", "CODE_OF_CONDUCT.md", "SECURITY.md", "polyrun.gemspec"].reject { |f| File.directory?(f) }
   spec.bindir = "bin"
   spec.executables = ["polyrun"]
   spec.require_paths = ["lib"]
@@ -33,4 +33,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "standard-performance", "~> 1.8"
   spec.add_development_dependency "rubocop-rspec", "~> 3.8"
   spec.add_development_dependency "rubocop-thread_safety", "~> 0.7"
+  spec.add_development_dependency "rbs", ">= 3.5"
 end

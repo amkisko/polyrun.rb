@@ -79,4 +79,64 @@ RSpec.describe Polyrun::Database::UrlBuilder do
     )
     expect(described_class.template_database_name_for(dh_multi, connection: "cache")).to eq("app_tpl")
   end
+
+  it "builds mysql2 URLs when mysql block is present" do
+    dh_mysql = {
+      "template_db" => "tpl",
+      "shard_db_pattern" => "app_test_%{shard}",
+      "mysql" => {"host" => "127.0.0.1", "port" => "3306", "username" => "root"}
+    }
+    u = described_class.url_for_shard(dh_mysql, shard_index: 1)
+    expect(u).to start_with("mysql2://root@127.0.0.1:3306/")
+    expect(u).to end_with("/app_test_1")
+  end
+
+  it "builds mongodb URLs when mongo block is present" do
+    dh_m = {
+      "template_db" => "tpl",
+      "shard_db_pattern" => "app_test_%{shard}",
+      "mongo" => {"host" => "127.0.0.1", "port" => "27017"}
+    }
+    u = described_class.url_for_shard(dh_m, shard_index: 0)
+    expect(u).to eq("mongodb://127.0.0.1:27017/app_test_0")
+  end
+
+  it "respects explicit adapter with top-level host" do
+    dh_flat = {
+      "adapter" => "mysql2",
+      "host" => "db.internal",
+      "mysql2" => {"username" => "u", "password" => "p"}
+    }
+    u = described_class.url_for_database_name(dh_flat, "mydb")
+    expect(u).to eq("mysql2://u:p@db.internal:3306/mydb")
+  end
+
+  it "builds sqlserver URLs" do
+    dh = {
+      "shard_db_pattern" => "app_%{shard}",
+      "sqlserver" => {"host" => "db", "port" => "1433", "username" => "sa", "password" => "x"}
+    }
+    u = described_class.url_for_shard(dh, shard_index: 1)
+    expect(u).to eq("sqlserver://sa:x@db:1433/app_1")
+  end
+
+  it "builds trilogy URLs" do
+    dh = {
+      "shard_db_pattern" => "t_%{shard}",
+      "trilogy" => {"host" => "127.0.0.1", "username" => "root"}
+    }
+    u = described_class.url_for_shard(dh, shard_index: 0)
+    expect(u).to start_with("trilogy://root@127.0.0.1:3306/")
+    expect(u).to end_with("/t_0")
+  end
+
+  it "builds sqlite3 URLs and extract_db_name" do
+    dh = {
+      "shard_db_pattern" => "db/app_test_%{shard}.sqlite3",
+      "sqlite3" => {}
+    }
+    u = described_class.url_for_shard(dh, shard_index: 2)
+    expect(u).to eq("sqlite3:db/app_test_2.sqlite3")
+    expect(described_class.extract_db_name(u)).to eq("db/app_test_2.sqlite3")
+  end
 end

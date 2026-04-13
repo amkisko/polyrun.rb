@@ -11,7 +11,7 @@
 ## Assets and browser tests
 
 - **Propshaft** + `app/assets/stylesheets/application.css` (no Node required for the default flow).
-- **RSpec** + **Capybara** + **capybara-playwright-driver** (Chromium). System specs run with **Playwright** when the CLI is detected; otherwise they **skip** (install Playwright per below — do not use a `SKIP_PLAYWRIGHT`-style opt-out).
+- **RSpec** + **Capybara** + **capybara-playwright-driver** (Chromium). System specs run with **Playwright** when the CLI is detected; otherwise they **skip** (install Playwright per below — do not fake a `SKIP_PLAYWRIGHT` escape hatch).
 
 ## Polyrun::Data (fixtures / parallel hooks)
 
@@ -28,7 +28,7 @@ The demo includes **`spec/support/polyrun_parallel_data.rb`** and **`Polyrun::RS
 | Coverage fragments | `spec/spec_helper.rb` → `Polyrun::Coverage::Rails.start!`, optional `config/polyrun_coverage.yml` |
 | Shard index → fragment name | `POLYRUN_SHARD_INDEX` → `coverage/polyrun-fragment-<shard>.json` |
 | Partition + parallel | `polyrun.yml` → `partition.paths_file`, `run-shards` (default strategy: **`round_robin`**; see **[../partition_strategies/README.md](../partition_strategies/README.md)** for others) |
-| DB naming for shards | `polyrun.yml` → `databases` (Postgres-style template + pattern) |
+| DB naming for shards | `polyrun.yml` → `databases` (PostgreSQL template + pattern) |
 
 ## Commands
 

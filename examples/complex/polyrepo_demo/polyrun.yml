@@ -1,4 +1,4 @@
-# Polyrun: dual Vite roots + partition / prepare / shard DB pattern (Postgres-style names for polyrun env).
+# Polyrun: dual Vite roots + partition / prepare / shard DB pattern (PostgreSQL names for polyrun env).
 partition:
   paths_file: spec/paths.txt
   shard_total: 4

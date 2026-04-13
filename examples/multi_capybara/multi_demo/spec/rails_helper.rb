@@ -76,7 +76,7 @@ RSpec.configure do |config|
 
   config.infer_spec_type_from_file_location!
 
-  # Mailers and URL helpers in system specs see the Capybara server host (substrate pattern).
+  # Mailers and URL helpers in system specs use the Capybara server host.
   config.around(:each, type: :system) do |example|
     was = Rails.application.default_url_options[:host]
     Rails.application.default_url_options[:host] = Capybara.server_host

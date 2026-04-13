@@ -35,7 +35,7 @@ Parallel + merged coverage matches other demos: **`polyrun.yml`** → **`run-sha
 ## `polyrepo/` (sketches)
 
 - **`polyrun.yml`** — example partition / `prepare.rails_root` pointing at **`polyrepo_demo`** (adjust paths when wiring CI).
-- **`docker-compose.yml`** — optional Postgres/Redis for shard-style naming.
+- **`docker-compose.yml`** — optional Postgres/Redis for shard DB naming.
 - **`spec/all_paths.txt`** — example path list for **`plan`**.
 
 ## See also

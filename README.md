@@ -1,6 +1,6 @@
 # Polyrun
 
-Ruby gem for parallel test runs, merged coverage (SimpleCov-shaped JSON to JSON, LCOV, Cobertura, or console output), CI reporting (JUnit, timing), and parallel-test hygiene (fixtures, snapshots, per-shard databases, asset preparation). Ship it as one development dependency: no runtime gem dependencies beyond the standard library and vendored code.
+Ruby gem for parallel test runs, merged coverage (SimpleCov-compatible JSON to JSON, LCOV, Cobertura, or console output), CI reporting (JUnit, timing), and parallel-test hygiene (fixtures, snapshots, per-shard databases, asset preparation). Ship it as one development dependency: no runtime gem dependencies beyond the standard library and vendored code.
 
 ## Why?
 
@@ -9,9 +9,10 @@ Running tests in parallel across processes still requires a single merged covera
 Polyrun provides:
 
 - Orchestration: `plan`, `run-shards`, and `parallel-rspec` (run-shards plus merge-coverage), with an optional on-disk queue and constraints for file lists and load balancing.
-- Coverage: merge SimpleCov-shaped JSON fragments; emit JSON, LCOV, Cobertura, or console summaries (you can drop separate SimpleCov merge plugins for this path).
+- Coverage: merge SimpleCov-compatible JSON fragments; emit JSON, LCOV, Cobertura, or console summaries (you can drop separate SimpleCov merge plugins for this path).
 - CI reporting: JUnit XML from RSpec JSON; slow-file reports from merged timing JSON.
 - Parallel hygiene: asset digest markers, SQL snapshots, YAML fixture batches, and DB URL or shard helpers aligned with `POLYRUN_SHARD_*`.
+- Optional **`polyrun quick`**: `Polyrun::Quick` — nested `describe`, `it` / `test`, `before` / `after`, `let` / `let!`, `expect(x).to …` matchers, `assert_*` (Minitest-like), and optional **`Polyrun::Quick.capybara!`** (extends `Capybara::DSL` when the **capybara** gem is loaded). Stdlib-only in Polyrun itself. Coverage uses the same `Polyrun::Coverage::Collector` path as RSpec when `POLYRUN_COVERAGE=1` or `config/polyrun_coverage.yml` is present (not when `POLYRUN_COVERAGE_DISABLE=1`).
 - No runtime gems in the gemspec: stdlib and vendored pieces only.
 
 Capybara and Playwright stay in your application; Polyrun does not replace browser drivers.
@@ -34,9 +35,10 @@ bin/polyrun build-paths   # write spec/spec_paths.txt from partition.paths_build
 bin/polyrun parallel-rspec --workers 5   # run-shards + merge-coverage (default: bundle exec rspec)
 bin/polyrun run-shards --workers 5 --merge-coverage -- bundle exec rspec
 bin/polyrun merge-coverage -i cov1.json -i cov2.json -o merged.json --format json,lcov,cobertura,console
-bin/polyrun env --shard 0 --total 4   # print DATABASE_URL-style exports from polyrun.yml in cwd
+bin/polyrun env --shard 0 --total 4   # print DATABASE_URL exports from polyrun.yml in cwd
 bin/polyrun init --list
 bin/polyrun init --profile gem -o polyrun.yml   # starter YAML; see docs/SETUP_PROFILE.md
+bin/polyrun quick   # Polyrun::Quick examples under spec/polyrun_quick/ or test/polyrun_quick/
 ```
 
 ### Adopting Polyrun (setup profile and scaffolds)
@@ -50,28 +52,40 @@ Runnable Rails demos (multi-DB, Vite, Capybara, Docker, Postgres sketches) live 
 
 ## Library (after `require "polyrun"`)
 
+That single require loads the CLI and core library **without** loading RSpec or Minitest. Optional integrations (use only what your app needs):
+
+- `require "polyrun/rspec"` — `Polyrun::RSpec` registers `ParallelProvisioning` in `before(:suite)` (your app must use RSpec).
+- `require "polyrun/minitest"` — `Polyrun::Minitest` is a thin alias for `ParallelProvisioning.run_suite_hooks!` (does not `require "minitest"`).
+- `require "polyrun/reporting/rspec_junit"` — `Polyrun::Reporting::RspecJunit` adds RSpec’s JSON formatter and writes JUnit on exit; RSpec is loaded only inside `RspecJunit.install!`.
+
 | API | Purpose |
 |-----|---------|
+| `Polyrun::Quick` (`require "polyrun/quick"`) | Nested `describe`; `it` / `test`; `before` / `after`; `let` / `let!`; `expect(x).to eq` / `be_truthy` / `be_falsey` / `match` / `include`; `assert_*`. Call `Polyrun::Quick.capybara!` after `require "capybara"` (and configure `Capybara.app` in your app) to use `visit`, `page`, etc. Run: `polyrun quick` (defaults: `spec/polyrun_quick/**/*.rb`, `test/polyrun_quick/**/*.rb`). |
+| `Polyrun::Log` | Swappable stderr/stdout for all CLI and library messages. Set `Polyrun.stderr` / `Polyrun.stdout` (or `Polyrun::Log.stderr` / `stdout`) to an `IO`, `StringIO`, or Ruby `Logger`. `Polyrun::Log.reset_io!` clears custom sinks. |
 | `Polyrun::Coverage::Merge` | Merge fragments; formatters for JSON, LCOV, Cobertura, console summary. |
 | `Polyrun::Coverage::Collector` | Stdlib `Coverage` → JSON fragment (`POLYRUN_COVERAGE_DISABLE` to skip); `track_under: %w[lib app]`, filters, optional % gate. |
 | `Polyrun::Coverage::Reporting` | Write all formats to a directory from a blob or merged JSON file. |
-| `Polyrun::Reporting::JUnit` | RSpec `--format json` output or Polyrun testcase JSON → JUnit XML (CI). |
+| `Polyrun::Reporting::JUnit` | RSpec `--format json` output or Polyrun testcase JSON → JUnit XML (CI). For RSpec formatter wiring see `Polyrun::Reporting::RspecJunit` (`require "polyrun/reporting/rspec_junit"`). |
 | `Polyrun::Timing::Summary` | Text report of slowest files from merged `polyrun_timing.json`. |
 | `Polyrun::Data::Fixtures` | YAML table batches (`each_table`, `load_directory`, optional `apply_insert_all!` with ActiveRecord). |
-| `Polyrun::Data::CachedFixtures` | Process-local memoized fixture blocks (AnyFixture-style `register` / `fetch`, stats, `reset!`). |
+| `Polyrun::Data::CachedFixtures` | Process-local memoized fixture blocks (`register` / `fetch`, stats, `reset!`). |
 | `Polyrun::Data::ParallelProvisioning` | Serial vs parallel-worker suite hooks from `POLYRUN_SHARD_*` / `TEST_ENV_NUMBER`. |
 | `Polyrun::Data::FactoryInstrumentation` | Opt-in FactoryBot patch → `FactoryCounts` (after `require "factory_bot"`). |
 | `Polyrun::Data::SqlSnapshot` | PostgreSQL `pg_dump` / `psql` snapshots under `spec/fixtures/sql_snapshots/`. |
 | `Polyrun::Data::FactoryCounts` | Factory/build counters + summary text. |
 | `Polyrun::RSpec` (`require "polyrun/rspec"`) | `install_parallel_provisioning!` → `before(:suite)` hooks. |
+| `Polyrun::Minitest` (`require "polyrun/minitest"`) | `install_parallel_provisioning!` → same as `ParallelProvisioning.run_suite_hooks!` (no Minitest gem dependency). |
+| `Polyrun::Reporting::RspecJunit` (`require "polyrun/reporting/rspec_junit"`) | CI: RSpec JSON formatter + JUnit from `install!` (RSpec loaded only there). |
 | `Polyrun::Prepare::Assets` | Digest trees, marker file, `assets:precompile`. |
-| `Polyrun::Database::Shard` | Shard env map, `%{shard}` DB names, Postgres URL suffix. |
+| `Polyrun::Database::Shard` | Shard env map, `%{shard}` DB names, URL path suffix for `postgres://`, `mysql2://`, `mongodb://`, etc. |
+| `Polyrun::Database::UrlBuilder` | URLs from `polyrun.yml` `databases:` — nested blocks or `adapter:` for common Rails stacks (`postgresql`, `mysql`/`mysql2`, `trilogy`, `sqlserver`/`mssql`, `sqlite3`/`sqlite`, `mongodb`/`mongo`). |
 
 ## Development
 
 ```bash
 bundle install
 bundle exec rake spec
+bundle exec rake rbs   # optional: validate RBS in sig/
 bundle exec rake ci   # RSpec + RuboCop
 ```
 
@@ -102,11 +116,12 @@ bin/polyrun report-timing -i polyrun_timing.json --top 20
 bin/polyrun plan --shard 0 --total 4   # polyrun.yml in cwd
 bin/polyrun prepare --recipe assets --dry-run
 bin/polyrun parallel-rspec --workers 4
+bin/polyrun quick spec/polyrun_quick/smoke.rb
 ```
 
 `polyrun.yml` can set `partition.*`, `prepare.recipe` (`default` or `assets`), `prepare.rails_root`, and related keys. `POLYRUN_SHARD_*` overrides configuration where documented; CLI flags override environment variables.
 
-Shard index and total in CI (`Polyrun::Env::Ci`): when set, `POLYRUN_SHARD_INDEX` and `POLYRUN_SHARD_TOTAL` take precedence. Otherwise `CI_NODE_INDEX` and `CI_NODE_TOTAL` apply when `CI` is set (GitLab defines these; the code is not GitLab-specific), along with Buildkite and Circle CI variables. GitHub Actions does not set `CI_NODE_*` by default—set `POLYRUN_*` from the job matrix.
+Shard index and total in CI (`Polyrun::Env::Ci`): when set, `POLYRUN_SHARD_INDEX` and `POLYRUN_SHARD_TOTAL` take precedence. When `CI` is truthy, `CI_NODE_INDEX` / `CI_NODE_TOTAL` and other parallel-job environment variables are read if present. If your runner does not export those, set `POLYRUN_SHARD_*` from the job matrix.
 
 File queue (`polyrun queue …`): batches live on disk under a lock file; paths move from `pending` to `leases` on claim and to `done` on ack. There is no lease TTL: if a worker dies after claiming, paths remain in `leases` until you recover them (manually or with a future reclaim command).
 
@@ -114,7 +129,7 @@ File queue (`polyrun queue …`): batches live on disk under a lock file; paths 
 
 See [`examples/README.md`](examples/README.md) for Rails apps (Capybara, Playwright, Vite, multi-database, Docker Compose, polyrepo). Parallel CI practices: [`examples/TESTING_REQUIREMENTS.md`](examples/TESTING_REQUIREMENTS.md). Behavioral contracts: `spec/polyrun/mandatory_parallel_support_spec.rb`.
 
-You can replace SimpleCov and simplecov plugins, parallel_tests, and rspec_junit_formatter with Polyrun for those roles. TestProf-style workflows can use `merge-timing`, `report-timing`, and `Data::FactoryCounts` (optionally with `Data::FactoryInstrumentation`). Oaken-style YAML and bulk-insert patterns can use `Data::Fixtures` and `ParallelProvisioning` for shard-aware seeding; the Oaken Ruby DSL is not replicated—wire your own `truncate` and `load_seed` in hooks.
+You can replace SimpleCov and simplecov plugins, parallel_tests, and rspec_junit_formatter with Polyrun for those roles. Use `merge-timing`, `report-timing`, and `Data::FactoryCounts` (optionally with `Data::FactoryInstrumentation`) for slow-file and factory metrics. YAML fixture batches and bulk inserts can use `Data::Fixtures` and `ParallelProvisioning` for shard-aware seeding; wire your own `truncate` and `load_seed` in hooks.
 
 ---
 

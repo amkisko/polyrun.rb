@@ -1,0 +1,12 @@
+module Polyrun
+  module Log
+    def self.stderr=: (untyped io) -> void
+    def self.stderr: () -> untyped
+    def self.stdout=: (untyped io) -> void
+    def self.stdout: () -> untyped
+    def self.warn: (?untyped? msg) -> void
+    def self.puts: (?untyped? msg) -> void
+    def self.print: (?String msg) -> void
+    def self.reset_io!: () -> void
+  end
+end

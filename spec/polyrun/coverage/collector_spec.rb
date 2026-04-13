@@ -73,6 +73,67 @@ RSpec.describe Polyrun::Coverage::Collector do
     end
   end
 
+  describe ".coverage_requested_for_quick?" do
+    around do |example|
+      old_cov = ENV["POLYRUN_COVERAGE"]
+      old_dis = ENV["POLYRUN_COVERAGE_DISABLE"]
+      old_simple = ENV["SIMPLECOV_DISABLE"]
+      example.run
+      if old_cov
+        ENV["POLYRUN_COVERAGE"] = old_cov
+      else
+        ENV.delete("POLYRUN_COVERAGE")
+      end
+      if old_dis
+        ENV["POLYRUN_COVERAGE_DISABLE"] = old_dis
+      else
+        ENV.delete("POLYRUN_COVERAGE_DISABLE")
+      end
+      if old_simple
+        ENV["SIMPLECOV_DISABLE"] = old_simple
+      else
+        ENV.delete("SIMPLECOV_DISABLE")
+      end
+    end
+
+    it "is false when disabled" do
+      ENV["POLYRUN_COVERAGE"] = "1"
+      ENV["POLYRUN_COVERAGE_DISABLE"] = "1"
+      expect(described_class.coverage_requested_for_quick?(Dir.pwd)).to be false
+    end
+
+    it "is false when SIMPLECOV_DISABLE=1" do
+      ENV["POLYRUN_COVERAGE"] = "1"
+      ENV.delete("POLYRUN_COVERAGE_DISABLE")
+      ENV["SIMPLECOV_DISABLE"] = "1"
+      expect(described_class.coverage_requested_for_quick?(Dir.pwd)).to be false
+    end
+
+    it "is true when POLYRUN_COVERAGE=1" do
+      ENV["POLYRUN_COVERAGE"] = "1"
+      ENV.delete("POLYRUN_COVERAGE_DISABLE")
+      expect(described_class.coverage_requested_for_quick?(Dir.pwd)).to be true
+    end
+
+    it "is true when config/polyrun_coverage.yml exists" do
+      ENV.delete("POLYRUN_COVERAGE")
+      ENV.delete("POLYRUN_COVERAGE_DISABLE")
+      Dir.mktmpdir do |dir|
+        FileUtils.mkdir_p(File.join(dir, "config"))
+        File.write(File.join(dir, "config", "polyrun_coverage.yml"), "{}\n")
+        expect(described_class.coverage_requested_for_quick?(dir)).to be true
+      end
+    end
+
+    it "is false when unset and no config file" do
+      ENV.delete("POLYRUN_COVERAGE")
+      ENV.delete("POLYRUN_COVERAGE_DISABLE")
+      Dir.mktmpdir do |dir|
+        expect(described_class.coverage_requested_for_quick?(dir)).to be false
+      end
+    end
+  end
+
   describe ".branch_coverage_enabled?" do
     around do |example|
       old = ENV["POLYRUN_COVERAGE_BRANCHES"]

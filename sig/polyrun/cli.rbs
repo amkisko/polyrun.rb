@@ -1,0 +1,6 @@
+module Polyrun
+  class CLI
+    def self.run: (?::Array[String] argv) -> Integer
+    def run: (::Array[String] argv) -> Integer
+  end
+end

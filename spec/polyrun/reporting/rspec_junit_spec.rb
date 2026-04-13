@@ -1,4 +1,5 @@
 require "spec_helper"
+require "polyrun/reporting/rspec_junit"
 
 RSpec.describe Polyrun::Reporting::RspecJunit do
   describe ".install!" do

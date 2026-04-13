@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# Large-suite merge benchmark (SimpleCov-shaped blobs).
+# Large-suite merge benchmark (SimpleCov-compatible blobs).
 #
 # Usage (from repo root):
 #   ruby benchmark/merge_coverage.rb

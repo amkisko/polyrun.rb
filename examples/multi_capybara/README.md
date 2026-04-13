@@ -1,11 +1,11 @@
 # Multi-Capybara / dual Vite example
 
-**`multi_demo`** — Rails app with **multiple databases** (**`primary`** + **`cache`**, same SQLite layout as **`examples/multi_database`**) plus **two separate front-end build pipelines** and a **super-platform** demo hub (**`/platform`**) with business-style verticals (banking, clinic, library, ledger, blog, forum, assistant, analytics) for realistic coverage stories.
+**`multi_demo`** — Rails app with **multiple databases** (**`primary`** + **`cache`**, same SQLite layout as **`examples/multi_database`**) plus **two separate front-end build pipelines** and a **super-platform** demo hub (**`/platform`**) with business verticals (banking, clinic, library, ledger, blog, forum, assistant, analytics) for realistic coverage stories.
 
 - **`/admin`** and **`/store`** namespaces with compiled bundles under `public/admin` and `public/store`.
-- **Two Vite projects**: `admin/vite.config.ts` and `store/vite.config.ts` (TypeScript entrypoints — **React**-style client components are represented as TS bundles; add `react` npm deps in a real app).
+- **Two Vite projects**: `admin/vite.config.ts` and `store/vite.config.ts` (TypeScript entrypoints — client components as TS bundles; add `react` npm deps in a real app).
 - **npm** scripts: `npm run build` builds both; checked-in `public/` assets let `bundle exec rspec` pass without Node.
-- **Capybara** named sessions `using_session(:admin)` / `:store` / `:platform` (substrate-style **multiple Capybaras** on one Puma server; requires Playwright — see below).
+- **Capybara** named sessions `using_session(:admin)` / `:store` / `:platform` (**multiple Capybara sessions** on one Puma server; requires Playwright — see below).
 
 For an **Angular** + **Vite** polyrepo (separate CLI, AoT, `angular.json`), see **`../complex/README.md`** (`apps/ops-console` sketch).
 
@@ -40,7 +40,7 @@ bundle exec polyrun -c polyrun.yml parallel-rspec --workers 4
 
 Each frontend can have its own dependencies, env, and build pipeline (e.g. admin vs storefront). Rails serves compiled assets from `public/`; `bin/dev` can run `vite` in watch mode per app if you add a Procfile.
 
-## Multi-Capybara + Playwright (production-style wiring)
+## Multi-Capybara + Playwright (production wiring)
 
 Large apps typically wire Playwright with optional browser types, **suite-level** asset/Playwright prep, and **URL options** for mailers. This demo mirrors those patterns:
 

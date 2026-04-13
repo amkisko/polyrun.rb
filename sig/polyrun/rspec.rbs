@@ -1,0 +1,5 @@
+module Polyrun
+  module RSpec
+    def self.install_parallel_provisioning!: (untyped rspec_config) -> void
+  end
+end

@@ -1,0 +1,20 @@
+module Polyrun
+  class Config
+    DEFAULT_FILENAMES: Array[String]
+
+    attr_reader path: String?
+    attr_reader raw: untyped
+
+    def self.load: (?path: String?) -> Config
+    def self.resolve_path: (String? explicit) -> String?
+
+    def initialize: (path: String?, raw: untyped) -> void
+
+    def partition: () -> untyped
+    def prepare: () -> untyped
+    def coverage: () -> untyped
+    def databases: () -> untyped
+    def start_config: () -> untyped
+    def version: () -> untyped
+  end
+end

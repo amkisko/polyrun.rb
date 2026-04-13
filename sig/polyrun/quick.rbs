@@ -1,0 +1,19 @@
+module Polyrun
+  module Quick
+    class Error < Polyrun::Error
+    end
+
+    class AssertionFailed < Quick::Error
+    end
+
+    def self.capybara!: () -> void
+
+    def self.capybara?: () -> bool
+
+    def self.reset_capybara_flag!: () -> void
+
+    class Runner
+      def self.run: (?paths: untyped?, ?out: untyped, ?err: untyped, ?verbose: bool) -> Integer
+    end
+  end
+end

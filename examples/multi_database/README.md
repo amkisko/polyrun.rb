@@ -4,7 +4,7 @@
 
 - **Rails multiple databases**: **`primary`** + **`cache`** (separate SQLite files, `db/cache_migrate/`).
 - **`CacheRecord` / `CacheEntry`** on the **cache** database.
-- **`polyrun.yml`**: **`partition`** (paths, shard index/total), **`prepare`**, **`databases`** for **PostgreSQL**-style shard DB names when using `bin/polyrun env` in real CI.
+- **`polyrun.yml`**: **`partition`** (paths, shard index/total), **`prepare`**, **`databases`** for **PostgreSQL** shard DB names when using `bin/polyrun env` in real CI.
 
 This directory is also the **target of `examples/cost_balancing/rails_demo`** (symlink) so cost-based partitioning demos share one Rails tree.
 

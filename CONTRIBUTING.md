@@ -39,6 +39,17 @@ bundle exec rubocop -a   # safe autocorrect
 bundle exec rake rubocop
 ```
 
+## RBS
+
+Type signatures live under `sig/` and ship with the gem. Validate them after changes:
+
+```bash
+bundle exec rake rbs
+# equivalent: bundle exec rbs -I sig validate
+```
+
+Keep `require "polyrun"` free of RSpec/Minitest: optional wiring stays in `polyrun/rspec`, `polyrun/minitest`, and `polyrun/reporting/rspec_junit` (see README).
+
 [Trunk](https://trunk.io/) aggregates RuboCop, YAML, Markdown, shellcheck, and more (see `.trunk/trunk.yaml`):
 
 ```bash

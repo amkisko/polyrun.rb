@@ -4,10 +4,10 @@ Polyrun ships optional helpers for **parallel test processes** (same model as `r
 
 | Module | Purpose |
 |--------|---------|
-| **`Polyrun::Data::CachedFixtures`** | Process-local memoization for expensive setup (`fetch` / `register`); same idea as TestProf AnyFixture. |
-| **`Polyrun::Data::ParallelProvisioning`** | **`serial`** vs **`parallel_worker`** hooks for DB seeds / truncate (Oaken + parallel_tests style). |
+| **`Polyrun::Data::CachedFixtures`** | Process-local memoization for expensive setup (`fetch` / `register`). |
+| **`Polyrun::Data::ParallelProvisioning`** | **`serial`** vs **`parallel_worker`** hooks for DB seeds / truncate. |
 | **`Polyrun::Data::FactoryInstrumentation`** | Opt-in FactoryBot hook → **`FactoryCounts`** (needs **`factory_bot`** gem). |
-| **`Polyrun::Data::Fixtures`** | Load YAML fixture batches and `insert_all`-style apply (optional ActiveRecord). |
+| **`Polyrun::Data::Fixtures`** | Load YAML fixture batches and bulk `insert_all` apply (optional ActiveRecord). |
 | **`Polyrun::Data::SqlSnapshot`** | `pg_dump` / `psql` snapshots without the `pg` gem. |
 
 ## Runnable demo
@@ -15,7 +15,7 @@ Polyrun ships optional helpers for **parallel test processes** (same model as `r
 **[simple/simple_demo](simple/simple_demo/README.md)** wires:
 
 - **`spec/support/polyrun_parallel_data.rb`** — `ParallelProvisioning.configure` (empty hooks you can fill).
-- **`spec/rails_helper.rb`** — `require "polyrun/rspec"` + **`Polyrun::RSpec.install_parallel_provisioning!(config)`** so hooks run in **`before(:suite)`**.
+- **`spec/rails_helper.rb`** — `require "polyrun/rspec"` + **`Polyrun::RSpec.install_parallel_provisioning!(config)`** so hooks run in **`before(:suite)`**. For Minitest, `require "polyrun/minitest"` and call **`Polyrun::Minitest.install_parallel_provisioning!`** from **`test/test_helper.rb`** after configuration (or call **`ParallelProvisioning.run_suite_hooks!`** directly).
 - **`spec/polyrun/polyrun_data_optimizations_spec.rb`** — **`CachedFixtures`** memoization example.
 
 Run:

@@ -43,7 +43,7 @@ RSpec.describe Polyrun::Partition::PathsBuild do
       end
     end
 
-    it "takes regex stage first then remainder (rails-style)" do
+    it "takes regex stage first then remainder (Rails paths convention)" do
       Dir.mktmpdir do |dir|
         FileUtils.mkdir_p(File.join(dir, "spec"))
         File.write(File.join(dir, "spec", "my_federation_controller_spec.rb"), "")

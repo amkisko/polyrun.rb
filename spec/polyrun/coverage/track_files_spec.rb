@@ -34,7 +34,7 @@ RSpec.describe Polyrun::Coverage::TrackFiles do
   end
 
   describe ".group_summaries" do
-    it "builds SimpleCov-shaped group stats and Ungrouped" do
+    it "builds SimpleCov-compatible group stats and Ungrouped" do
       root = "/project"
       blob = {
         "/project/lib/a.rb" => {"lines" => [nil, 1]},

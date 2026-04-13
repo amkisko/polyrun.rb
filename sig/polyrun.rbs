@@ -1,0 +1,11 @@
+module Polyrun
+  VERSION: String
+
+  class Error < StandardError
+  end
+
+  def self.stderr=: (untyped io) -> void
+  def self.stderr: () -> untyped
+  def self.stdout=: (untyped io) -> void
+  def self.stdout: () -> untyped
+end
