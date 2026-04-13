@@ -1,0 +1,19 @@
+/.bundle/
+/vendor/bundle
+/coverage/
+/tmp/
+*.gem
+Gemfile.lock
+
+# Example apps (Rails + npm)
+/examples/**/log/
+/examples/**/tmp/
+/examples/**/storage/
+/examples/**/node_modules/
+/examples/**/public/vite*
+
+# Appraisal
+/gemfiles/*.lock
+
+# RuboCop
+.rubocop_todo.yml

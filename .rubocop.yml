@@ -1,0 +1,157 @@
+inherit_from: .rubocop_todo.yml
+
+inherit_mode:
+  merge:
+    - Exclude
+
+require:
+  - standard
+
+plugins:
+  - standard-custom
+  - standard-performance
+  - rubocop-rspec
+  - rubocop-thread_safety
+
+inherit_gem:
+  standard: config/base.yml
+  standard-performance: config/base.yml
+  standard-custom: config/base.yml
+  rubocop-rspec: config/default.yml
+
+AllCops:
+  SuggestExtensions: false
+  TargetRubyVersion: 3.1
+  NewCops: enable
+  Exclude:
+    - bin/**/*
+    - benchmark/**/*
+    - examples/**/*
+    - tmp/**/*
+    - vendor/**/*
+    - coverage/**/*
+    - gemfiles/**/*
+    - .git/**/*
+    - node_modules/**/*
+
+RSpec/ExampleLength:
+  Max: 80
+
+RSpec/SpecFilePathFormat:
+  Enabled: false
+
+RSpec/HooksBeforeExamples:
+  Enabled: false
+
+RSpec/MultipleMemoizedHelpers:
+  Max: 16
+
+RSpec/NestedGroups:
+  Max: 5
+
+RSpec/RepeatedExample:
+  Enabled: false
+
+RSpec/DescribeClass:
+  Enabled: false
+
+RSpec/VerifiedDoubles:
+  Enabled: false
+
+RSpec/BeforeAfterAll:
+  Exclude:
+    - spec/**/*_spec.rb
+
+RSpec/MultipleExpectations:
+  Exclude:
+    - spec/**/*
+
+RSpec/InstanceVariable:
+  Exclude:
+    - spec/**/*
+
+RSpec/MessageSpies:
+  Exclude:
+    - spec/**/*
+
+RSpec/LeakyConstantDeclaration:
+  Enabled: false
+
+RSpec/RemoveConst:
+  Enabled: false
+
+RSpec/AnyInstance:
+  Enabled: false
+
+RSpec/VerifiedDoubleReference:
+  Enabled: false
+
+RSpec/BeEq:
+  Exclude:
+    - spec/**/*
+
+RSpec/ExpectChange:
+  Exclude:
+    - spec/**/*
+
+RSpec/ReceiveMessages:
+  Exclude:
+    - spec/**/*
+
+RSpec/DescribedClass:
+  Exclude:
+    - spec/**/*
+
+ThreadSafety/NewThread:
+  Exclude:
+    - spec/**/*
+
+Lint/ConstantDefinitionInBlock:
+  Exclude:
+    - spec/**/*
+
+Style/AccessModifierDeclarations:
+  EnforcedStyle: inline
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Lint/UselessAssignment:
+  Enabled: false
+
+ThreadSafety/DirChdir:
+  Exclude:
+    - "*.gemspec"
+
+Lint/Debugger:
+  Enabled: true
+  Exclude: []
+
+RSpec/Focus:
+  Enabled: true
+  Exclude: []
+
+Metrics/ModuleLength:
+  Enabled: true
+  CountAsOne: [array, hash, heredoc, method_call]
+  Max: 200
+Metrics/ClassLength:
+  Enabled: true
+  CountAsOne: [array, hash, heredoc, method_call]
+  Max: 200
+Metrics/CyclomaticComplexity:
+  Enabled: true
+  Max: 12
+  Exclude:
+    - lib/polyrun/cli/**/*.rb
+Metrics/PerceivedComplexity:
+  Enabled: true
+  Max: 12
+  Exclude:
+    - lib/polyrun/cli/**/*.rb
+Metrics/AbcSize:
+  Enabled: true
+  Max: 25
+  CountRepeatedAttributes: false
+  Exclude:
+    - lib/polyrun/cli/**/*.rb
