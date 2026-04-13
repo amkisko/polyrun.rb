@@ -21,26 +21,26 @@ module Polyrun
           return 2
         end
 
-        urls = Polyrun::Database::UrlBuilder.unique_template_migrate_urls(dh)
-        if urls.empty?
-          Polyrun::Log.warn "db:setup-template: set databases.template_db (and optional connections[].template_db)"
+        begin
+          te = Polyrun::Database::UrlBuilder.template_prepare_env(dh)
+        rescue Polyrun::Error => e
+          Polyrun::Log.warn "db:setup-template: #{e.message}"
           return 2
         end
 
         if dry
-          urls.each do |url|
-            Polyrun::Log.warn "would: RAILS_ENV=test DATABASE_URL=#{url} bin/rails db:migrate"
-          end
+          log = Polyrun::Database::UrlBuilder.template_prepare_env_shell_log(dh)
+          Polyrun::Log.warn "would: RAILS_ENV=test #{log} bin/rails db:prepare"
           return 0
         end
 
-        urls.each do |url|
-          Polyrun::Database::Provision.migrate_template!(
-            rails_root: File.expand_path(rails_root),
-            database_url: url,
-            silent: !@verbose
-          )
-        end
+        child_env = ENV.to_h.merge(te)
+        child_env["RAILS_ENV"] ||= ENV["RAILS_ENV"] || "test"
+        Polyrun::Database::Provision.prepare_template!(
+          rails_root: File.expand_path(rails_root),
+          env: child_env,
+          silent: !@verbose
+        )
         0
       end
 
@@ -102,7 +102,7 @@ module Polyrun
           opts.on("--workers N", Integer) { |v| workers = v }
           opts.on("--dry-run", "Print only") { dry = true }
           opts.on("--rails-root PATH", String) { |v| rails_root = v }
-          opts.on("--no-migrate", "Skip db:migrate on template databases") { migrate = false }
+          opts.on("--no-migrate", "Skip db:prepare on template databases") { migrate = false }
           opts.on("--no-replace", "Skip DROP DATABASE before CREATE (fail if shard DB exists)") { replace = false }
           opts.on("--force-drop", "DROP DATABASE … WITH (FORCE) (PostgreSQL 13+)") { force_drop = true }
         end

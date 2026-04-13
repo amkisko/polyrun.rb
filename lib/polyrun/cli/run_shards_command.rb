@@ -164,15 +164,7 @@ module Polyrun
             next
           end
 
-          child_env = ENV.to_h.merge(
-            Polyrun::Database::Shard.env_map(shard_index: shard, shard_total: workers)
-          )
-          dh = cfg.databases
-          if dh.is_a?(Hash) && !dh.empty?
-            child_env.merge!(Polyrun::Database::UrlBuilder.env_exports_for_databases(dh, shard_index: shard))
-          elsif workers > 1 && (u = ENV["DATABASE_URL"]) && !u.to_s.strip.empty?
-            child_env["DATABASE_URL"] = Polyrun::Database::Shard.database_url_with_shard(u, shard)
-          end
+          child_env = shard_child_env(cfg: cfg, workers: workers, shard: shard)
 
           Polyrun::Log.warn "polyrun run-shards: shard #{shard} → #{paths.size} file(s)" if @verbose
           pid = Process.spawn(child_env, *cmd, *paths)
@@ -188,17 +180,21 @@ module Polyrun
 
         if parallel && pids.size > 1
           Polyrun::Log.warn "polyrun run-shards: #{pids.size} children running; RSpec output below may be interleaved."
+          Polyrun::Log.warn "polyrun run-shards: each worker prints its own summary line; the last \"N examples\" line is not a total across shards."
         end
 
-        failed = []
+        shard_results = [] # {shard:, exitstatus:, success:}
         Polyrun::Debug.time("Process.wait (#{pids.size} worker process(es))") do
           pids.each do |h|
             Process.wait(h[:pid])
+            exitstatus = $?.exitstatus
             ok = $?.success?
-            Polyrun::Debug.log("[parent pid=#{$$}] run-shards: Process.wait child_pid=#{h[:pid]} shard=#{h[:shard]} exit=#{$?.exitstatus} success=#{ok}")
-            failed << h[:shard] unless ok
+            Polyrun::Debug.log("[parent pid=#{$$}] run-shards: Process.wait child_pid=#{h[:pid]} shard=#{h[:shard]} exit=#{exitstatus} success=#{ok}")
+            shard_results << {shard: h[:shard], exitstatus: exitstatus, success: ok}
           end
         end
+
+        failed = shard_results.reject { |r| r[:success] }.map { |r| r[:shard] }
 
         Polyrun::Debug.log(format(
           "run-shards: workers wall time since start: %.3fs",
@@ -210,7 +206,20 @@ module Polyrun
         end
 
         if failed.any?
-          Polyrun::Log.warn "polyrun run-shards: failed shard(s): #{failed.sort.join(", ")}"
+          exit_by_shard = shard_results.each_with_object({}) { |r, h| h[r[:shard]] = r[:exitstatus] }
+          failed_detail = failed.sort.map { |s| "#{s} (exit #{exit_by_shard[s]})" }.join(", ")
+          Polyrun::Log.warn "polyrun run-shards: failed shard(s): #{failed_detail}"
+          if parallel
+            Polyrun::Log.warn "polyrun run-shards: search this log for the failed shard's output, or re-run one shard at a time (below) for a clean RSpec report."
+          end
+          failed.sort.each do |s|
+            paths = plan.shard(s)
+            next if paths.empty?
+
+            rerun = +"export POLYRUN_SHARD_INDEX=#{s} POLYRUN_SHARD_TOTAL=#{workers}; "
+            rerun << Shellwords.join(cmd + paths)
+            Polyrun::Log.warn "polyrun run-shards: shard #{s} re-run (same spec list, no interleave): #{rerun}"
+          end
           return 1
         end
 
@@ -271,6 +280,20 @@ module Polyrun
       def skip_build_spec_paths?
         v = ENV["POLYRUN_SKIP_BUILD_SPEC_PATHS"].to_s.downcase
         %w[1 true yes].include?(v)
+      end
+
+      # ENV for a worker process: POLYRUN_SHARD_* plus per-shard database URLs from polyrun.yml or DATABASE_URL.
+      def shard_child_env(cfg:, workers:, shard:)
+        child_env = ENV.to_h.merge(
+          Polyrun::Database::Shard.env_map(shard_index: shard, shard_total: workers)
+        )
+        dh = cfg.databases
+        if dh.is_a?(Hash) && !dh.empty?
+          child_env.merge!(Polyrun::Database::UrlBuilder.env_exports_for_databases(dh, shard_index: shard))
+        elsif workers > 1 && (u = ENV["DATABASE_URL"]) && !u.to_s.strip.empty?
+          child_env["DATABASE_URL"] = Polyrun::Database::Shard.database_url_with_shard(u, shard)
+        end
+        child_env
       end
 
       def cmd_build_paths(config_path)

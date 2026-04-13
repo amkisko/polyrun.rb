@@ -13,7 +13,7 @@ RSpec.describe Polyrun::Database::CloneShards do
   end
 
   it "dry-run prints migrate and create lines without calling psql or rails" do
-    expect(Polyrun::Database::Provision).not_to receive(:migrate_template!)
+    expect(Polyrun::Database::Provision).not_to receive(:prepare_template!)
     expect(Polyrun::Database::Provision).not_to receive(:drop_database_if_exists!)
     expect(Polyrun::Database::Provision).not_to receive(:create_database_from_template!)
 

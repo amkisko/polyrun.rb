@@ -34,7 +34,7 @@ RSpec.describe Polyrun::CLI do
       YAML
       out, status = polyrun("-c", cfg, "db:clone-shards", "--workers", "2", "--dry-run")
       expect(status.success?).to be true
-      expect(out.scan("db:migrate").size).to eq(2)
+      expect(out.scan("db:prepare").size).to eq(1)
       expect(out).to include("DROP DATABASE IF EXISTS app_test_0")
       expect(out).to include("CREATE DATABASE app_test_0 TEMPLATE app_template")
       expect(out).to include("wh_test_1")
@@ -72,7 +72,7 @@ RSpec.describe Polyrun::CLI do
       YAML
       out, status = polyrun("-c", cfg, "db:setup-template", "--dry-run")
       expect(status.success?).to be true
-      expect(out).to include("db:migrate")
+      expect(out).to include("db:prepare")
       expect(out).to include("DATABASE_URL=")
     end
   end
@@ -95,7 +95,7 @@ RSpec.describe Polyrun::CLI do
       expect(status.success?).to be true
       expect(out).to include("/app_template")
       expect(out).to include("/analytics_template")
-      expect(out.scan("db:migrate").size).to eq(2)
+      expect(out.scan("db:prepare").size).to eq(1)
     end
   end
 

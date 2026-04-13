@@ -1,6 +1,6 @@
 module Polyrun
   module Database
-    # Migrate canonical template DBs then create per-shard databases (PostgreSQL +CREATE DATABASE … TEMPLATE …+).
+    # Prepare canonical template DBs (+bin/rails db:prepare+ — schema load on empty DB, then migrate) then create per-shard databases (PostgreSQL +CREATE DATABASE … TEMPLATE …+).
     # Other ActiveRecord adapters (MySQL, SQL Server, SQLite, …) are not automated here—use +polyrun env+ URLs with your own +db:*+ scripts.
     # Replaces shell loops like +dropdb+ / +createdb -T+ when +polyrun.yml databases:+ lists primary + +connections+.
     module CloneShards
@@ -20,17 +20,18 @@ module Polyrun
       end
 
       def migrate_canonical_databases!(dh, rails_root, dry_run, silent)
-        urls = UrlBuilder.unique_template_migrate_urls(dh)
-        if urls.empty?
+        pt = (dh["template_db"] || dh[:template_db]).to_s
+        if pt.empty?
           raise Polyrun::Error, "CloneShards: set databases.template_db (and optional connections[].template_db)"
         end
 
         if dry_run
-          urls.each { |url| Polyrun::Log.warn "would: RAILS_ENV=test DATABASE_URL=#{url} bin/rails db:migrate" }
+          log = UrlBuilder.template_prepare_env_shell_log(dh)
+          Polyrun::Log.warn "would: RAILS_ENV=test #{log} bin/rails db:prepare"
         else
-          urls.each do |url|
-            Provision.migrate_template!(rails_root: rails_root, database_url: url, silent: silent)
-          end
+          child_env = ENV.to_h.merge(UrlBuilder.template_prepare_env(dh))
+          child_env["RAILS_ENV"] ||= ENV["RAILS_ENV"] || "test"
+          Provision.prepare_template!(rails_root: rails_root, env: child_env, silent: silent)
         end
       end
       private_class_method :migrate_canonical_databases!

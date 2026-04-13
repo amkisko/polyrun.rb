@@ -1,3 +1,4 @@
+require "shellwords"
 require "uri"
 require_relative "url_builder/connection"
 
@@ -32,6 +33,33 @@ module Polyrun
       def url_for_database_name(databases_hash, database_name)
         conn = Connection.resolve_connection(databases_hash)
         Connection.build_database_url(database_name.to_s, conn)
+      end
+
+      # ENV overrides so +bin/rails db:prepare+ runs once for multi-DB apps: each connection keeps its own
+      # +migrations_paths+ (e.g. db/cache_migrate) instead of pointing DATABASE_URL at every template in turn.
+      def template_prepare_env(databases_hash)
+        dh = databases_hash.is_a?(Hash) ? databases_hash : {}
+        pt = (dh["template_db"] || dh[:template_db]).to_s
+        raise Polyrun::Error, "template_prepare_env: set databases.template_db" if pt.empty?
+
+        out = {}
+        out["DATABASE_URL"] = url_for_database_name(dh, pt)
+
+        Array(dh["connections"] || dh[:connections]).each do |c|
+          nm = (c["name"] || c[:name]).to_s
+          key = (c["env_key"] || c[:env_key]).to_s.strip
+          key = "DATABASE_URL_#{nm.upcase.tr("-", "_")}" if key.empty? && !nm.empty?
+          next if key.empty?
+
+          tname = (c["template_db"] || c[:template_db]).to_s
+          tname = pt if tname.empty?
+          out[key] = url_for_database_name(dh, tname)
+        end
+        out
+      end
+
+      def template_prepare_env_shell_log(databases_hash)
+        template_prepare_env(databases_hash).sort.map { |k, v| "#{k}=#{Shellwords.escape(v.to_s)}" }.join(" ")
       end
 
       def unique_template_migrate_urls(databases_hash)

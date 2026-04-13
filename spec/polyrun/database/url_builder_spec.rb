@@ -44,6 +44,21 @@ RSpec.describe Polyrun::Database::UrlBuilder do
     expect(ex).not_to have_key("DATABASE_URL_CACHE")
   end
 
+  it "template_prepare_env sets DATABASE_URL and per-connection keys for a single db:prepare" do
+    dh_multi = dh.merge(
+      "connections" => [
+        {"name" => "warehouse", "shard_db_pattern" => "wh_test_%{shard}", "template_db" => "wh_tpl", "env_key" => "WH_DATABASE_URL"}
+      ]
+    )
+    te = described_class.template_prepare_env(dh_multi)
+    expect(te["DATABASE_URL"]).to end_with("/app_tpl")
+    expect(te["WH_DATABASE_URL"]).to end_with("/wh_tpl")
+  end
+
+  it "template_prepare_env raises without template_db" do
+    expect { described_class.template_prepare_env({}) }.to raise_error(Polyrun::Error, /template_db/)
+  end
+
   it "unique_template_migrate_urls includes primary and distinct connection templates" do
     dh_multi = dh.merge(
       "connections" => [

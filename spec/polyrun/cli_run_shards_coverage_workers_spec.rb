@@ -86,8 +86,33 @@ RSpec.describe Polyrun::CLI do
         expect(out).to include("parallel worker")
         expect(out).to include("pid=")
         expect(out).to include("interleaved")
+        expect(out).to include("not a total across shards")
         expect(out).to include("merge-coverage")
         expect(out).to include("polyrun-fragment")
+      end
+    end
+  end
+
+  it "run-shards reports failed shard exit codes and copy-paste re-run lines" do
+    Dir.mktmpdir do |dir|
+      Dir.chdir(dir) do
+        FileUtils.mkdir_p("spec")
+        File.write("spec/a_spec.rb", "")
+        File.write("spec/b_spec.rb", "")
+        stub = File.join(dir, "_child.rb")
+        File.write(stub, <<~RUBY)
+          ARGV.each { |f| abort("missing \#{f}") unless File.file?(f) }
+          exit(ENV["POLYRUN_SHARD_INDEX"] == "1" ? 1 : 0)
+        RUBY
+        out, status = polyrun(
+          "run-shards", "--workers", "2", "--",
+          RbConfig.ruby, stub
+        )
+        expect(status.success?).to be false
+        expect(out).to include("failed shard(s): 1 (exit 1)")
+        expect(out).to include("POLYRUN_SHARD_INDEX=1")
+        expect(out).to include("POLYRUN_SHARD_TOTAL=2")
+        expect(out).to include("re-run (same spec list, no interleave)")
       end
     end
   end

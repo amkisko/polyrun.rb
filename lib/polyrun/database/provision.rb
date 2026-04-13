@@ -45,15 +45,25 @@ module Polyrun
         true
       end
 
-      # Runs +bin/rails db:migrate+ with DATABASE_URL set (template DB already exists).
-      def migrate_template!(rails_root:, database_url:, silent: true)
+      # Runs +bin/rails db:prepare+ with merged ENV (+DATABASE_URL+ for primary, +CACHE_DATABASE_URL+, etc.).
+      # Multi-DB Rails apps must pass all template URLs in one invocation so each DB uses its own +migrations_paths+.
+      # Uses +db:prepare+ (not +db:migrate+ alone) so empty template databases load +schema.rb+ first;
+      # apps that squash or archive migrations and keep only incremental files need that path.
+      def prepare_template!(rails_root:, env:, silent: true)
         exe = File.join(rails_root, "bin", "rails")
         raise Polyrun::Error, "Provision: missing #{exe}" unless File.executable?(exe)
 
-        env = ENV.to_h.merge("DATABASE_URL" => database_url, "RAILS_ENV" => ENV["RAILS_ENV"] || "test")
-        _out, err, st = Open3.capture3(env, exe, "db:migrate", chdir: rails_root)
+        child_env = ENV.to_h.merge(env)
+        child_env["RAILS_ENV"] ||= ENV["RAILS_ENV"] || "test"
+        _out, err, st = Open3.capture3(child_env, exe, "db:prepare", chdir: rails_root)
         Polyrun::Log.warn err if !silent && !err.to_s.empty?
-        raise Polyrun::Error, "db:migrate failed: #{err}" unless st.success?
+        unless st.success?
+          msg = +"db:prepare failed"
+          msg << "\n--- stderr ---\n#{err}" unless err.to_s.strip.empty?
+          # Rails often prints the first migration/SQL error on stdout; stderr may only show InFailedSqlTransaction.
+          msg << "\n--- stdout ---\n#{_out}" unless _out.to_s.strip.empty?
+          raise Polyrun::Error, msg
+        end
 
         true
       end
