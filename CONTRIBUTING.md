@@ -31,7 +31,7 @@ bundle exec appraisal ruby34 rspec
 
 ## Linting
 
-[RuboCop](https://rubocop.org/) with [Standard](https://github.com/standardrb/standard) style, plus `rubocop-rspec` and `rubocop-thread_safety`. Remaining metric exclusions live in `.rubocop_todo.yml` (regenerate with `rubocop --auto-gen-config` when needed).
+[RuboCop](https://rubocop.org/) with [Standard](https://github.com/standardrb/standard) style, plus `rubocop-rspec` and `rubocop-thread_safety`. Project-specific cop tweaks and metric `Exclude` lists live in `.rubocop.yml`.
 
 ```bash
 bundle exec rubocop

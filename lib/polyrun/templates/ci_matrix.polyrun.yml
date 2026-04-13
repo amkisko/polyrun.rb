@@ -1,0 +1,14 @@
+# Polyrun — partition contract for CI matrix (one job per POLYRUN_SHARD_INDEX).
+# Each matrix row: set POLYRUN_SHARD_INDEX and POLYRUN_SHARD_TOTAL; run build-paths, plan, rspec.
+# A separate CI job downloads coverage/polyrun-fragment-*.json and runs merge-coverage.
+# Do not use parallel-rspec with multiple workers inside the same matrix row unless you intend nested parallelism.
+# See: docs/SETUP_PROFILE.md
+
+partition:
+  paths_file: spec/spec_paths.txt
+  shard_total: 5
+  shard_index: 0
+  strategy: round_robin
+  paths_build:
+    all_glob: spec/**/*_spec.rb
+    stages: []

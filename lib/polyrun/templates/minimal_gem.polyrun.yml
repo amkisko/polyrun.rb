@@ -1,0 +1,13 @@
+# Polyrun — minimal gem/library layout (no Rails prepare, no databases: block).
+# Fill in paths_build.stages if you need regex or substring ordering for slow specs.
+# Next: spec_helper — require "polyrun" + Polyrun::Coverage::Collector (or your collector config)
+# See: docs/SETUP_PROFILE.md
+
+partition:
+  paths_file: spec/spec_paths.txt
+  shard_total: 5
+  shard_index: 0
+  strategy: round_robin
+  paths_build:
+    all_glob: spec/**/*_spec.rb
+    stages: []

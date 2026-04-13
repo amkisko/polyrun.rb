@@ -1,11 +1,6 @@
-inherit_from: .rubocop_todo.yml
-
-inherit_mode:
-  merge:
-    - Exclude
-
 require:
   - standard
+  - ./rubocop/cop/polyrun/file_length.rb
 
 plugins:
   - standard-custom
@@ -122,6 +117,8 @@ Lint/UselessAssignment:
 ThreadSafety/DirChdir:
   Exclude:
     - "*.gemspec"
+    - lib/polyrun/coverage/track_files.rb
+    - spec/polyrun/cli_spec.rb
 
 Lint/Debugger:
   Enabled: true
@@ -131,27 +128,34 @@ RSpec/Focus:
   Enabled: true
   Exclude: []
 
+Polyrun/FileLength:
+  Enabled: true
+  Max: 200
+
 Metrics/ModuleLength:
   Enabled: true
   CountAsOne: [array, hash, heredoc, method_call]
-  Max: 200
+  Max: 150
+
 Metrics/ClassLength:
   Enabled: true
   CountAsOne: [array, hash, heredoc, method_call]
-  Max: 200
+  Max: 150
+
 Metrics/CyclomaticComplexity:
   Enabled: true
-  Max: 12
-  Exclude:
-    - lib/polyrun/cli/**/*.rb
+  Max: 20
+
 Metrics/PerceivedComplexity:
   Enabled: true
-  Max: 12
-  Exclude:
-    - lib/polyrun/cli/**/*.rb
+  Max: 20
+
 Metrics/AbcSize:
   Enabled: true
-  Max: 25
+  Max: 30
   CountRepeatedAttributes: false
+
+ThreadSafety/ClassInstanceVariable:
   Exclude:
-    - lib/polyrun/cli/**/*.rb
+    - lib/polyrun/coverage/collector.rb
+    - lib/polyrun/data/factory_counts.rb

@@ -1,0 +1,31 @@
+# Polyrun — Rails app with one-shot prepare before parallel workers.
+# Adjust prepare.command to your repo (assets, Playwright, webapp build, etc.).
+# Gate per-worker duplicate work in application code when POLYRUN_SHARD_TOTAL > 1.
+# See: docs/SETUP_PROFILE.md
+
+partition:
+  paths_file: spec/spec_paths.txt
+  shard_total: 5
+  shard_index: 0
+  strategy: round_robin
+  paths_build:
+    all_glob: spec/**/*_spec.rb
+    stages: []
+
+prepare:
+  recipe: shell
+  rails_root: .
+  command: bundle exec ruby bin/test_prepare.rb
+
+# Uncomment and edit when using Postgres template + per-shard DB names from polyrun env:
+# databases:
+#   template_db: my_app_template
+#   shard_db_pattern: "my_app_test_%{shard}"
+#   postgresql:
+#     host: localhost
+#     username: postgres
+#   connections:
+#     - name: analytics
+#       template_db: my_app_analytics_template   # second migrate + CREATE … TEMPLATE for parallel tests
+#       shard_db_pattern: "my_app_analytics_test_%{shard}"
+#       env_key: ANALYTICS_DATABASE_URL          # must match database.yml / Rails multi-db
