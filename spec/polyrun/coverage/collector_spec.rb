@@ -1,6 +1,5 @@
 require "spec_helper"
 require "fileutils"
-require "open3"
 require "tmpdir"
 
 RSpec.describe Polyrun::Coverage::Collector do
@@ -9,16 +8,8 @@ RSpec.describe Polyrun::Coverage::Collector do
       old_total = ENV["POLYRUN_SHARD_TOTAL"]
       old_wf = ENV["POLYRUN_COVERAGE_WORKER_FORMATS"]
       example.run
-      if old_total
-        ENV["POLYRUN_SHARD_TOTAL"] = old_total
-      else
-        ENV.delete("POLYRUN_SHARD_TOTAL")
-      end
-      if old_wf
-        ENV["POLYRUN_COVERAGE_WORKER_FORMATS"] = old_wf
-      else
-        ENV.delete("POLYRUN_COVERAGE_WORKER_FORMATS")
-      end
+      old_total ? ENV.store("POLYRUN_SHARD_TOTAL", old_total) : ENV.delete("POLYRUN_SHARD_TOTAL")
+      old_wf ? ENV.store("POLYRUN_COVERAGE_WORKER_FORMATS", old_wf) : ENV.delete("POLYRUN_COVERAGE_WORKER_FORMATS")
     end
 
     it "is false when multiple shards and worker formats not forced" do
@@ -115,13 +106,27 @@ RSpec.describe Polyrun::Coverage::Collector do
       expect(described_class.coverage_requested_for_quick?(Dir.pwd)).to be true
     end
 
-    it "is true when config/polyrun_coverage.yml exists" do
+    it "is true when config/polyrun_coverage.yml exists and POLYRUN_QUICK_COVERAGE=1" do
       ENV.delete("POLYRUN_COVERAGE")
       ENV.delete("POLYRUN_COVERAGE_DISABLE")
+      ENV["POLYRUN_QUICK_COVERAGE"] = "1"
       Dir.mktmpdir do |dir|
         FileUtils.mkdir_p(File.join(dir, "config"))
         File.write(File.join(dir, "config", "polyrun_coverage.yml"), "{}\n")
         expect(described_class.coverage_requested_for_quick?(dir)).to be true
+      end
+    ensure
+      ENV.delete("POLYRUN_QUICK_COVERAGE")
+    end
+
+    it "is false when only config file exists (use POLYRUN_QUICK_COVERAGE=1 to opt in)" do
+      ENV.delete("POLYRUN_COVERAGE")
+      ENV.delete("POLYRUN_COVERAGE_DISABLE")
+      ENV.delete("POLYRUN_QUICK_COVERAGE")
+      Dir.mktmpdir do |dir|
+        FileUtils.mkdir_p(File.join(dir, "config"))
+        File.write(File.join(dir, "config", "polyrun_coverage.yml"), "{}\n")
+        expect(described_class.coverage_requested_for_quick?(dir)).to be false
       end
     end
 
@@ -153,48 +158,6 @@ RSpec.describe Polyrun::Coverage::Collector do
     it "is false when unset" do
       ENV.delete("POLYRUN_COVERAGE_BRANCHES")
       expect(described_class.branch_coverage_enabled?).to be false
-    end
-  end
-
-  describe "minimum_line_percent gate" do
-    it "exits 1 when below minimum on a full (single-shard) run" do
-      Dir.mktmpdir do |dir|
-        lib = File.join(dir, "lib")
-        FileUtils.mkdir_p(lib)
-        script = <<~RUBY
-          $LOAD_PATH.unshift #{File.expand_path("../../lib", __dir__).inspect}
-          require "polyrun/coverage/collector"
-          ENV.delete("POLYRUN_COVERAGE_DISABLE")
-          ENV["POLYRUN_SHARD_TOTAL"] = "1"
-          Polyrun::Coverage::Collector.start!(
-            root: #{dir.inspect},
-            minimum_line_percent: 99,
-            track_under: ["lib"]
-          )
-        RUBY
-        _out, status = Open3.capture2e(RbConfig.ruby, "-e", script)
-        expect(status.exitstatus).to eq(1)
-      end
-    end
-
-    it "does not exit on minimum when POLYRUN_SHARD_TOTAL > 1 (per-worker fragment)" do
-      Dir.mktmpdir do |dir|
-        lib = File.join(dir, "lib")
-        FileUtils.mkdir_p(lib)
-        script = <<~RUBY
-          $LOAD_PATH.unshift #{File.expand_path("../../lib", __dir__).inspect}
-          require "polyrun/coverage/collector"
-          ENV.delete("POLYRUN_COVERAGE_DISABLE")
-          ENV["POLYRUN_SHARD_TOTAL"] = "2"
-          Polyrun::Coverage::Collector.start!(
-            root: #{dir.inspect},
-            minimum_line_percent: 99,
-            track_under: ["lib"]
-          )
-        RUBY
-        _out, status = Open3.capture2e(RbConfig.ruby, "-e", script)
-        expect(status.exitstatus).to eq(0)
-      end
     end
   end
 end

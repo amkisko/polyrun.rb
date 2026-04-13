@@ -1,0 +1,91 @@
+require "shellwords"
+
+module Polyrun
+  class CLI
+    # Boot argv, then phase A (options + validate) and B (items + plan) for run-shards.
+    module RunShardsPlanBootPhases
+      private
+
+      # @return [:fail, Integer] | [:ok, Hash, Array<String>]
+      def run_shards_plan_phase_a(head, cmd, pc)
+        o = run_shards_plan_options(head, pc)
+        code = Polyrun::Partition::PathsBuild.apply!(partition: pc, cwd: Dir.pwd)
+        return [:fail, code] if code != 0
+
+        o[:timing_path] = run_shards_default_timing_path(pc, o[:timing_path], o[:strategy])
+        err = run_shards_validate_workers!(o)
+        return [:fail, err] if err
+
+        err = run_shards_validate_cmd(cmd)
+        return [:fail, err] if err
+
+        cmd = Shellwords.split(cmd.first) if cmd.size == 1 && cmd.first.include?(" ")
+
+        [:ok, o, cmd]
+      end
+
+      def run_shards_plan_phase_b(o, cmd, cfg, pc, run_t0, config_path)
+        items, paths_source, err = run_shards_resolve_items(o[:paths_file])
+        return [err, nil] if err
+
+        costs, strategy, err = run_shards_resolve_costs(o[:timing_path], o[:strategy])
+        return [err, nil] if err
+
+        run_shards_plan_ready_log(o, strategy, cmd, paths_source, items.size)
+
+        constraints = load_partition_constraints(pc, o[:constraints_path])
+        plan = run_shards_make_plan(items, o[:workers], strategy, o[:seed], costs, constraints)
+
+        run_shards_debug_shard_sizes(plan, o[:workers])
+        Polyrun::Log.warn "polyrun run-shards: #{items.size} paths → #{o[:workers]} workers (#{strategy})" if @verbose
+
+        parallel = o[:workers] > 1
+        run_shards_warn_parallel_banner(items.size, o[:workers], strategy) if parallel
+
+        [nil, run_shards_plan_context_hash(o, cmd, cfg, plan, run_t0, parallel, config_path)]
+      end
+
+      def run_shards_plan_boot(argv, config_path)
+        run_t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        sep = argv.index("--")
+        unless sep
+          Polyrun::Log.warn "polyrun run-shards: need -- before the command (e.g. run-shards --workers 5 -- bundle exec rspec)"
+          return [2, nil]
+        end
+
+        head = argv[0...sep]
+        cmd = argv[(sep + 1)..].map(&:to_s)
+        cfg = Polyrun::Config.load(path: config_path || ENV["POLYRUN_CONFIG"])
+        [run_t0, head, cmd, cfg, cfg.partition]
+      end
+
+      def run_shards_plan_ready_log(o, strategy, cmd, paths_source, item_count)
+        Polyrun::Debug.log_kv(
+          run_shards: "ready to partition",
+          workers: o[:workers],
+          strategy: strategy,
+          merge_coverage: o[:merge_coverage],
+          command: cmd,
+          timing_path: o[:timing_path],
+          paths_source: paths_source,
+          item_count: item_count
+        )
+      end
+
+      def run_shards_plan_context_hash(o, cmd, cfg, plan, run_t0, parallel, config_path)
+        {
+          workers: o[:workers],
+          cmd: cmd,
+          cfg: cfg,
+          plan: plan,
+          run_t0: run_t0,
+          parallel: parallel,
+          merge_coverage: o[:merge_coverage],
+          merge_output: o[:merge_output],
+          merge_format: o[:merge_format],
+          config_path: config_path
+        }
+      end
+    end
+  end
+end

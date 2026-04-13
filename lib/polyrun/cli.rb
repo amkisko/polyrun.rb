@@ -34,24 +34,8 @@ module Polyrun
 
     def run(argv)
       argv = argv.dup
-      config_path = ENV["POLYRUN_CONFIG"]
-      @verbose = false
-
-      while (a = argv.first) && a.start_with?("-") && a != "--"
-        case a
-        when "-c", "--config"
-          argv.shift
-          config_path = argv.shift or break
-        when "-v", "--verbose"
-          @verbose = true
-          argv.shift
-        when "-h", "--help"
-          print_help
-          return 0
-        else
-          break
-        end
-      end
+      config_path = parse_global_cli!(argv)
+      return config_path if config_path.is_a?(Integer)
 
       command = argv.shift
       if command.nil?
@@ -67,12 +51,46 @@ module Polyrun
         verbose: @verbose
       )
 
+      dispatch_cli_command(command, argv, config_path)
+    end
+
+    private
+
+    def parse_global_cli!(argv)
+      config_path = ENV["POLYRUN_CONFIG"]
+      @verbose = false
+      while (a = argv.first) && a.start_with?("-") && a != "--"
+        case a
+        when "-c", "--config"
+          argv.shift
+          config_path = argv.shift or break
+        when "-v", "--verbose"
+          @verbose = true
+          argv.shift
+        when "-h", "--help"
+          print_help
+          return 0
+        else
+          break
+        end
+      end
+      config_path
+    end
+
+    def dispatch_cli_command(command, argv, config_path)
       case command
       when "help"
         print_help
         0
       when "version"
         cmd_version
+      else
+        dispatch_cli_command_subcommands(command, argv, config_path)
+      end
+    end
+
+    def dispatch_cli_command_subcommands(command, argv, config_path)
+      case command
       when "plan"
         cmd_plan(argv, config_path)
       when "prepare"
@@ -115,8 +133,6 @@ module Polyrun
       end
     end
 
-    private
-
     def print_help
       Polyrun::Log.puts <<~HELP
         usage: polyrun [global options] <command> [options]
@@ -128,7 +144,7 @@ module Polyrun
 
         Trace timing (stderr): DEBUG=1 or POLYRUN_DEBUG=1
         Branch coverage in JSON fragments: POLYRUN_COVERAGE_BRANCHES=1 (stdlib Coverage; merge-coverage merges branches)
-        polyrun quick coverage: POLYRUN_COVERAGE=1 and/or config/polyrun_coverage.yml (Collector starts before quick files; POLYRUN_COVERAGE_DISABLE=1 skips)
+        polyrun quick coverage: POLYRUN_COVERAGE=1 or (config/polyrun_coverage.yml + POLYRUN_QUICK_COVERAGE=1); POLYRUN_COVERAGE_DISABLE=1 skips
         Merge wall time (stderr): POLYRUN_PROFILE_MERGE=1 (or verbose / DEBUG)
         Post-merge formats (run-shards): POLYRUN_MERGE_FORMATS (default: json,lcov,cobertura,console,html)
         Skip optional script/build_spec_paths.rb before start: POLYRUN_SKIP_BUILD_SPEC_PATHS=1

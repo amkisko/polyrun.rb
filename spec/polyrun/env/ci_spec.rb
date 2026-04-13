@@ -3,6 +3,9 @@ require "spec_helper"
 RSpec.describe Polyrun::Env::Ci do
   around do |ex|
     old = ENV.to_h
+    # run-shards sets POLYRUN_SHARD_*; clear so CI env examples are isolated.
+    ENV.delete("POLYRUN_SHARD_INDEX")
+    ENV.delete("POLYRUN_SHARD_TOTAL")
     ex.run
     ENV.replace(old)
   end

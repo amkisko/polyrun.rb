@@ -71,32 +71,6 @@ module Polyrun
 
       INTERNAL_META_KEYS = %w[polyrun_coverage_root polyrun_coverage_groups polyrun_track_files].freeze
 
-      def merge_fragment_metas(docs)
-        metas = docs.map do |d|
-          (d.is_a?(Hash) && d["meta"].is_a?(Hash)) ? d["meta"].transform_keys(&:to_s) : {}
-        end
-        base = metas.first.dup
-        roots = metas.map { |m| m["polyrun_coverage_root"] }.compact
-        grs = metas.map { |m| m["polyrun_coverage_groups"] }.compact
-        tfs = metas.map { |m| m["polyrun_track_files"] }.compact
-        root = roots.first
-        groups_cfg = grs.first
-        track_files_cfg = tfs.first
-        if roots.uniq.size > 1
-          Polyrun::Log.warn "Polyrun merge-coverage: polyrun_coverage_root differs across fragments; using first."
-        end
-        if grs.uniq.size > 1
-          Polyrun::Log.warn "Polyrun merge-coverage: polyrun_coverage_groups differs across fragments; using first."
-        end
-        if tfs.map { |tf| JSON.generate(normalize_track_files_meta(tf)) }.uniq.size > 1
-          Polyrun::Log.warn "Polyrun merge-coverage: polyrun_track_files differs across fragments; using first."
-        end
-        base["polyrun_coverage_root"] = root if root
-        base["polyrun_coverage_groups"] = groups_cfg if groups_cfg
-        base["polyrun_track_files"] = track_files_cfg if track_files_cfg
-        base
-      end
-
       def normalize_track_files_meta(tf)
         case tf
         when Array then tf.map(&:to_s).sort
@@ -144,121 +118,10 @@ module Polyrun
         merged = nested.reduce { |acc, el| merge_two(acc, el) }
         top.is_a?(Hash) ? merge_two(top, merged) : merged
       end
-
-      def merge_two(a, b)
-        # Array#| is set union without the extra array from concat + uniq.
-        keys = a.keys | b.keys
-        out = {}
-        keys.each do |path|
-          out[path] = merge_file_entry(a[path], b[path])
-        end
-        out
-      end
-
-      # SimpleCov pre-0.18 and some exports store a file as a raw line array; modern shape uses {"lines"=>[...]}.
-      # Research: spec3.md (SimpleCov format drift); merge tolerates both.
-      def normalize_file_entry(v)
-        return nil if v.nil?
-        return {"lines" => v} if v.is_a?(Array)
-
-        v
-      end
-
-      def line_array_from_file_entry(file)
-        h = normalize_file_entry(file)
-        return nil unless h.is_a?(Hash)
-
-        h["lines"] || h[:lines]
-      end
-
-      def merge_file_entry(x, y)
-        x = normalize_file_entry(x)
-        y = normalize_file_entry(y)
-        return y if x.nil?
-        return x if y.nil?
-
-        lines = merge_line_arrays(x["lines"] || x[:lines], y["lines"] || y[:lines])
-        entry = {"lines" => lines}
-        bx = x["branches"] || x[:branches]
-        by = y["branches"] || y[:branches]
-        br = merge_branch_arrays(bx, by)
-        entry["branches"] = br if br
-        entry
-      end
-
-      def merge_line_arrays(a, b)
-        a ||= []
-        b ||= []
-        na = a.size
-        nb = b.size
-        max_len = (na > nb) ? na : nb
-        out = Array.new(max_len)
-        i = 0
-        while i < max_len
-          out[i] = merge_line_hits(a[i], b[i])
-          i += 1
-        end
-        out
-      end
-
-      def merge_line_hits(x, y)
-        return y if x.nil?
-        return x if y.nil?
-        return "ignored" if x == "ignored" || y == "ignored"
-
-        xi = line_hit_to_i(x)
-        yi = line_hit_to_i(y)
-        return xi + yi if xi && yi
-
-        return yi if xi.nil? && yi
-        return xi if yi.nil? && xi
-
-        x
-      end
-
-      def line_hit_to_i(v)
-        case v
-        when Integer then v
-        when nil then nil
-        else
-          Integer(v, exception: false)
-        end
-      end
-
-      def merge_branch_arrays(a, b)
-        return nil if a.nil? && b.nil?
-        return (a || b).dup if a.nil? || b.nil?
-
-        index = {}
-        [a, b].each do |arr|
-          arr.each do |br|
-            k = branch_key(br)
-            existing = index[k]
-            index[k] =
-              if existing
-                merge_branch_entries(existing, br)
-              else
-                br.dup
-              end
-          end
-        end
-        index.values.sort_by { |br| branch_key(br) }
-      end
-
-      def branch_key(br)
-        h = br.is_a?(Hash) ? br : {}
-        [h["type"] || h[:type], h["start_line"] || h[:start_line], h["end_line"] || h[:end_line]]
-      end
-
-      def merge_branch_entries(x, y)
-        out = x.is_a?(Hash) ? x.dup : {}
-        xc = (x["coverage"] || x[:coverage]).to_i
-        yc = (y["coverage"] || y[:coverage]).to_i
-        out["coverage"] = xc + yc
-        out
-      end
     end
   end
 end
 
+require_relative "merge_merge_two"
+require_relative "merge_fragment_meta"
 require_relative "merge/formatters"

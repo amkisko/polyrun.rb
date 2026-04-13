@@ -55,13 +55,13 @@ module Polyrun
 
         child_env = ENV.to_h.merge(env)
         child_env["RAILS_ENV"] ||= ENV["RAILS_ENV"] || "test"
-        _out, err, st = Open3.capture3(child_env, exe, "db:prepare", chdir: rails_root)
+        rails_out, err, st = Open3.capture3(child_env, exe, "db:prepare", chdir: rails_root)
         Polyrun::Log.warn err if !silent && !err.to_s.empty?
         unless st.success?
           msg = +"db:prepare failed"
           msg << "\n--- stderr ---\n#{err}" unless err.to_s.strip.empty?
           # Rails often prints the first migration/SQL error on stdout; stderr may only show InFailedSqlTransaction.
-          msg << "\n--- stdout ---\n#{_out}" unless _out.to_s.strip.empty?
+          msg << "\n--- stdout ---\n#{rails_out}" unless rails_out.to_s.strip.empty?
           raise Polyrun::Error, msg
         end
 

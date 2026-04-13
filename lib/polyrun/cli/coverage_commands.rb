@@ -2,28 +2,17 @@ require "json"
 require "fileutils"
 require "optparse"
 
+require_relative "coverage_merge_io"
+
 module Polyrun
   class CLI
     module CoverageCommands
+      include CoverageMergeIo
+
       private
 
       def cmd_merge_coverage(argv, _config_path)
-        inputs = []
-        output = "coverage/polyrun-merged.json"
-        formats = ["json"]
-
-        parser = OptionParser.new do |opts|
-          opts.banner = "usage: polyrun merge-coverage -i FILE [-i FILE] [-o PATH] [--format json,lcov,cobertura,console,html]"
-          opts.on("-i", "--input FILE", "Coverage JSON (repeatable; globs ok)") do |f|
-            expand_merge_input_pattern(f).each { |x| inputs << x }
-          end
-          opts.on("-o", "--output PATH", String) { |v| output = v }
-          opts.on("--format LIST", String) { |v| formats = v.split(",").map(&:strip) }
-        end
-        parser.parse!(argv)
-
-        inputs.uniq!
-        inputs.select! { |p| File.file?(p) }
+        inputs, output, formats = merge_coverage_parse_argv(argv)
         if inputs.empty?
           Polyrun::Log.warn "merge-coverage: need at least one existing -i FILE (after glob expansion)"
           return 2
@@ -40,66 +29,17 @@ module Polyrun
         Polyrun::Debug.log("merge-coverage: input_bytes=#{input_bytes}")
 
         t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-        r = Polyrun::Debug.time("Coverage::Merge.merge_fragments") do
-          Polyrun::Coverage::Merge.merge_fragments(inputs)
-        end
+        r = merge_coverage_merge_fragments(inputs)
         merged = r[:blob]
         Polyrun::Debug.log("merge-coverage: merged_blob file_count=#{merged.size}")
 
         payload = Polyrun::Coverage::Merge.to_simplecov_json(merged, meta: r[:meta], groups: r[:groups])
-
         out_abs = File.expand_path(output)
-        Polyrun::Debug.time("write merged JSON") do
-          FileUtils.mkdir_p(File.dirname(out_abs))
-          File.write(out_abs, JSON.generate(payload))
-        end
-
-        if formats.include?("lcov")
-          lcov_path = out_abs.sub(/\.json\z/, ".lcov")
-          lcov_path = "#{out_abs}.lcov" if lcov_path == out_abs
-          Polyrun::Debug.time("write lcov") { File.write(lcov_path, Polyrun::Coverage::Merge.emit_lcov(merged)) }
-        end
-
-        if formats.include?("cobertura")
-          cob_path = out_abs.sub(/\.json\z/, ".xml")
-          cob_path = "#{out_abs}.cobertura.xml" if cob_path == out_abs
-          root = nil
-          if r[:meta].is_a?(Hash)
-            root = r[:meta]["polyrun_coverage_root"] || r[:meta][:polyrun_coverage_root]
-          end
-          Polyrun::Debug.time("write cobertura XML") do
-            File.write(cob_path, Polyrun::Coverage::Merge.emit_cobertura(merged, root: root))
-          end
-        end
-
-        if formats.include?("console")
-          sum_path = out_abs.sub(/\.json\z/, "-summary.txt")
-          sum_path = "#{out_abs}-summary.txt" if sum_path == out_abs
-          summary = Polyrun::Coverage::Merge.console_summary(merged)
-          summary_text = Polyrun::Coverage::Merge.format_console_summary(summary)
-          Polyrun::Debug.time("write console summary") { File.write(sum_path, summary_text) }
-          Polyrun::Log.print summary_text
-        end
-
-        if formats.include?("html")
-          html_path = out_abs.sub(/\.json\z/, ".html")
-          html_path = "#{out_abs}.html" if html_path == out_abs
-          Polyrun::Debug.time("write HTML report") { File.write(html_path, Polyrun::Coverage::Merge.emit_html(merged)) }
-        end
+        merge_coverage_write_json_payload(out_abs, payload)
+        merge_coverage_write_format_outputs(merged, r, out_abs, formats)
 
         elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0
-        if (thr = merge_slow_warn_threshold_seconds) && elapsed > thr
-          Polyrun::Log.warn format(
-            "merge-coverage: slow merge took %.2fs (warn above %.0fs; typical suites are JSON fragments, not TB-scale data; disable: POLYRUN_MERGE_SLOW_WARN_SECONDS=0)",
-            elapsed,
-            thr
-          )
-        end
-
-        if @verbose || ENV["POLYRUN_PROFILE_MERGE"] == "1" || Polyrun::Debug.enabled?
-          Polyrun::Log.warn format("merge-coverage: finished in %.2fs (%d input fragment(s))", elapsed, inputs.size)
-        end
-
+        merge_coverage_log_finish(elapsed, inputs)
         0
       end
 
@@ -150,25 +90,43 @@ module Polyrun
       end
 
       def merge_coverage_after_shards(output:, format_list:, config_path:)
-        pattern = File.join(Dir.pwd, "coverage", "polyrun-fragment-*.json")
-        files = Dir.glob(pattern).sort
+        files = merge_coverage_fragment_json_files
         if files.empty?
           Polyrun::Log.warn "polyrun run-shards: --merge-coverage: no coverage/polyrun-fragment-*.json found (enable Polyrun coverage in spec_helper?)"
           return 0
         end
 
+        merge_coverage_after_shards_log_start(files, output, format_list)
+        code = merge_coverage_after_shards_run_merge(files, output, format_list, config_path)
+        return code unless code == 0
+
+        merge_coverage_after_shards_strict_gate(output, code)
+      rescue JSON::ParserError => e
+        Polyrun::Log.warn "polyrun run-shards: merged coverage JSON parse failed: #{e.message}"
+        1
+      end
+
+      def merge_coverage_fragment_json_files
+        pattern = File.join(Dir.pwd, "coverage", "polyrun-fragment-*.json")
+        Dir.glob(pattern).sort
+      end
+
+      def merge_coverage_after_shards_log_start(files, output, format_list)
         Polyrun::Log.warn "polyrun run-shards: merging #{files.size} coverage fragment(s) → #{output}"
         Polyrun::Debug.log("merge-coverage-after-shards: #{files.size} fragment(s) → #{output} format=#{format_list}")
         Polyrun::Debug.log("merge-coverage-after-shards: fragments=#{files.join(", ")}")
+      end
 
+      def merge_coverage_after_shards_run_merge(files, output, format_list, config_path)
         merge_argv = []
         files.each { |f| merge_argv.push("-i", f) }
         merge_argv += ["-o", output, "--format", format_list]
-        code = Polyrun::Debug.time("merge-coverage (parent after workers)") do
+        Polyrun::Debug.time("merge-coverage (parent after workers)") do
           cmd_merge_coverage(merge_argv, config_path)
         end
-        return code unless code == 0
+      end
 
+      def merge_coverage_after_shards_strict_gate(output, code)
         gate = coverage_minimum_line_gate_from_polyrun_coverage_yml
         Polyrun::Debug.log_kv(
           coverage_gate_config: "polyrun_coverage.yml",
@@ -182,29 +140,10 @@ module Polyrun
           return 1
         end
 
-        below = false
-        Polyrun::Debug.time("minimum_line_percent gate (merged JSON)") do
-          data = JSON.parse(File.read(merged_path))
-          blob = Polyrun::Coverage::Merge.extract_coverage_blob(data)
-          summary = Polyrun::Coverage::Merge.console_summary(blob)
-          min = gate[:minimum]
-          below = summary[:line_percent].round < min.round
-          Polyrun::Debug.log_kv(
-            merged_line_percent: summary[:line_percent],
-            gate_minimum: min,
-            below_gate: below
-          )
-          if below
-            Polyrun::Log.warn Polyrun::Coverage::Merge.format_console_summary(summary)
-            Polyrun::Log.warn "Polyrun coverage: #{summary[:line_percent].round(2)}% rounds below minimum #{min}% (merged)."
-          end
-        end
+        below = merge_coverage_min_line_gate_below?(merged_path, gate)
         return 1 if below
 
         code
-      rescue JSON::ParserError => e
-        Polyrun::Log.warn "polyrun run-shards: merged coverage JSON parse failed: #{e.message}"
-        1
       end
     end
   end

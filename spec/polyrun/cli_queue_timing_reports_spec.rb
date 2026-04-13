@@ -8,7 +8,7 @@ require "rbconfig"
 RSpec.describe Polyrun::CLI do
   it "queue init, claim, ack, and status via CLI" do
     Dir.mktmpdir do |dir|
-      Dir.chdir(dir) do
+      with_chdir(dir) do
         list = File.join(dir, "spec_paths.txt")
         File.write(list, "a.rb\nb.rb\nc.rb\n")
         timing = File.join(dir, "t.json")

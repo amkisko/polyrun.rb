@@ -66,8 +66,11 @@ module Polyrun
         normalized = {}
         blob.each { |k, v| normalized[File.expand_path(k.to_s)] = v }
 
-        # Single pass over files: O(files * groups) fnmatch checks; aggregate line counts per group
-        # (no per-group subset rescans / repeated console_summary on overlapping sets).
+        accum, ungrouped, any_ungrouped = group_summaries_accumulate(normalized, root, groups)
+        group_summaries_build_payload(groups, accum, ungrouped, any_ungrouped)
+      end
+
+      def group_summaries_accumulate(normalized, root, groups)
         accum = Hash.new { |h, k| h[k] = {relevant: 0, covered: 0} }
         ungrouped = {relevant: 0, covered: 0}
         any_ungrouped_file = false
@@ -86,7 +89,10 @@ module Polyrun
             matched.each { |n| add_counts!(accum[n], counts) }
           end
         end
+        [accum, ungrouped, any_ungrouped_file]
+      end
 
+      def group_summaries_build_payload(groups, accum, ungrouped, any_ungrouped_file)
         out = {}
         groups.each_key do |name|
           n = name.to_s

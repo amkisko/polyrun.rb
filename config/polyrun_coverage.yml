@@ -1,0 +1,10 @@
+# Polyrun gem self-test: Collector + merge gate (see Rakefile task `coverage:parallel`).
+# Omit track_files so only loaded files are measured (track_files would add never-loaded lib/**/*.rb at 0%).
+# RSpecJunit.install! mutates global RSpec formatters; excluded from the gate (see reporting/rspec_junit_spec.rb).
+# Raise minimum_line_percent toward 100 as more branches are covered (POLYRUN_COVERAGE=1; in-process CLI in spec/support).
+track_under:
+  - lib
+reject_patterns:
+  - "/lib/polyrun/reporting/rspec_junit.rb"
+minimum_line_percent: 89
+strict: true
