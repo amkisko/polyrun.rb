@@ -9,8 +9,8 @@ Fill in and keep updated: dimensions are summarized in Polyrun’s [SETUP_PROFIL
 ## Canonical commands
 
 ```bash
-bundle exec polyrun build-paths -c polyrun.yml
-bundle exec polyrun parallel-rspec --workers 5 -c polyrun.yml
+bundle exec polyrun -c polyrun.yml build-paths
+bundle exec polyrun -c polyrun.yml parallel-rspec --workers 5
 ```
 
 Adjust `--workers` or use `bin/rspec_parallel` if your repo provides a wrapper.
@@ -19,12 +19,12 @@ Adjust `--workers` or use `bin/rspec_parallel` if your repo provides a wrapper.
 
 ### Model A — single CI job, N worker processes on one runner
 
-- Run `polyrun parallel-rspec --workers N -c polyrun.yml` (or `polyrun start`).
+- Run `polyrun -c polyrun.yml parallel-rspec --workers N` (or `polyrun start`).
 - Merge coverage in the same job (or a follow-up step) from `coverage/polyrun-fragment-*.json`.
 
 ### Model B — matrix: one shard per job
 
-- Matrix sets `POLYRUN_SHARD_INDEX` and `POLYRUN_SHARD_TOTAL` explicitly (e.g. GitHub Actions does not set `CI_NODE_*` by default).
+- Matrix sets `POLYRUN_SHARD_INDEX` and `POLYRUN_SHARD_TOTAL` explicitly (many runners do not set `CI_NODE_*` by default).
 - Each job runs `polyrun build-paths`, `polyrun plan`, then `bundle exec rspec` for that shard only (see `bin/polyrun-rspec` or `bin/rspec_ci_shard` patterns).
 - Upload `coverage/polyrun-fragment-<shard>.json` per job; a `merge-coverage` job downloads all fragments and merges.
 
