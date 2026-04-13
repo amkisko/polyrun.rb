@@ -8,7 +8,7 @@ require "rbconfig"
 RSpec.describe Polyrun::CLI do
   it "prepare default recipe succeeds" do
     Dir.mktmpdir do |dir|
-      Dir.chdir(dir) do
+      with_chdir(dir) do
         out, status = polyrun("prepare")
         expect(status.success?).to be true
         j = JSON.parse(out)
@@ -22,7 +22,7 @@ RSpec.describe Polyrun::CLI do
 
   it "prepare dry-run marks executed false" do
     Dir.mktmpdir do |dir|
-      Dir.chdir(dir) do
+      with_chdir(dir) do
         out, status = polyrun("prepare", "--dry-run")
         expect(status.success?).to be true
         expect(JSON.parse(out)["executed"]).to be false
@@ -38,7 +38,7 @@ RSpec.describe Polyrun::CLI do
           recipe: assets
           rails_root: #{dir}
       YAML
-      Dir.chdir(dir) do
+      with_chdir(dir) do
         out, status = polyrun("-c", cfg, "prepare", "--dry-run")
         expect(status.success?).to be true
         j = JSON.parse(out)
@@ -57,7 +57,7 @@ RSpec.describe Polyrun::CLI do
           rails_root: #{dir}
           command: NODENV_VERSION=20 bin/rails assets:precompile
       YAML
-      Dir.chdir(dir) do
+      with_chdir(dir) do
         out, status = polyrun("-c", cfg, "prepare", "--dry-run")
         expect(status.success?).to be true
         j = JSON.parse(out)
@@ -75,7 +75,7 @@ RSpec.describe Polyrun::CLI do
           rails_root: #{dir}
           command: echo hello
       YAML
-      Dir.chdir(dir) do
+      with_chdir(dir) do
         out, status = polyrun("-c", cfg, "prepare", "--dry-run")
         expect(status.success?).to be true
         j = JSON.parse(out)

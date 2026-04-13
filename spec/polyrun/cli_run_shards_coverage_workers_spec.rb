@@ -8,7 +8,7 @@ require "rbconfig"
 RSpec.describe Polyrun::CLI do
   it "run-shards --merge-coverage fails when merged coverage is below config minimum_line_percent" do
     Dir.mktmpdir do |dir|
-      Dir.chdir(dir) do
+      with_chdir(dir) do
         FileUtils.mkdir_p("config")
         File.write("config/polyrun_coverage.yml", "minimum_line_percent: 99\n")
         FileUtils.mkdir_p("spec")
@@ -36,7 +36,7 @@ RSpec.describe Polyrun::CLI do
 
   it "run-shards --merge-coverage does not enforce minimum when strict is false in polyrun_coverage.yml" do
     Dir.mktmpdir do |dir|
-      Dir.chdir(dir) do
+      with_chdir(dir) do
         FileUtils.mkdir_p("config")
         File.write("config/polyrun_coverage.yml", <<~YAML)
           minimum_line_percent: 99
@@ -66,7 +66,7 @@ RSpec.describe Polyrun::CLI do
 
   it "run-shards spawns parallel workers" do
     Dir.mktmpdir do |dir|
-      Dir.chdir(dir) do
+      with_chdir(dir) do
         FileUtils.mkdir_p("spec")
         File.write("spec/a_spec.rb", "")
         File.write("spec/b_spec.rb", "")
@@ -95,7 +95,7 @@ RSpec.describe Polyrun::CLI do
 
   it "run-shards reports failed shard exit codes and copy-paste re-run lines" do
     Dir.mktmpdir do |dir|
-      Dir.chdir(dir) do
+      with_chdir(dir) do
         FileUtils.mkdir_p("spec")
         File.write("spec/a_spec.rb", "")
         File.write("spec/b_spec.rb", "")
@@ -119,7 +119,7 @@ RSpec.describe Polyrun::CLI do
 
   it "run-shards merges polyrun.yml database URLs per shard" do
     Dir.mktmpdir do |dir|
-      Dir.chdir(dir) do
+      with_chdir(dir) do
         FileUtils.mkdir_p("spec")
         File.write("spec/a_spec.rb", "")
         File.write("spec/b_spec.rb", "")

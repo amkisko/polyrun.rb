@@ -22,7 +22,7 @@ RSpec.describe Polyrun::CLI do
 
   it "init writes polyrun.yml from gem profile" do
     Dir.mktmpdir do |dir|
-      Dir.chdir(dir) do
+      with_chdir(dir) do
         _out, status = polyrun("init", "--profile", "gem", "-o", "polyrun.yml")
         expect(status.success?).to be true
         expect(File.read("polyrun.yml")).to include("paths_file: spec/spec_paths.txt")
@@ -32,7 +32,7 @@ RSpec.describe Polyrun::CLI do
 
   it "init refuses overwrite without --force" do
     Dir.mktmpdir do |dir|
-      Dir.chdir(dir) do
+      with_chdir(dir) do
         File.write("polyrun.yml", "x")
         _out, status = polyrun("init", "--profile", "gem")
         expect(status.success?).to be false
@@ -42,7 +42,7 @@ RSpec.describe Polyrun::CLI do
 
   it "init --dry-run does not write" do
     Dir.mktmpdir do |dir|
-      Dir.chdir(dir) do
+      with_chdir(dir) do
         out, status = polyrun("init", "--profile", "gem", "--dry-run")
         expect(status.success?).to be true
         expect(out).to include("paths_file:")

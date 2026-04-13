@@ -55,30 +55,38 @@ module Polyrun
         data["examples"].each do |ex|
           next unless ex.is_a?(Hash)
 
-          status = (ex["status"] || "unknown").to_s
-          file = ex["file_path"].to_s.sub(%r{\A\./}, "")
-          tc = {
-            "classname" => file.empty? ? "rspec" : file,
-            "name" => (ex["full_description"] || ex["description"] || ex["id"]).to_s,
-            "time" => (ex["run_time"] || ex["time"] || 0).to_f,
-            "status" => status
-          }
-          if status == "failed"
-            e = ex["exception"]
-            tc["failure"] = if e.is_a?(Hash)
-              {
-                "message" => e["message"].to_s,
-                "body" => Array(e["backtrace"]).join("\n")
-              }
-            else
-              {"message" => "failed", "body" => ex.inspect}
-            end
-          end
-          cases << tc
+          cases << junit_rspec_example_to_case(ex)
         end
 
         name = (data.dig("summary", "summary_line") || data["name"] || "RSpec").to_s
         from_polyrun_hash("name" => name, "hostname" => hostname, "testcases" => cases)
+      end
+
+      def junit_rspec_example_to_case(ex)
+        status = (ex["status"] || "unknown").to_s
+        file = ex["file_path"].to_s.sub(%r{\A\./}, "")
+        tc = {
+          "classname" => file.empty? ? "rspec" : file,
+          "name" => (ex["full_description"] || ex["description"] || ex["id"]).to_s,
+          "time" => (ex["run_time"] || ex["time"] || 0).to_f,
+          "status" => status
+        }
+        if status == "failed"
+          tc["failure"] = junit_rspec_failure_hash(ex)
+        end
+        tc
+      end
+
+      def junit_rspec_failure_hash(ex)
+        e = ex["exception"]
+        if e.is_a?(Hash)
+          {
+            "message" => e["message"].to_s,
+            "body" => Array(e["backtrace"]).join("\n")
+          }
+        else
+          {"message" => "failed", "body" => ex.inspect}
+        end
       end
 
       def from_polyrun_hash(data)
@@ -94,44 +102,6 @@ module Polyrun
         Socket.gethostname
       rescue
         "localhost"
-      end
-
-      # +doc+ is +{ "name", "hostname", "testcases" => [ ... ] }+
-      def emit_xml(doc)
-        cases = doc["testcases"] || []
-        total_time = cases.sum { |c| (c["time"] || c[:time] || 0).to_f }
-        failures = cases.count { |c| status_of(c) == "failed" }
-        errors = cases.count { |c| status_of(c) == "error" }
-        skipped = cases.count { |c| %w[pending skipped].include?(status_of(c)) }
-        tests = cases.size
-
-        lines = []
-        lines << %(<?xml version="1.0" encoding="UTF-8"?>)
-        lines << %(<testsuites name="#{esc(doc["name"])}">)
-        lines << %(<testsuite name="#{esc(doc["name"])}" tests="#{tests}" failures="#{failures}" errors="#{errors}" skipped="#{skipped}" time="#{format_float(total_time)}" hostname="#{esc(doc["hostname"])}">)
-
-        cases.each do |c|
-          c = c.transform_keys(&:to_s)
-          classname = c["classname"].to_s
-          name = c["name"].to_s
-          time = (c["time"] || 0).to_f
-          lines << %(<testcase classname="#{esc(classname)}" name="#{esc(name)}" file="#{esc(c["file"] || classname)}" line="#{esc(c["line"] || "")}" time="#{format_float(time)}">)
-          case status_of(c)
-          when "failed", "error"
-            f = c["failure"] || {}
-            fm = f["message"] || f[:message] || status_of(c)
-            fb = f["body"] || f[:body] || ""
-            tag = (status_of(c) == "error") ? "error" : "failure"
-            lines << %(<#{tag} message="#{esc(fm)}">#{esc(fb)}</#{tag}>)
-          when "pending", "skipped"
-            lines << %(<skipped/>)
-          end
-          lines << %(</testcase>)
-        end
-
-        lines << %(</testsuite>)
-        lines << %(</testsuites>)
-        lines.join("\n") + "\n"
       end
 
       def status_of(c)
@@ -151,3 +121,5 @@ module Polyrun
     end
   end
 end
+
+require_relative "junit_emit"

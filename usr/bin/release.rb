@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+require "shellwords"
+
 def execute_command(command)
   green = "\033[0;32m"
   red = "\033[1;31m"
@@ -13,12 +15,12 @@ def execute_command(command)
 end
 
 root_dir = File.expand_path(File.join(File.dirname(__FILE__), "../.."))
-Dir.chdir(root_dir)
+root_q = Shellwords.escape(root_dir)
 
-execute_command("bundle")
-execute_command("bundle exec appraisal generate")
-execute_command("bundle exec rubocop -a 2>&1 | tee tmp/rubocop.log")
-execute_command("bundle exec rspec 2>&1 | tee tmp/rspec.log")
+execute_command("cd #{root_q} && bundle")
+execute_command("cd #{root_q} && bundle exec appraisal generate")
+execute_command("cd #{root_q} && bundle exec rubocop -a 2>&1 | tee tmp/rubocop.log")
+execute_command("cd #{root_q} && bundle exec rspec 2>&1 | tee tmp/rspec.log")
 
 puts "Tests passed. Checking git status..."
 
@@ -30,12 +32,12 @@ unless git_status.empty?
 end
 
 gem_name = "polyrun"
-version_file = "lib/polyrun/version.rb"
+version_file = File.join(root_dir, "lib/polyrun/version.rb")
 version_content = File.read(version_file)
 version = version_content.match(/VERSION\s*=\s*"([0-9.]+)"/)[1]
 gem_file = "#{gem_name}-#{version}.gem"
 
-execute_command("gem build #{gem_name}.gemspec")
+execute_command("cd #{root_q} && gem build #{gem_name}.gemspec")
 
 puts "Ready to release #{gem_file} #{version}"
 print "Continue? [Y/n] "
@@ -45,6 +47,6 @@ unless answer == "Y" || answer.empty?
   exit 1
 end
 
-execute_command("gem push #{gem_file}")
-execute_command("git tag #{version} && git push --tags")
-execute_command("gh release create #{version} --generate-notes")
+execute_command("cd #{root_q} && gem push #{gem_file}")
+execute_command("cd #{root_q} && git tag #{version} && git push --tags")
+execute_command("cd #{root_q} && gh release create #{version} --generate-notes")

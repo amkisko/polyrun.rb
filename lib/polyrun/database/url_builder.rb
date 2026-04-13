@@ -44,18 +44,7 @@ module Polyrun
 
         out = {}
         out["DATABASE_URL"] = url_for_database_name(dh, pt)
-
-        Array(dh["connections"] || dh[:connections]).each do |c|
-          nm = (c["name"] || c[:name]).to_s
-          key = (c["env_key"] || c[:env_key]).to_s.strip
-          key = "DATABASE_URL_#{nm.upcase.tr("-", "_")}" if key.empty? && !nm.empty?
-          next if key.empty?
-
-          tname = (c["template_db"] || c[:template_db]).to_s
-          tname = pt if tname.empty?
-          out[key] = url_for_database_name(dh, tname)
-        end
-        out
+        template_prepare_env_fill_connections!(dh, pt, out)
       end
 
       def template_prepare_env_shell_log(databases_hash)
@@ -167,3 +156,5 @@ module Polyrun
     end
   end
 end
+
+require_relative "url_builder/template_prepare"

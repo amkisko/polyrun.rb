@@ -179,78 +179,11 @@ module Polyrun
       end
 
       def build_lpt_buckets
-        buckets = Array.new(total_shards) { [] }
-        totals = Array.new(total_shards, 0.0)
-
-        forced = []
-        free = []
-        items.each do |item|
-          if @constraints && (j = @constraints.forced_shard_for(item))
-            j = Integer(j)
-            raise Polyrun::Error, "constraint shard #{j} out of range" if j < 0 || j >= total_shards
-
-            buckets[j] << item
-            totals[j] += weight_for(item)
-          else
-            free << item
-          end
-        end
-
-        pairs = free.map { |p| [p, weight_for(p)] }
-        pairs.sort_by! { |(p, w)| [-w, p] }
-
-        heap = MinHeap.new
-        total_shards.times { |j| heap.push(totals[j], j) }
-
-        pairs.each do |path, w|
-          load, j = heap.pop_min
-          buckets[j] << path
-          heap.push(load + w, j)
-        end
-
-        buckets
-      end
-
-      def hrw_shards
-        @hrw_shards ||= begin
-          buckets = Array.new(total_shards) { [] }
-          salt = hrw_salt
-          items.each do |path|
-            j =
-              if @constraints && (fj = @constraints.forced_shard_for(path))
-                Integer(fj)
-              else
-                Hrw.shard_for(path: path, total_shards: total_shards, seed: salt)
-              end
-            raise Polyrun::Error, "constraint shard out of range" if j < 0 || j >= total_shards
-
-            buckets[j] << path
-          end
-          buckets
-        end
-      end
-
-      # One pass over +ordered_items+ (round_robin / random_round_robin); avoids O(workers × n) rescans in +shard+.
-      def mod_shards
-        @mod_shards ||= begin
-          list = ordered_items
-          buckets = Array.new(total_shards) { [] }
-          list.each_with_index { |path, i| buckets[i % total_shards] << path }
-          buckets
-        end
-      end
-
-      def hrw_salt
-        s = seed
-        (s.nil? || s.to_s.empty?) ? "polyrun-hrw" : s.to_s
-      end
-
-      def random_seed
-        s = seed
-        return Integer(s) if s && s != ""
-
-        0
+        PlanLptBuckets.new(self).build
       end
     end
   end
 end
+
+require_relative "plan_sharding"
+require_relative "plan_lpt"

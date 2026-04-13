@@ -10,7 +10,7 @@ module Polyrun
   #
   # Run: +polyrun quick+ or +polyrun quick spec/polyrun_quick/foo.rb+
   #
-  # Coverage: when +POLYRUN_COVERAGE=1+ or +config/polyrun_coverage.yml+ exists, starts
+  # Coverage: when +POLYRUN_COVERAGE=1+ or (+config/polyrun_coverage.yml+ and +POLYRUN_QUICK_COVERAGE=1+), starts
   # {Polyrun::Coverage::Rails} before loading quick files so stdlib +Coverage+ records them.
   module Quick
     module DSL

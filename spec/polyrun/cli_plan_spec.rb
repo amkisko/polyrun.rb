@@ -15,7 +15,7 @@ RSpec.describe Polyrun::CLI do
 
   it "plan with --timing uses cost_binpack and shard_seconds" do
     Dir.mktmpdir do |dir|
-      Dir.chdir(dir) do
+      with_chdir(dir) do
         list = File.join(dir, "spec_paths.txt")
         File.write(list, "a.rb\nb.rb\nc.rb\n")
         timing = File.join(dir, "t.json")
@@ -49,7 +49,7 @@ RSpec.describe Polyrun::CLI do
 
   it "plan exits 2 when no paths and no paths_file" do
     Dir.mktmpdir do |dir|
-      Dir.chdir(dir) do
+      with_chdir(dir) do
         _out, status = polyrun("plan", "--shard", "0", "--total", "1")
         expect(status.exitstatus).to eq(2)
       end

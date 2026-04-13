@@ -34,7 +34,7 @@ RSpec.describe Polyrun::CLI do
       File.write(a, JSON.dump({"coverage" => {"/x.rb" => {"lines" => [nil, 1]}}}))
       File.write(b, JSON.dump({"coverage" => {"/x.rb" => {"lines" => [nil, 2]}}}))
       pattern = File.join(dir, "polyrun-fragment-*.json")
-      Dir.chdir(dir) do
+      with_chdir(dir) do
         _, status = polyrun("merge-coverage", "-i", pattern, "-o", "merged.json", "--format", "json")
         expect(status.success?).to be true
         merged = JSON.parse(File.read(File.join(dir, "merged.json")))

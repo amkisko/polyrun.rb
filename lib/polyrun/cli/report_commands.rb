@@ -7,20 +7,7 @@ module Polyrun
       private
 
       def cmd_report_junit(argv)
-        inputs = []
-        output = nil
-        parser = OptionParser.new do |opts|
-          opts.banner = "usage: polyrun report-junit -i FILE [-i FILE]... [-o PATH]"
-          opts.on("-i", "--input PATH", "RSpec JSON (repeatable; globs ok; multiple files merge examples)") do |v|
-            expand_merge_input_pattern(v).each { |x| inputs << x }
-          end
-          opts.on("-o", "--output PATH", "Default: <dir of first input>/junit.xml") { |v| output = v }
-        end
-        parser.parse!(argv)
-        if inputs.empty? && argv.first
-          expand_merge_input_pattern(argv.first).each { |x| inputs << x }
-        end
-
+        inputs, output = report_junit_parse_inputs(argv)
         inputs.uniq!
         if inputs.empty?
           Polyrun::Log.warn "report-junit: need -i FILE (existing path after glob expansion)"
@@ -28,20 +15,9 @@ module Polyrun
         end
 
         inputs = inputs.map { |p| File.expand_path(p) }
-        inputs.each do |p|
-          unless File.file?(p)
-            Polyrun::Log.warn "report-junit: not a file: #{p}"
-            return 2
-          end
-        end
+        return 2 unless report_junit_inputs_exist?(inputs)
 
-        out =
-          if output
-            File.expand_path(output)
-          else
-            File.join(File.dirname(inputs.first), "junit.xml")
-          end
-
+        out = report_junit_resolved_output(inputs, output)
         path =
           if inputs.size == 1
             Polyrun::Reporting::Junit.write_from_json_file(inputs.first, output_path: out)
@@ -52,17 +28,50 @@ module Polyrun
         0
       end
 
+      def report_junit_parse_inputs(argv)
+        inputs = []
+        output = nil
+        OptionParser.new do |opts|
+          opts.banner = "usage: polyrun report-junit -i FILE [-i FILE]... [-o PATH]"
+          opts.on("-i", "--input PATH", "RSpec JSON (repeatable; globs ok; multiple files merge examples)") do |v|
+            expand_merge_input_pattern(v).each { |x| inputs << x }
+          end
+          opts.on("-o", "--output PATH", "Default: <dir of first input>/junit.xml") { |v| output = v }
+        end.parse!(argv)
+        if inputs.empty? && argv.first
+          expand_merge_input_pattern(argv.first).each { |x| inputs << x }
+        end
+        [inputs, output]
+      end
+
+      def report_junit_inputs_exist?(inputs)
+        inputs.each do |p|
+          unless File.file?(p)
+            Polyrun::Log.warn "report-junit: not a file: #{p}"
+            return false
+          end
+        end
+        true
+      end
+
+      def report_junit_resolved_output(inputs, output)
+        if output
+          File.expand_path(output)
+        else
+          File.join(File.dirname(inputs.first), "junit.xml")
+        end
+      end
+
       def cmd_report_timing(argv)
         input = nil
         out_file = nil
         top = 30
-        parser = OptionParser.new do |opts|
+        OptionParser.new do |opts|
           opts.banner = "usage: polyrun report-timing -i FILE [-o PATH] [--top N]"
           opts.on("-i", "--input PATH", "Merged polyrun_timing.json (path => seconds)") { |v| input = v }
           opts.on("-o", "--output PATH", "Write summary to file instead of stdout") { |v| out_file = v }
           opts.on("--top N", Integer) { |v| top = v }
-        end
-        parser.parse!(argv)
+        end.parse!(argv)
         input ||= argv.first
 
         unless input && File.file?(input)

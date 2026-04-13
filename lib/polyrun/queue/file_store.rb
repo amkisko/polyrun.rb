@@ -2,20 +2,9 @@ require "fileutils"
 require "json"
 require "securerandom"
 require "time"
-
 module Polyrun
   module Queue
-    # File-based coordinator for queue-mode batch claims (spec_queue.md).
-    # Uses OS +flock+ on a lock file (not database row locks); one claimer at a time per host. Suitable for local / shared NFS with caveats.
-    #
-    # Layout: +queue.json+ holds metadata (+pending_count+, +done_count+, +chunk_size+). Pending paths live in
-    # +pending/000001.json+ … (JSON arrays, at most +chunk_size+ entries each) so a +claim!+ only reads/writes
-    # the head chunk(s), not the full backlog. Completed paths are appended to +done.jsonl+ (one JSON string per line).
-    #
-    # Leases (+leases.json+) are removed only on +ack!+. If a worker dies after +claim!+ and before +ack!+, paths
-    # stay leased until you edit +leases.json+ (remove the lease UUID) or otherwise recover; there is no TTL.
-    #
-    # NFS: lock coherence and rename latency can still amplify tail latency; prefer local disk when possible.
+    # File-backed queue (spec_queue.md): +queue.json+, +pending/*.json+ chunks, +done.jsonl+, +leases.json+ (OS flock).
     class FileStore
       CHUNK_SIZE = 500
 
@@ -175,47 +164,6 @@ module Polyrun
         atomic_write(queue_path, JSON.generate(meta))
       end
 
-      def sorted_chunk_files
-        Dir.glob(File.join(pending_dir, "[0-9][0-9][0-9][0-9][0-9][0-9].json")).sort
-      end
-
-      def take_pending_batch!(meta, batch_size)
-        remaining = Integer(meta["pending_count"])
-        return [] if remaining <= 0 || batch_size <= 0
-
-        batch = []
-        files = sorted_chunk_files
-        while batch.size < batch_size
-          break if files.empty?
-
-          head = files.first
-          append_from_next_chunk!(batch, batch_size, head)
-          files.shift unless File.file?(head)
-        end
-
-        meta["pending_count"] = [remaining - batch.size, 0].max
-        if meta["pending_count"].positive? && sorted_chunk_files.empty?
-          raise Polyrun::Error,
-            "queue corrupt: pending_count=#{meta["pending_count"]} but no pending chunk files under #{pending_dir}"
-        end
-
-        batch
-      end
-
-      def append_from_next_chunk!(batch, batch_size, path)
-        chunk = JSON.parse(File.read(path))
-        raise Polyrun::Error, "corrupt queue chunk: #{path}" unless chunk.is_a?(Array)
-
-        need = batch_size - batch.size
-        taken = chunk.shift(need)
-        batch.concat(taken)
-        if chunk.empty?
-          FileUtils.rm_f(path)
-        else
-          atomic_write(path, JSON.generate(chunk))
-        end
-      end
-
       def append_done_lines!(paths)
         return if paths.empty?
 
@@ -247,3 +195,5 @@ module Polyrun
     end
   end
 end
+
+require_relative "file_store_pending"

@@ -45,21 +45,15 @@ module Polyrun
       end
 
       def cmd_db_setup_shard(argv, config_path)
-        dry = false
-        parser = OptionParser.new do |opts|
-          opts.on("--dry-run", "Print only") { dry = true }
-        end
-        parser.parse!(argv)
-
+        dry = db_setup_shard_parse_options!(argv)
         cfg = Polyrun::Config.load(path: config_path || ENV["POLYRUN_CONFIG"])
-        pc = cfg.partition
         dh = cfg.databases
         if !dh.is_a?(Hash) || dh.empty?
           Polyrun::Log.warn "db:setup-shard: configure databases: in polyrun.yml"
           return 2
         end
 
-        shard = resolve_shard_index(pc)
+        shard = resolve_shard_index(cfg.partition)
         template = dh["template_db"] || dh[:template_db]
         if !template
           Polyrun::Log.warn "db:setup-shard: set databases.template_db"
@@ -72,6 +66,18 @@ module Polyrun
           return 2
         end
 
+        db_setup_shard_run_plan(plan, dry: dry)
+      end
+
+      def db_setup_shard_parse_options!(argv)
+        dry = false
+        OptionParser.new do |opts|
+          opts.on("--dry-run", "Print only") { dry = true }
+        end.parse!(argv)
+        dry
+      end
+
+      def db_setup_shard_run_plan(plan, dry:)
         if dry
           plan.each do |row|
             Polyrun::Log.warn "would: CREATE DATABASE #{row[:new_db]} TEMPLATE #{row[:template_db]}"
@@ -90,24 +96,7 @@ module Polyrun
 
       # Migrate all template DBs + create every shard database (primary + +connections+).
       def cmd_db_clone_shards(argv, config_path)
-        dry = false
-        migrate = true
-        replace = true
-        force_drop = false
-        rails_root = Dir.pwd
-        workers = env_int("POLYRUN_WORKERS", 5)
-
-        parser = OptionParser.new do |opts|
-          opts.banner = "usage: polyrun db:clone-shards [--workers N] [--rails-root PATH] [--dry-run] [--no-migrate] [--no-replace] [--force-drop]"
-          opts.on("--workers N", Integer) { |v| workers = v }
-          opts.on("--dry-run", "Print only") { dry = true }
-          opts.on("--rails-root PATH", String) { |v| rails_root = v }
-          opts.on("--no-migrate", "Skip db:prepare on template databases") { migrate = false }
-          opts.on("--no-replace", "Skip DROP DATABASE before CREATE (fail if shard DB exists)") { replace = false }
-          opts.on("--force-drop", "DROP DATABASE … WITH (FORCE) (PostgreSQL 13+)") { force_drop = true }
-        end
-        parser.parse!(argv)
-
+        opts = db_clone_shards_parse_options!(argv)
         cfg = Polyrun::Config.load(path: config_path || ENV["POLYRUN_CONFIG"])
         dh = cfg.databases
         if !dh.is_a?(Hash) || dh.empty?
@@ -115,22 +104,42 @@ module Polyrun
           return 2
         end
 
-        workers = workers.clamp(1, 10)
-
+        workers = opts[:workers].clamp(1, 10)
         Polyrun::Database::CloneShards.provision!(
           dh,
           workers: workers,
-          rails_root: File.expand_path(rails_root),
-          migrate: migrate,
-          replace: replace,
-          force_drop: force_drop,
-          dry_run: dry,
+          rails_root: File.expand_path(opts[:rails_root]),
+          migrate: opts[:migrate],
+          replace: opts[:replace],
+          force_drop: opts[:force_drop],
+          dry_run: opts[:dry],
           silent: !@verbose
         )
         0
       rescue Polyrun::Error => e
         Polyrun::Log.warn "db:clone-shards: #{e.message}"
         1
+      end
+
+      def db_clone_shards_parse_options!(argv)
+        dry = false
+        migrate = true
+        replace = true
+        force_drop = false
+        rails_root = Dir.pwd
+        workers = env_int("POLYRUN_WORKERS", 5)
+
+        OptionParser.new do |opts|
+          opts.banner = "usage: polyrun db:clone-shards [--workers N] [--rails-root PATH] [--dry-run] [--no-migrate] [--no-replace] [--force-drop]"
+          opts.on("--workers N", Integer) { |v| workers = v }
+          opts.on("--dry-run", "Print only") { dry = true }
+          opts.on("--rails-root PATH", String) { |v| rails_root = v }
+          opts.on("--no-migrate", "Skip db:prepare on template databases") { migrate = false }
+          opts.on("--no-replace", "Skip DROP DATABASE before CREATE (fail if shard DB exists)") { replace = false }
+          opts.on("--force-drop", "DROP DATABASE … WITH (FORCE) (PostgreSQL 13+)") { force_drop = true }
+        end.parse!(argv)
+
+        {dry: dry, migrate: migrate, replace: replace, force_drop: force_drop, rails_root: rails_root, workers: workers}
       end
     end
   end

@@ -49,18 +49,28 @@ module Polyrun
         end
         tables ||= []
 
+        psql = sql_snapshot_psql_base(username, database, host, port)
+        sql_snapshot_truncate_tables!(psql, tables) if tables.any?
+        sql_snapshot_load_file!(psql, path)
+        true
+      end
+
+      def sql_snapshot_psql_base(username, database, host, port)
         psql = ["psql", "-U", username, "-d", database]
         psql += ["-h", host] if host && !host.to_s.empty?
         psql += ["-p", port.to_s] if port && !port.to_s.empty?
+        psql
+      end
 
-        if tables.any?
-          quoted = tables.map { |t| %("#{t.gsub('"', '""')}") }.join(", ")
-          trunc = "TRUNCATE TABLE #{quoted} CASCADE;"
-          _out, err, st = Open3.capture3(*psql, "-v", "ON_ERROR_STOP=1", "-c", trunc)
-          raise Polyrun::Error, "psql truncate failed: #{err}" unless st.success?
-        end
+      def sql_snapshot_truncate_tables!(psql, tables)
+        quoted = tables.map { |t| %("#{t.gsub('"', '""')}") }.join(", ")
+        trunc = "TRUNCATE TABLE #{quoted} CASCADE;"
+        _trunc_out, err, st = Open3.capture3(*psql, "-v", "ON_ERROR_STOP=1", "-c", trunc)
+        raise Polyrun::Error, "psql truncate failed: #{err}" unless st.success?
+      end
 
-        _out, err, st = Open3.capture3(
+      def sql_snapshot_load_file!(psql, path)
+        _load_out, err, st = Open3.capture3(
           *psql,
           "-v", "ON_ERROR_STOP=1",
           "-c", "SET session_replication_role = 'replica';",
@@ -68,8 +78,6 @@ module Polyrun
           "-c", "SET session_replication_role = 'origin';"
         )
         raise Polyrun::Error, "psql load failed: #{err}" unless st.success?
-
-        true
       end
     end
   end
