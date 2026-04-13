@@ -1,0 +1,7 @@
+# Example: balanced sharding from merged timing (polyrun merge-timing output shape: path => seconds).
+partition:
+  paths_file: spec_paths.txt
+  strategy: cost_binpack
+  timing_file: polyrun_timing.json
+  shard_total: 3
+  shard_index: 0

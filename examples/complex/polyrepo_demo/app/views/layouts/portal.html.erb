@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Portal (Vite)</title>
+    <%= csrf_meta_tags %>
+    <%= stylesheet_link_tag "/portal/assets/style.css" %>
+  </head>
+  <body data-app="portal">
+    <%= yield %>
+    <%= javascript_include_tag "/portal/assets/main.js", type: "module", defer: true %>
+  </body>
+</html>

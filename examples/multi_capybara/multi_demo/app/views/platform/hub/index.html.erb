@@ -1,0 +1,11 @@
+<section data-testid="platform-hub">
+  <h1 data-testid="platform-heading">Super-platform hub</h1>
+  <p>Each vertical is a slice of a real multi-tenant product: banking, medicine, library, accounting, blog, forum, assistant, and analytics.</p>
+  <ul class="platform-grid">
+    <% @verticals.each do |v| %>
+      <li>
+        <%= link_to Platform.label_for(v), platform_vertical_path(vertical: v), data: { testid: "vertical-link-#{v}" } %>
+      </li>
+    <% end %>
+  </ul>
+</section>

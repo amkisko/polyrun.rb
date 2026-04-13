@@ -26,13 +26,15 @@ Capybara and Playwright stay in your application; Polyrun does not replace brows
 
 Quick CLI samples:
 
+If the current directory already has `polyrun.yml` or `config/polyrun.yml`, you can omit `-c` (same as `Config.load` default discovery). Pass `-c PATH` or set `POLYRUN_CONFIG` when the file lives elsewhere or uses another name.
+
 ```bash
 bin/polyrun version
-bin/polyrun build-paths -c polyrun.yml   # write spec/spec_paths.txt from partition.paths_build only
-bin/polyrun parallel-rspec --workers 5 -c polyrun.yml   # run-shards + merge-coverage (default: bundle exec rspec)
-bin/polyrun run-shards --workers 5 -c polyrun.yml --merge-coverage -- bundle exec rspec
+bin/polyrun build-paths   # write spec/spec_paths.txt from partition.paths_build (uses polyrun.yml in cwd)
+bin/polyrun parallel-rspec --workers 5   # run-shards + merge-coverage (default: bundle exec rspec)
+bin/polyrun run-shards --workers 5 --merge-coverage -- bundle exec rspec
 bin/polyrun merge-coverage -i cov1.json -i cov2.json -o merged.json --format json,lcov,cobertura,console
-bin/polyrun -c polyrun.yml env --shard 0 --total 4   # print DATABASE_URL-style exports
+bin/polyrun env --shard 0 --total 4   # print DATABASE_URL-style exports from polyrun.yml in cwd
 bin/polyrun init --list
 bin/polyrun init --profile gem -o polyrun.yml   # starter YAML; see docs/SETUP_PROFILE.md
 ```
@@ -97,9 +99,9 @@ bin/polyrun queue init --paths-file spec/spec_paths.txt --timing polyrun_timing.
 bin/polyrun report-coverage -i merged.json -o coverage/out --format json,lcov,cobertura,console
 bin/polyrun report-junit -i rspec.json -o junit.xml
 bin/polyrun report-timing -i polyrun_timing.json --top 20
-bin/polyrun -c polyrun.yml plan --shard 0 --total 4
-bin/polyrun -c polyrun.yml prepare --recipe assets --dry-run
-bin/polyrun parallel-rspec --workers 4 -c polyrun.yml
+bin/polyrun plan --shard 0 --total 4   # polyrun.yml in cwd
+bin/polyrun prepare --recipe assets --dry-run
+bin/polyrun parallel-rspec --workers 4
 ```
 
 `polyrun.yml` can set `partition.*`, `prepare.recipe` (`default` or `assets`), `prepare.rails_root`, and related keys. `POLYRUN_SHARD_*` overrides configuration where documented; CLI flags override environment variables.

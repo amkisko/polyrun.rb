@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Admin (Vite)</title>
+    <%= csrf_meta_tags %>
+    <%= stylesheet_link_tag "/admin/assets/style.css" %>
+  </head>
+  <body data-app="admin">
+    <%= yield %>
+    <%= javascript_include_tag "/admin/assets/main.js", type: "module", defer: true %>
+  </body>
+</html>

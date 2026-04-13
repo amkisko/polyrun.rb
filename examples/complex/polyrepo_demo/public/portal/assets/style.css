@@ -1,0 +1,2 @@
+body { font-family: system-ui; }
+body[data-app="portal"] { background: #efe; }

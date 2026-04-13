@@ -1,0 +1,7 @@
+{
+  "spec/system/home_spec.rb": 30.0,
+  "spec/models/heavy_spec.rb": 120.0,
+  "spec/models/medium_spec.rb": 45.0,
+  "spec/requests/light_spec.rb": 20.0,
+  "spec/requests/tiny_spec.rb": 5.0
+}

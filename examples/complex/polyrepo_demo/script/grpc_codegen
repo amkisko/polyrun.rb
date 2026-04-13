@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Regenerate Ruby from proto/demo/v1/demo.proto (requires grpc + grpc-tools in bundle).
+set -euo pipefail
+cd "$(dirname "$0")/.."
+mkdir -p lib/grpc_generated/demo/v1
+exec bundle exec grpc_tools_ruby_protoc \
+  -I proto \
+  --ruby_out=lib/grpc_generated \
+  --grpc_out=lib/grpc_generated \
+  proto/demo/v1/demo.proto

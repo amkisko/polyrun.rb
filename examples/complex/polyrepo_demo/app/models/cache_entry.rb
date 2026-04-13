@@ -1,0 +1,2 @@
+class CacheEntry < CacheRecord
+end

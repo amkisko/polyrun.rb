@@ -1,0 +1,8 @@
+# Rendezvous hashing — stable mapping when worker count changes; optional timing for weights.
+partition:
+  paths_file: spec/paths.txt
+  shard_total: 4
+  shard_index: 0
+  strategy: hrw
+  seed: polyrun-hrw-demo
+  timing_file: polyrun_timing.json

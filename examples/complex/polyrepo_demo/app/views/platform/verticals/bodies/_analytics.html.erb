@@ -1,0 +1,19 @@
+<p data-testid="vertical-body">Dashboards and KPIs — Chart.js loaded from CDN for a realistic asset + JS surface.</p>
+<div data-testid="chart-mount" style="max-width: 480px;">
+  <canvas id="demo-chart" width="400" height="200" data-testid="demo-chart"></canvas>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", function () {
+    const el = document.getElementById("demo-chart");
+    if (!el || typeof Chart === "undefined") return;
+    new Chart(el, {
+      type: "bar",
+      data: {
+        labels: ["Q1", "Q2", "Q3", "Q4"],
+        datasets: [{ label: "Revenue", data: [12, 19, 10, 22], backgroundColor: "rgba(54, 162, 235, 0.6)" }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+  });
+</script>

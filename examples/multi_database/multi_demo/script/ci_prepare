@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Prepare DB schema once; each parallel worker should use a distinct DATABASE_URL / shard (see polyrun.yml).
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+export RAILS_ENV="${RAILS_ENV:-test}"
+bin/rails db:prepare

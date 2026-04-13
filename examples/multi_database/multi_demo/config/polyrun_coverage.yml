@@ -1,0 +1,4 @@
+# Optional: Polyrun::Coverage::Rails reads this from spec/spec_helper.
+track_under:
+  - app
+  - lib

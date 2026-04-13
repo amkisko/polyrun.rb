@@ -1,0 +1,4 @@
+<article data-testid="vertical-<%= @vertical %>" data-vertical="<%= @vertical %>">
+  <h1 data-testid="vertical-title"><%= @label %></h1>
+  <%= render "platform/verticals/bodies/#{@vertical}", vertical: @vertical %>
+</article>

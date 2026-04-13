@@ -1,0 +1,5 @@
+# Example: pin a file to shard 0; force system specs onto shard 0 (serial_glob).
+pin:
+  "spec/models/heavy_spec.rb": 0
+serial_glob:
+  - "spec/system/**"

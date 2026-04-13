@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Thin wrapper: polyrun parallel-rspec (run-shards + merge-coverage). See: polyrun -h
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+exec bundle exec polyrun -c polyrun.yml parallel-rspec --workers "${POLYRUN_WORKERS:-4}"

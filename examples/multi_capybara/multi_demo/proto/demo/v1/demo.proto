@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package demo.v1;
+
+option ruby_package = "Demo::V1";
+
+// Demo service: same catalog as REST /graphql — for multi-protocol integration + coverage demos.
+service Demo {
+  rpc Health(HealthRequest) returns (HealthReply);
+  rpc ListItems(ListItemsRequest) returns (ListItemsReply);
+  rpc GetItem(GetItemRequest) returns (GetItemReply);
+}
+
+message HealthRequest {}
+
+message HealthReply {
+  string status = 1;
+}
+
+message Item {
+  int32 id = 1;
+  string slug = 2;
+  string title = 3;
+}
+
+message ListItemsRequest {}
+
+message ListItemsReply {
+  repeated Item items = 1;
+}
+
+message GetItemRequest {
+  string slug = 1;
+}
+
+message GetItemReply {
+  Item item = 1;
+}

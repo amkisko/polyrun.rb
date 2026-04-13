@@ -1,0 +1,2 @@
+class WarehouseSnapshot < WarehouseRecord
+end

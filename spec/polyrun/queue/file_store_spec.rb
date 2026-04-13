@@ -1,4 +1,5 @@
 require "spec_helper"
+require "fileutils"
 require "json"
 require "tmpdir"
 
@@ -47,6 +48,22 @@ RSpec.describe Polyrun::Queue::FileStore do
       expect do
         s.ack!(lease_id: r["lease_id"], worker_id: "w2")
       end.to raise_error(Polyrun::Error, /lease worker mismatch/)
+    end
+  end
+
+  it "raises when pending_count and pending chunks disagree" do
+    Dir.mktmpdir do |dir|
+      FileUtils.mkdir_p(File.join(dir, "pending"))
+      File.write(File.join(dir, "queue.json"), JSON.generate(
+        "created_at" => Time.now.utc.iso8601,
+        "pending_count" => 2,
+        "done_count" => 0,
+        "chunk_size" => 500
+      ))
+      s = described_class.new(dir)
+      expect do
+        s.claim!(worker_id: "w1", batch_size: 1)
+      end.to raise_error(Polyrun::Error, /queue corrupt/)
     end
   end
 

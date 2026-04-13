@@ -11,6 +11,13 @@ Gemfile.lock
 /examples/**/storage/
 /examples/**/node_modules/
 /examples/**/public/vite*
+/examples/**/lib/demo/lattice/
+/examples/**/spec/demo/lattice/
+/examples/**/spec/paths.txt
+/examples/**/coverage/
+/examples/**/config/master.key
+/examples/**/config/credentials.yml.enc
+/examples/**/config/credentials/*.key
 
 # Appraisal
 /gemfiles/*.lock

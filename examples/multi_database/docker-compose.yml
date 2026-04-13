@@ -1,0 +1,3 @@
+# Shared stack — see ../docker-compose.yml
+include:
+  - ../docker-compose.yml

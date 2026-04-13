@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Idempotent: safe to run once before parallel RSpec workers. Writes Polyrun asset digest marker.
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+mkdir -p tmp
+bundle exec ruby -e '
+  require "bundler/setup"
+  require "polyrun"
+  root = ARGV[0]
+  marker = File.join(root, "tmp", "polyrun-assets.digest")
+  sources = [File.join(root, "app", "assets")].select { |p| File.exist?(p) }
+  raise "no app/assets" if sources.empty?
+  Polyrun::Prepare::Assets.write_marker!(marker, *sources)
+  puts "Polyrun::Prepare::Assets marker -> #{marker} stale=#{Polyrun::Prepare::Assets.stale?(marker, *sources)}"
+' "$ROOT"

@@ -1,0 +1,18 @@
+# Polyrun: partition, prepare, shard-aware DB names, parallel CI (see examples/README.md).
+# Default strategy is round_robin. Other strategies: examples/partition_strategies/README.md
+partition:
+  paths_file: spec/paths.txt
+  shard_total: 4
+  shard_index: 0
+
+prepare:
+  recipe: default
+  rails_root: .
+
+databases:
+  template_db: simple_demo_template
+  shard_db_pattern: "simple_demo_test_%{shard}"
+  postgresql:
+    host: localhost
+    # port: use PGPORT (e.g. 5433 with examples/docker-compose.yml)
+    username: postgres

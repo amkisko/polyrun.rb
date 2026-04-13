@@ -1,0 +1,23 @@
+# Example Rails apps under this tree — local/generated files (see also repo root .gitignore)
+
+# Credentials (demos ship without secrets; create locally if needed)
+**/config/master.key
+**/config/credentials.yml.enc
+**/config/credentials/*.key
+
+# Generated lattice suite (see script/generate_lattice_spec_suite.rb; recreated by each demo script/ci_prepare)
+**/lib/demo/lattice/
+**/spec/demo/lattice/
+**/spec/paths.txt
+
+# RSpec / Polyrun coverage fragments and merged reports
+**/coverage/
+
+# Rails runtime & caches
+**/tmp/
+**/log/
+**/storage/
+**/node_modules/
+
+# Optional local bundle path
+**/vendor/bundle

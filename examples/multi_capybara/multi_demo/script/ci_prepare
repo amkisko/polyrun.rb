@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Vite production bundles once; parallel Capybara/Playwright workers must not each run npm build.
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+if [[ -f package.json ]]; then
+  if [[ -d node_modules ]]; then
+    npm run build
+  else
+    npm install
+    npm run build
+  fi
+  if command -v npx >/dev/null 2>&1; then
+    npx playwright install chromium
+  fi
+fi
+mkdir -p tmp
+bundle exec ruby -e '
+  require "bundler/setup"
+  require "polyrun"
+  root = ARGV[0]
+  marker = File.join(root, "tmp", "polyrun-vite.digest")
+  paths = [File.join(root, "admin"), File.join(root, "store"), File.join(root, "package.json")]
+  paths = paths.select { |p| File.exist?(p) }
+  Polyrun::Prepare::Assets.write_marker!(marker, *paths) if paths.any?
+  puts "Vite digest marker -> #{marker}" if paths.any?
+' "$ROOT"

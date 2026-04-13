@@ -1,0 +1,7 @@
+# LPT greedy binpack: balance estimated wall time across workers (merge-timing JSON).
+partition:
+  paths_file: spec/paths.txt
+  shard_total: 4
+  shard_index: 0
+  strategy: cost_binpack
+  timing_file: polyrun_timing.json

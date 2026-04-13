@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Run once before parallel test matrix (CI or local). Do not call from per-example hooks.
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+
+echo "== Polyrun examples: ci_prepare (shared assets / builds) =="
+
+if [[ -d "$ROOT/simple/simple_demo" ]]; then
+  echo "-- simple_demo: asset digest marker"
+  (cd "$ROOT/simple/simple_demo" && ./script/ci_prepare)
+fi
+
+if [[ -d "$ROOT/multi_capybara/multi_demo" ]]; then
+  echo "-- multi_capybara: Vite production builds"
+  (cd "$ROOT/multi_capybara/multi_demo" && ./script/ci_prepare)
+fi
+
+if [[ -d "$ROOT/multi_database/multi_demo" ]]; then
+  echo "-- multi_database: schema (no heavy assets)"
+  (cd "$ROOT/multi_database/multi_demo" && ./script/ci_prepare)
+fi
+
+if [[ -L "$ROOT/cost_balancing/rails_demo" || -d "$ROOT/cost_balancing/rails_demo" ]]; then
+  echo "-- cost_balancing/rails_demo: same app as multi_database (symlink — no extra step)"
+fi
+
+if [[ -d "$ROOT/complex/polyrepo_demo" ]]; then
+  echo "-- complex/polyrepo_demo: three Vite clients + Playwright browsers"
+  (cd "$ROOT/complex/polyrepo_demo" && ./script/ci_prepare)
+fi
+
+echo "== ci_prepare done =="

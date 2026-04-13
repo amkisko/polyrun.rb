@@ -1,0 +1,18 @@
+# Polyrun: partition, prepare, and shard-aware DB URLs (see README).
+# Partition strategies: ../partition_strategies/README.md — cost/timing: ../cost_balancing/
+partition:
+  paths_file: spec/paths.txt
+  shard_total: 4
+  shard_index: 0
+  # Optional: cost_binpack + polyrun merge-timing output — see ../cost_balancing/polyrun_rails.yml
+
+prepare:
+  recipe: default
+  rails_root: .
+
+databases:
+  template_db: multi_demo_template
+  shard_db_pattern: "multi_demo_test_%{shard}"
+  postgresql:
+    host: localhost
+    username: postgres

@@ -1,0 +1,7 @@
+# Fisher–Yates shuffle then mod assignment — use seed for reproducible CI splits.
+partition:
+  paths_file: spec/paths.txt
+  shard_total: 4
+  shard_index: 0
+  strategy: random_round_robin
+  seed: 42

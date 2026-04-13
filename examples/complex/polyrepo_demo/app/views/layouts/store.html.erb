@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Store (Vite)</title>
+    <%= csrf_meta_tags %>
+    <%= stylesheet_link_tag "/store/assets/style.css" %>
+  </head>
+  <body data-app="store">
+    <%= yield %>
+    <%= javascript_include_tag "/store/assets/main.js", type: "module", defer: true %>
+  </body>
+</html>

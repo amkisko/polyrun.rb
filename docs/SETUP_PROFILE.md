@@ -45,7 +45,7 @@ Rule: anything expensive (compile, `yarn`, Playwright download) belongs in prepa
 | Plain glob | `partition.paths_build.all_glob: spec/**/*_spec.rb` and empty or minimal `stages` |
 | Ordered stages | `partition.paths_build.stages`: regex (e.g. slow integration first) or `sort_by_substring_order` for stable ordering |
 
-Refresh list: `polyrun build-paths -c polyrun.yml` (also runs automatically before `plan` / `run-shards` when configured).
+Refresh list: `polyrun -c polyrun.yml build-paths` (also runs automatically before `plan` / `run-shards` when configured).
 
 ## 6. Coverage and CI reports
 
@@ -75,7 +75,7 @@ Bot workflow: read and write `polyrun.yml` first, then generate or patch wrapper
 
 Model A — one job, N worker processes
 
-- Command: `polyrun parallel-rspec --workers N -c polyrun.yml` (or `polyrun start`).
+- Command: `polyrun -c polyrun.yml parallel-rspec --workers N` (or `polyrun start`). Global `-c` / `-v` / `-h` must appear before the subcommand.
 - Coverage fragments appear on the same runner; `merge-coverage` can run in the same job after workers finish.
 
 Model B — matrix of jobs (one shard per job)

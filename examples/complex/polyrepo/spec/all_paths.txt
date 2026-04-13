@@ -1,0 +1,5 @@
+# Example shard inputs — real list is polyrepo_demo/spec/paths.txt
+../polyrepo_demo/spec/system
+../polyrepo_demo/spec/integration
+../polyrepo_demo/spec/grpc
+../polyrepo_demo/spec/requests

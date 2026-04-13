@@ -1,0 +1,5 @@
+spec/system/home_spec.rb
+spec/models/heavy_spec.rb
+spec/models/medium_spec.rb
+spec/requests/light_spec.rb
+spec/requests/tiny_spec.rb

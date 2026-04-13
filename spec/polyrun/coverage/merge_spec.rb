@@ -53,6 +53,17 @@ RSpec.describe Polyrun::Coverage::Merge do
       m = described_class.merge_two(a, b)
       expect(m["/x.rb"]["branches"].first["coverage"]).to eq(3)
     end
+
+    it "orders merged branches deterministically by branch_key" do
+      br_then = {"type" => "then", "start_line" => 1, "end_line" => 1, "coverage" => 1}
+      br_else = {"type" => "else", "start_line" => 2, "end_line" => 2, "coverage" => 1}
+      a = {"/x.rb" => {"lines" => [1], "branches" => [br_then, br_else]}}
+      b = {"/x.rb" => {"lines" => [1], "branches" => [br_else, br_then]}}
+      m1 = described_class.merge_two(a, b)
+      m2 = described_class.merge_two(b, a)
+      expect(m1["/x.rb"]["branches"]).to eq(m2["/x.rb"]["branches"])
+      expect(m1["/x.rb"]["branches"].map { |br| br["type"] }).to eq(%w[else then])
+    end
   end
 
   describe ".extract_coverage_blob" do

@@ -1,0 +1,27 @@
+# Shared Postgres for Polyrun parallel demos (shard DBs + template DBs).
+# From repo root: docker compose -f examples/docker-compose.yml up -d
+# Or: cd examples && ./script/docker_up.sh
+#
+# Host port defaults to 5433 to avoid clashing with a local PostgreSQL on 5432.
+# Export PGPORT=5433 (and PGPASSWORD=postgres) before bin/polyrun env / run-shards.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "${POLYRUN_PG_PORT:-5433}:5432"
+    volumes:
+      - polyrun_examples_pg:/var/lib/postgresql/data
+      - ./docker/postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+      start_period: 5s
+
+volumes:
+  polyrun_examples_pg:

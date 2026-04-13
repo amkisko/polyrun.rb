@@ -1,0 +1,17 @@
+# Monorepo-style root: run polyrun from examples/complex with -c polyrepo/polyrun.yml
+# (adjust paths to your checkout). The runnable app lives in ../polyrepo_demo/.
+partition:
+  paths_file: ../polyrepo_demo/spec/paths.txt
+  shard_total: 8
+  shard_index: 0
+
+prepare:
+  recipe: default
+  rails_root: ../polyrepo_demo
+
+databases:
+  template_db: polyrepo_template
+  shard_db_pattern: "polyrepo_test_%{shard}"
+  postgresql:
+    host: localhost
+    username: postgres
