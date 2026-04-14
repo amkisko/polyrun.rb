@@ -1,3 +1,5 @@
+require "pathname"
+
 require_relative "assertions"
 require_relative "errors"
 require_relative "example_group"
@@ -8,7 +10,7 @@ module Polyrun
   # Micro test runner: nested +describe+, +it+ / +test+, +before+ / +after+, +let+ / +let!+,
   # +expect().to+ matchers, optional +Polyrun::Quick.capybara!+ when the +capybara+ gem is loaded.
   #
-  # Run: +polyrun quick+ or +polyrun quick spec/polyrun_quick/foo.rb+
+  # Run: +polyrun quick+ or +polyrun quick spec/foo.rb+
   #
   # Coverage: when +POLYRUN_COVERAGE=1+ or (+config/polyrun_coverage.yml+ and +POLYRUN_QUICK_COVERAGE=1+), starts
   # {Polyrun::Coverage::Rails} before loading quick files so stdlib +Coverage+ records them.
@@ -71,7 +73,7 @@ module Polyrun
 
         files = expand_paths(paths)
         if files.empty?
-          Polyrun::Log.warn "polyrun quick: no files (pass paths or add spec/polyrun_quick/**/*.rb or test/polyrun_quick/**/*.rb)"
+          Polyrun::Log.warn "polyrun quick: no files (pass paths or add Quick files under spec/ or test/, e.g. spec/polyrun_quick/**/*.rb or spec/**/*.rb excluding *_spec.rb / *_test.rb)"
           return 2
         end
 
@@ -151,12 +153,27 @@ module Polyrun
       end
 
       def default_globs
-        base = Dir.pwd
+        base = File.expand_path(Dir.pwd)
         globs = [
           File.join(base, "spec", "polyrun_quick", "**", "*.rb"),
-          File.join(base, "test", "polyrun_quick", "**", "*.rb")
+          File.join(base, "test", "polyrun_quick", "**", "*.rb"),
+          File.join(base, "spec", "**", "*.rb"),
+          File.join(base, "test", "**", "*.rb")
         ]
-        globs.flat_map { |g| Dir.glob(g) }.uniq.sort
+        globs.flat_map { |g| Dir.glob(g) }.uniq.reject { |p| default_quick_exclude?(p, base) }.sort
+      end
+
+      # Omit RSpec/Minitest files and common helpers so +polyrun quick+ with no args does not load normal suites.
+      def default_quick_exclude?(path, base)
+        rel = Pathname.new(path).relative_path_from(Pathname.new(base)).to_s
+        parts = rel.split(File::SEPARATOR)
+        bn = File.basename(path)
+        return true if bn.end_with?("_spec.rb", "_test.rb")
+        return true if %w[spec_helper.rb rails_helper.rb test_helper.rb].include?(bn)
+        return true if parts[0] == "spec" && %w[support fixtures factories].include?(parts[1])
+        return true if parts[0] == "test" && %w[support fixtures].include?(parts[1])
+
+        false
       end
     end
   end

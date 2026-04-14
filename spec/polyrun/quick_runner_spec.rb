@@ -1,7 +1,9 @@
 require "spec_helper"
+require "fileutils"
 require "json"
 require "open3"
 require "polyrun/quick"
+require "stringio"
 require "tmpdir"
 
 RSpec.describe Polyrun::Quick do
@@ -48,6 +50,29 @@ RSpec.describe Polyrun::Quick do
     it "returns 2 when no files match" do
       code = described_class.run(paths: [File.join(Dir.tmpdir, "polyrun_quick_empty_xyz")])
       expect(code).to eq(2)
+    end
+
+    it "discovers Quick files under spec/ without a polyrun_quick/ directory when no paths are given" do
+      Dir.mktmpdir do |dir|
+        spec_dir = File.join(dir, "spec")
+        FileUtils.mkdir_p(spec_dir)
+        f = File.join(spec_dir, "smoke.rb")
+        File.write(f, <<~RUBY)
+          describe "g" do
+            it "a" do
+              assert_equal 1, 1
+            end
+          end
+        RUBY
+
+        Dir.chdir(dir) do
+          out = StringIO.new
+          err = StringIO.new
+          code = described_class.run(paths: nil, out: out, err: err)
+          expect(code).to eq(0)
+          expect(out.string).to include("1 passed")
+        end
+      end
     end
 
     it "writes a coverage fragment when POLYRUN_COVERAGE=1 (subprocess)" do
