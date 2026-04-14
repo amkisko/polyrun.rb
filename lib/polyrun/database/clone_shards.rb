@@ -1,6 +1,6 @@
 module Polyrun
   module Database
-    # Prepare canonical template DBs (+bin/rails db:prepare+ — schema load on empty DB, then migrate) then create per-shard databases (PostgreSQL +CREATE DATABASE … TEMPLATE …+).
+    # Prepare canonical template DBs with one +bin/rails db:prepare+ (all +DATABASE_URL*+ keys in one process for multi-DB apps), then create per-shard databases in parallel (PostgreSQL +CREATE DATABASE … TEMPLATE …+).
     # Other ActiveRecord adapters (MySQL, SQL Server, SQLite, …) are not automated here—use +polyrun env+ URLs with your own +db:*+ scripts.
     # Replaces shell loops like +dropdb+ / +createdb -T+ when +polyrun.yml databases:+ lists primary + +connections+.
     module CloneShards
@@ -37,14 +37,29 @@ module Polyrun
       private_class_method :migrate_canonical_databases!
 
       def create_shards_from_plan!(dh, workers, replace, force_drop, dry_run)
-        workers.times do |shard_index|
-          plan = UrlBuilder.shard_database_plan(dh, shard_index: shard_index)
-          if plan.empty?
-            raise Polyrun::Error, "CloneShards: empty shard plan for shard_index=#{shard_index}"
-          end
+        if dry_run
+          workers.times do |shard_index|
+            plan = UrlBuilder.shard_database_plan(dh, shard_index: shard_index)
+            if plan.empty?
+              raise Polyrun::Error, "CloneShards: empty shard plan for shard_index=#{shard_index}"
+            end
 
-          plan.each { |row| create_one_shard!(row, replace, force_drop, dry_run) }
+            plan.each { |row| create_one_shard!(row, replace, force_drop, dry_run) }
+          end
+          return
         end
+
+        threads = workers.times.map do |shard_index|
+          Thread.new do
+            plan = UrlBuilder.shard_database_plan(dh, shard_index: shard_index)
+            if plan.empty?
+              raise Polyrun::Error, "CloneShards: empty shard plan for shard_index=#{shard_index}"
+            end
+
+            plan.each { |row| create_one_shard!(row, replace, force_drop, dry_run) }
+          end
+        end
+        threads.each(&:join)
       end
       private_class_method :create_shards_from_plan!
 

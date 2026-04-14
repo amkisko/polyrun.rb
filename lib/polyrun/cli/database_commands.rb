@@ -85,12 +85,15 @@ module Polyrun
           return 0
         end
 
-        plan.each do |row|
-          Polyrun::Database::Provision.create_database_from_template!(
-            new_db: row[:new_db],
-            template_db: row[:template_db].to_s
-          )
+        threads = plan.map do |row|
+          Thread.new do
+            Polyrun::Database::Provision.create_database_from_template!(
+              new_db: row[:new_db],
+              template_db: row[:template_db].to_s
+            )
+          end
         end
+        threads.each(&:join)
         0
       end
 
