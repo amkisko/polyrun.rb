@@ -63,6 +63,7 @@ RSpec.describe Polyrun::CLI do
     expect(out).to include("db:clone-shards")
     expect(out).to include("parallel-rspec")
     expect(out).to include("merge-coverage")
+    expect(out).to include("config")
     expect(out).to include("merge-timing")
     expect(out).to include("report-junit")
     expect(out).to include("report-timing")

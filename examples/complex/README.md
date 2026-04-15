@@ -30,7 +30,7 @@ bundle exec rspec
 
 Use **`../docker-compose.yml`** and **`../script/docker_polyrun_provision_demo.sh complex/polyrepo_demo`** with **`export PGPORT=5433 PGPASSWORD=postgres`**, then **`bin/polyrun run-shards`** — same flow as **`examples/README.md`**.
 
-Parallel + merged coverage matches other demos: **`polyrun.yml`** → **`run-shards`** → fragment JSON per shard → **`merge-coverage`**. From **`polyrepo_demo`**, use **`./bin/rspec_parallel`** (same flow in one command).
+Parallel + merged coverage matches other demos: **`polyrun.yml`** → **`run-shards`** → fragment JSON per shard → **`merge-coverage`**. From **`polyrepo_demo`**, use **`./bin/rspec_parallel`** (same flow in one command). See **[../README.md](../README.md)** for **`polyrun config`**, default **`polyrun`** (no subcommand), path-only sharding, and matrix **`ci-shard-*`**.
 
 ## `polyrepo/` (sketches)
 

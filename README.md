@@ -19,7 +19,7 @@ Capybara and Playwright stay in your application; Polyrun does not replace brows
 
 ## How?
 
-1. Add the gem (path or RubyGems) and `require "polyrun"` where you integrate—for example coverage merge in CI or prepare hooks.
+1. Add the gem (path or RubyGems) and `require "polyrun"` where you integrate—for example coverage merge in CI or prepare hooks. To pin the executable in your app, run `bundle binstubs polyrun` (writes `bin/polyrun`; ensure `bin/` is on `PATH` or invoke `./bin/polyrun`).
 2. Add a `polyrun.yml` beside the app, or pass `-c` to point at one. Configure `partition` (paths, shard index and total, strategy), and optionally `databases` (Postgres template and `shard_db_pattern`), `prepare`, and `coverage`. If you use `partition.paths_build`, Polyrun can write `partition.paths_file` (for example `spec/spec_paths.txt`) from globs and ordered stages—substring priorities for integration specs, or a regex stage for “Rails-heavy files first”—without a per-project Ruby script. That step runs before `plan` and `run-shards`. Use `bin/polyrun build-paths` to refresh the paths file only.
 3. Run prepare once before fan-out—for example `script/ci_prepare` for Vite or webpack builds, and `Polyrun::Prepare::Assets` digest markers. See `examples/TESTING_REQUIREMENTS.md`.
 4. Run workers with `bin/polyrun run-shards --workers N -- bundle exec rspec`: N separate OS processes, each running RSpec with its own file list from `partition.paths_file`, or `spec/spec_paths.txt`, or else `spec/**/*_spec.rb`. Stderr shows where paths came from; after a successful multi-worker run it reminds you to run merge-coverage unless you use `parallel-rspec` or `run-shards --merge-coverage`.

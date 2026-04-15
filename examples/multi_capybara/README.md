@@ -18,6 +18,7 @@ For an **Angular** + **Vite** polyrepo (separate CLI, AoT, `angular.json`), see 
 - **`polyrun.yml`**: `partition`, `prepare`, `databases` (shard naming for Postgres CI).
 - **`script/ci_prepare`**: runs **`npm install` / `npm run build`** when needed, **`npx playwright install chromium`**, then asset digest marker — **once** before **`run-shards`**.
 - **Coverage**: `Polyrun::Coverage::Rails` in `spec_helper` → **`merge-coverage`** after parallel workers (see **`../README.md`**).
+- **CLI**: **`polyrun config`**, default **`polyrun`** / path-only argv, **`ci-shard-*`** for matrix CI — **[../README.md](../README.md)** (*CLI features*).
 
 ## Commands
 

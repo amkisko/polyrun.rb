@@ -15,7 +15,7 @@ module Polyrun
 
       def run_shards_plan_options_state(pc)
         {
-          workers: env_int("POLYRUN_WORKERS", RunShardsCommand::DEFAULT_PARALLEL_WORKERS),
+          workers: env_int("POLYRUN_WORKERS", Polyrun::Config::DEFAULT_PARALLEL_WORKERS),
           paths_file: nil,
           strategy: (pc["strategy"] || pc[:strategy] || "round_robin").to_s,
           seed: pc["seed"] || pc[:seed],

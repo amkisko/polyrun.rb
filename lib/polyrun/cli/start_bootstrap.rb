@@ -4,10 +4,6 @@ module Polyrun
     module StartBootstrap
       private
 
-      # Keep in sync with {RunShardsCommand} worker defaults.
-      START_ARG_WORKERS_DEFAULT = 5
-      START_ARG_WORKERS_MAX = 10
-
       def start_bootstrap!(cfg, argv, config_path)
         if start_run_prepare?(cfg) && !truthy_env?("POLYRUN_START_SKIP_PREPARE")
           recipe = cfg.prepare["recipe"] || cfg.prepare[:recipe] || "default"
@@ -76,7 +72,7 @@ module Polyrun
       def parse_workers_from_start_argv(argv)
         sep = argv.index("--")
         head = sep ? argv[0...sep] : argv
-        workers = env_int("POLYRUN_WORKERS", START_ARG_WORKERS_DEFAULT)
+        workers = env_int("POLYRUN_WORKERS", Polyrun::Config::DEFAULT_PARALLEL_WORKERS)
         i = 0
         while i < head.size
           if head[i] == "--workers" && head[i + 1]
@@ -87,7 +83,7 @@ module Polyrun
             i += 1
           end
         end
-        workers.clamp(1, START_ARG_WORKERS_MAX)
+        workers.clamp(1, Polyrun::Config::MAX_PARALLEL_WORKERS)
       end
 
       def truthy_env?(name)

@@ -7,40 +7,16 @@ module Polyrun
     module Helpers
       private
 
-      def partition_int(pc, keys, default)
-        keys.each do |k|
-          v = pc[k] || pc[k.to_sym]
-          next if v.nil? || v.to_s.empty?
-
-          i = Integer(v, exception: false)
-          return i unless i.nil?
-        end
-        default
-      end
-
       def env_int(name, fallback)
-        s = ENV[name]
-        return fallback if s.nil? || s.empty?
-
-        Integer(s, exception: false) || fallback
+        Polyrun::Config::Resolver.env_int(name, fallback)
       end
 
       def resolve_shard_index(pc)
-        return Integer(ENV["POLYRUN_SHARD_INDEX"]) if ENV["POLYRUN_SHARD_INDEX"] && !ENV["POLYRUN_SHARD_INDEX"].empty?
-
-        ci = Polyrun::Env::Ci.detect_shard_index
-        return ci unless ci.nil?
-
-        partition_int(pc, %w[shard_index shard], 0)
+        Polyrun::Config::Resolver.resolve_shard_index(pc)
       end
 
       def resolve_shard_total(pc)
-        return Integer(ENV["POLYRUN_SHARD_TOTAL"]) if ENV["POLYRUN_SHARD_TOTAL"] && !ENV["POLYRUN_SHARD_TOTAL"].empty?
-
-        ci = Polyrun::Env::Ci.detect_shard_total
-        return ci unless ci.nil?
-
-        partition_int(pc, %w[shard_total total], 1)
+        Polyrun::Config::Resolver.resolve_shard_total(pc)
       end
 
       def expand_merge_input_pattern(path)
@@ -119,10 +95,7 @@ module Polyrun
 
       # CLI + polyrun.yml + POLYRUN_TIMING_GRANULARITY; default +:file+.
       def resolve_partition_timing_granularity(pc, cli_val)
-        raw = cli_val
-        raw ||= pc && (pc["timing_granularity"] || pc[:timing_granularity])
-        raw ||= ENV["POLYRUN_TIMING_GRANULARITY"]
-        Polyrun::Partition::TimingKeys.normalize_granularity(raw || "file")
+        Polyrun::Config::Resolver.resolve_partition_timing_granularity(pc, cli_val)
       end
     end
   end

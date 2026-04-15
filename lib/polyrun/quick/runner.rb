@@ -62,6 +62,30 @@ module Polyrun
         new(out: out, err: err, verbose: verbose).run(paths)
       end
 
+      # Files Polyrun::Quick would run with no explicit paths (excludes normal RSpec/Minitest files).
+      def self.parallel_default_paths(cwd = Dir.pwd)
+        base = File.expand_path(cwd)
+        globs = [
+          File.join(base, "spec", "polyrun_quick", "**", "*.rb"),
+          File.join(base, "test", "polyrun_quick", "**", "*.rb"),
+          File.join(base, "spec", "**", "*.rb"),
+          File.join(base, "test", "**", "*.rb")
+        ]
+        globs.flat_map { |g| Dir.glob(g) }.uniq.reject { |p| quick_path_excluded?(p, base) }.sort
+      end
+
+      def self.quick_path_excluded?(path, base)
+        rel = Pathname.new(path).relative_path_from(Pathname.new(base)).to_s
+        parts = rel.split(File::SEPARATOR)
+        bn = File.basename(path)
+        return true if bn.end_with?("_spec.rb", "_test.rb")
+        return true if %w[spec_helper.rb rails_helper.rb test_helper.rb].include?(bn)
+        return true if parts[0] == "spec" && %w[support fixtures factories].include?(parts[1])
+        return true if parts[0] == "test" && %w[support fixtures].include?(parts[1])
+
+        false
+      end
+
       def initialize(out: $stdout, err: $stderr, verbose: false)
         @out = out
         @err = err
@@ -153,27 +177,12 @@ module Polyrun
       end
 
       def default_globs
-        base = File.expand_path(Dir.pwd)
-        globs = [
-          File.join(base, "spec", "polyrun_quick", "**", "*.rb"),
-          File.join(base, "test", "polyrun_quick", "**", "*.rb"),
-          File.join(base, "spec", "**", "*.rb"),
-          File.join(base, "test", "**", "*.rb")
-        ]
-        globs.flat_map { |g| Dir.glob(g) }.uniq.reject { |p| default_quick_exclude?(p, base) }.sort
+        Runner.parallel_default_paths(Dir.pwd)
       end
 
       # Omit RSpec/Minitest files and common helpers so +polyrun quick+ with no args does not load normal suites.
       def default_quick_exclude?(path, base)
-        rel = Pathname.new(path).relative_path_from(Pathname.new(base)).to_s
-        parts = rel.split(File::SEPARATOR)
-        bn = File.basename(path)
-        return true if bn.end_with?("_spec.rb", "_test.rb")
-        return true if %w[spec_helper.rb rails_helper.rb test_helper.rb].include?(bn)
-        return true if parts[0] == "spec" && %w[support fixtures factories].include?(parts[1])
-        return true if parts[0] == "test" && %w[support fixtures].include?(parts[1])
-
-        false
+        Runner.quick_path_excluded?(path, base)
       end
     end
   end

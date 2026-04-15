@@ -19,8 +19,8 @@ module Polyrun
         cfg = Polyrun::Config.load(path: config_path || ENV["POLYRUN_CONFIG"])
         prep = cfg.prepare
         recipe = prep["recipe"] || prep[:recipe] || "default"
-        prep_env = (prep["env"] || prep[:env] || {}).transform_keys(&:to_s).transform_values(&:to_s)
-        child_env = prep_env.empty? ? nil : ENV.to_h.merge(prep_env)
+        prep_env = Polyrun::Config::Resolver.prepare_env_yaml_string_map(prep)
+        child_env = prep_env.empty? ? nil : Polyrun::Config::Resolver.merged_prepare_env(prep)
         manifest = prepare_build_manifest(recipe, dry, prep_env)
 
         exit_code = prepare_dispatch_recipe(manifest, prep, recipe, dry, child_env)

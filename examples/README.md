@@ -11,9 +11,19 @@ These apps show Polyrun against a real Rails stack: multiple databases, Vite bun
 3. Run `bundle exec rspec`. For parallel runs with Postgres, use the Docker Compose section and `script/docker_polyrun_provision_demo.sh`.
 4. Parallel Polyrun: `bin/polyrun -c polyrun.yml parallel-rspec --workers N` runs run-shards and merge-coverage in one step (optional `--` to change the test command), or run run-shards and merge-coverage separately—see Parallel runs + merged coverage below. Global options `-c`, `-v`, and `-h` must come before the subcommand.
 
-Runnable Rails trees: `*/simple_demo`, `*/multi_demo`, `cost_balancing/rails_demo` (symlink to multi-database), `complex/polyrepo_demo`, and `complex/polyrepo/` (Polyrun config only). Demos use plan, prepare, env, run-shards, merge-coverage or report-coverage, with per-shard coverage JSON in CI.
+Runnable Rails trees: `*/simple_demo`, `*/multi_demo`, `cost_balancing/rails_demo` (symlink to multi-database), `complex/polyrepo_demo`, and `complex/polyrepo/` (Polyrun config only). Demos use plan, prepare, env, config, run-shards, merge-coverage or report-coverage, with per-shard coverage JSON in CI.
 
-Each runnable demo uses 120+ generated lattice specs for partition demos: `lib/demo/lattice/cell_*.rb` and `spec/demo/lattice/cell_*_spec.rb`, plus `spec/paths.txt`, produced by `examples/script/generate_lattice_spec_suite.rb` (default count 120). That output is gitignored; `spec/spec_helper.rb` runs the generator before RSpec discovers specs (so a plain `bundle exec rspec` works after clone). `POLYRUN_SKIP_LATTICE_GENERATE=1` skips generation. Each demo has `bin/rspec_parallel` wrapping `polyrun parallel-rspec`.
+Each runnable demo uses 120+ generated lattice specs for partition demos: `lib/demo/lattice/cell_*.rb` and `spec/demo/lattice/cell_*_spec.rb`, plus `spec/paths.txt`, produced by `examples/script/generate_lattice_spec_suite.rb` (default count 120). That output is gitignored; `spec/spec_helper.rb` runs the generator before RSpec discovers specs (so a plain `bundle exec rspec` works after clone). `POLYRUN_SKIP_LATTICE_GENERATE=1` skips generation. Each demo has `bin/rspec_parallel` wrapping `polyrun parallel-rspec` (same as `bundle exec polyrun parallel-rspec`).
+
+## CLI features (binstub, defaults, config, matrix)
+
+- **Executable in the app**: add `gem "polyrun"` then `bundle binstubs polyrun` to create `bin/polyrun` (same idea as `bundle binstubs rspec`). Demos use `bundle exec polyrun` or a path to the gem checkout `bin/polyrun`.
+- **No subcommand**: from the app root, `polyrun` (or `./bin/polyrun`) with **no** subcommand runs parallel tests using the detected suite: RSpec under `spec/` (`polyrun start`), Minitest under `test/` (`rails test` / `ruby -I test`), or Polyrun Quick files—same as documented in the main README.
+- **Path-only argv**: `polyrun --workers 4 spec/models/foo_spec.rb` shards only those files (optional `run-shards` flags before paths); suite is inferred from `_spec.rb` / `_test.rb` vs other `.rb` files. The first token wins if it is a known subcommand; otherwise path-like tokens trigger implicit parallel.
+- **Parallel Quick**: default Quick sharding runs `bundle exec polyrun quick` in each worker—use the app root and Bundler (same idea as `bundle exec rspec`) so workers pick up the intended gem version.
+- **Effective config**: `Polyrun::Config::Effective` is the single nested map Polyrun uses (loaded YAML plus merged `prepare.env`, resolved `partition.shard_index` / `shard_total` / `timing_granularity`, and top-level `workers`). Inspect from the shell: `bin/polyrun config partition.paths_file`, `bin/polyrun config prepare.env.SOME_VAR`, `bin/polyrun config workers`, etc.
+- **`partition.suite`**: in `polyrun.yml`, set `partition.suite` to `auto` (default), `rspec`, `minitest`, or `quick` when globbing paths for `run-shards` / default runs (Minitest-only trees without `spec/`).
+- **Matrix CI (one job per shard)**: `polyrun ci-shard-run -- <command>` or `polyrun ci-shard-rspec` use the same plan as `polyrun plan` but **do not** fan out multiple workers on one host—intended for GitHub Actions–style sharding. Contrast with `run-shards` / `parallel-rspec` on a single machine.
 
 ## Partition strategies (load balancing)
 
@@ -81,8 +91,8 @@ A normal `bundle exec rspec` run is one Ruby process running examples in order. 
 Parallelism here means multiple OS processes, each running RSpec on a subset of spec files (from `partition.paths_file` such as `spec/paths.txt`, or `spec/spec_paths.txt`, or the `spec/**/*_spec.rb` glob), started by `bin/polyrun run-shards`. Polyrun prints which source was used, then stderr lines before RSpec output, for example:
 
 ```text
-polyrun run-shards: 120 spec path(s) from spec/paths.txt
-polyrun run-shards: 120 spec path(s) -> 4 parallel worker processes (not Ruby threads); strategy=round_robin
+polyrun run-shards: 120 path(s) from spec/paths.txt
+polyrun run-shards: 120 path(s) -> 4 parallel worker processes (not Ruby threads); strategy=round_robin
 polyrun run-shards: started shard 0 pid=12345 (30 file(s))
 ...
 polyrun run-shards: 4 children running; RSpec output below may be interleaved.
@@ -98,8 +108,15 @@ From any demo app directory (after `./script/ci_prepare` and `RAILS_ENV=test bin
 # One command: run-shards + merge-coverage (default command: bundle exec rspec)
 bin/polyrun -c polyrun.yml parallel-rspec --workers 4
 
+# Same as above when cwd has polyrun.yml / spec/: no subcommand runs default parallel RSpec
+# bin/polyrun --workers 4
+
 # Or run-shards with merge built in:
 bin/polyrun -c polyrun.yml run-shards --workers 4 --merge-coverage -- bundle exec rspec
+
+# Inspect resolved config (merged prepare.env, shard fields, workers):
+bin/polyrun -c polyrun.yml config partition.paths_file
+bin/polyrun -c polyrun.yml config workers
 
 # Merge only (if you ran run-shards without --merge-coverage)
 shopt -s nullglob

@@ -27,8 +27,10 @@ The demo includes **`spec/support/polyrun_parallel_data.rb`** and **`Polyrun::RS
 |--------|--------|
 | Coverage fragments | `spec/spec_helper.rb` → `Polyrun::Coverage::Rails.start!`, optional `config/polyrun_coverage.yml` |
 | Shard index → fragment name | `POLYRUN_SHARD_INDEX` → `coverage/polyrun-fragment-<shard>.json` |
-| Partition + parallel | `polyrun.yml` → `partition.paths_file`, `run-shards` (default strategy: **`round_robin`**; see **[../partition_strategies/README.md](../partition_strategies/README.md)** for others) |
+| Partition + parallel | `polyrun.yml` → `partition.paths_file`, `partition.suite` if needed, `run-shards` (default strategy: **`round_robin`**; see **[../partition_strategies/README.md](../partition_strategies/README.md)** for others) |
 | DB naming for shards | `polyrun.yml` → `databases` (PostgreSQL template + pattern) |
+| Effective config | `polyrun config <dotted.path>` — same tree as `Polyrun::Config::Effective` (merged `prepare.env`, resolved shard fields, `workers`) |
+| Default parallel CLI | With `polyrun.yml` present: `polyrun` or `polyrun spec/foo_spec.rb` — see **[../README.md](../README.md)** |
 
 ## Commands
 
@@ -44,6 +46,11 @@ bundle exec rspec
 # Parallel (4 processes) + merged coverage — built-in (no shell script required):
 bundle exec polyrun -c polyrun.yml parallel-rspec --workers 4
 # or: chmod +x bin/rspec_parallel && ./bin/rspec_parallel
+# or (default suite: RSpec): bundle exec polyrun --workers 4
+
+# Inspect values Polyrun will use (paths, workers, merged prepare.env, …):
+bundle exec polyrun -c polyrun.yml config partition.paths_file
+bundle exec polyrun -c polyrun.yml config workers
 
 # Manual: ../../../bin/polyrun -c polyrun.yml run-shards --workers 4 --merge-coverage -- bundle exec rspec
 ```
