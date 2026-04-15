@@ -1,5 +1,7 @@
 module Polyrun
   module RSpec
     def self.install_parallel_provisioning!: (untyped rspec_config) -> void
+
+    def self.install_example_timing!: (?output_path: String? ) -> void
   end
 end

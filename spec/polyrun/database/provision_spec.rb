@@ -46,19 +46,17 @@ RSpec.describe Polyrun::Database::Provision do
       end
     end
 
-    it "raises on failed db:prepare with stderr and stdout in message" do
+    it "raises on failed db:prepare with exit status and captured stdout/stderr in message" do
       Dir.mktmpdir do |dir|
         exe = File.join(dir, "bin", "rails")
         FileUtils.mkdir_p(File.dirname(exe))
-        File.write(exe, "#!/bin/sh\nexit 1\n")
+        File.write(exe, "#!/bin/sh\necho 'rails out'; echo 'rails err' >&2; exit 1\n")
         File.chmod(0o755, exe)
-        allow(Open3).to receive(:capture3).and_return(["out line", "err line", bad_status])
         expect { described_class.prepare_template!(rails_root: dir, env: {"DATABASE_URL" => "x"}, silent: true) }.to raise_error(Polyrun::Error) do |e|
           expect(e.message).to include("db:prepare failed")
-          expect(e.message).to include("stderr")
-          expect(e.message).to include("err line")
-          expect(e.message).to include("stdout")
-          expect(e.message).to include("out line")
+          expect(e.message).to include("exit 1")
+          expect(e.message).to include("rails out")
+          expect(e.message).to include("rails err")
         end
       end
     end
@@ -69,26 +67,24 @@ RSpec.describe Polyrun::Database::Provision do
         FileUtils.mkdir_p(File.dirname(exe))
         File.write(exe, "#!/bin/sh\nexit 0\n")
         File.chmod(0o755, exe)
-        allow(Open3).to receive(:capture3).and_return(["", "", ok_status])
         expect(described_class.prepare_template!(rails_root: dir, env: {"DATABASE_URL" => "x"})).to be true
       end
     end
 
-    it "warns stderr when not silent and stderr present" do
+    it "succeeds when not silent (stdio inherited; no duplicate Log line)" do
       Dir.mktmpdir do |dir|
         exe = File.join(dir, "bin", "rails")
         FileUtils.mkdir_p(File.dirname(exe))
         File.write(exe, "#!/bin/sh\nexit 0\n")
         File.chmod(0o755, exe)
-        allow(Open3).to receive(:capture3).and_return(["", "warn", ok_status])
         err = StringIO.new
         begin
           Polyrun::Log.stderr = err
-          described_class.prepare_template!(rails_root: dir, env: {"DATABASE_URL" => "x"}, silent: false)
+          expect(described_class.prepare_template!(rails_root: dir, env: {"DATABASE_URL" => "x"}, silent: false)).to be true
         ensure
           Polyrun::Log.reset_io!
         end
-        expect(err.string).to include("warn")
+        expect(err.string).to be_empty
       end
     end
   end

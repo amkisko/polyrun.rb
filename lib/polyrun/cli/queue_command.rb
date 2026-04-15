@@ -11,6 +11,7 @@ module Polyrun
         dir = ".polyrun-queue"
         paths_file = nil
         timing_path = nil
+        timing_granularity = nil
         worker = ENV["USER"] || "worker"
         batch = 5
         lease_id = nil
@@ -19,7 +20,7 @@ module Polyrun
         Polyrun::Debug.log("queue: subcommand=#{sub.inspect}")
         case sub
         when "init"
-          queue_cmd_init(argv, dir, paths_file, timing_path)
+          queue_cmd_init(argv, dir, paths_file, timing_path, timing_granularity)
         when "claim"
           queue_cmd_claim(argv, dir, worker, batch)
         when "ack"
@@ -32,29 +33,38 @@ module Polyrun
         end
       end
 
-      def queue_cmd_init(argv, dir, paths_file, timing_path)
+      def queue_cmd_init(argv, dir, paths_file, timing_path, timing_granularity)
         OptionParser.new do |opts|
-          opts.banner = "usage: polyrun queue init --paths-file P [--timing PATH] [--dir DIR]"
+          opts.banner = "usage: polyrun queue init --paths-file P [--timing PATH] [--timing-granularity VAL] [--dir DIR]"
           opts.on("--dir PATH") { |v| dir = v }
           opts.on("--paths-file PATH") { |v| paths_file = v }
           opts.on("--timing PATH") { |v| timing_path = v }
+          opts.on("--timing-granularity VAL") { |v| timing_granularity = v }
         end.parse!(argv)
         unless paths_file
           Polyrun::Log.warn "queue init: need --paths-file"
           return 2
         end
+        cfg = Polyrun::Config.load(path: ENV["POLYRUN_CONFIG"])
+        g = resolve_partition_timing_granularity(cfg.partition, timing_granularity)
         items = Polyrun::Partition::Paths.read_lines(paths_file)
-        costs = timing_path ? Polyrun::Partition::Plan.load_timing_costs(File.expand_path(timing_path, Dir.pwd)) : nil
-        ordered = queue_init_ordered_items(items, costs)
+        costs =
+          if timing_path
+            Polyrun::Partition::Plan.load_timing_costs(
+              File.expand_path(timing_path, Dir.pwd),
+              granularity: g
+            )
+          end
+        ordered = queue_init_ordered_items(items, costs, g)
         Polyrun::Queue::FileStore.new(dir).init!(ordered)
         Polyrun::Log.puts JSON.generate({"dir" => File.expand_path(dir), "count" => ordered.size})
         0
       end
 
-      def queue_init_ordered_items(items, costs)
+      def queue_init_ordered_items(items, costs, granularity = :file)
         if costs && !costs.empty?
           dw = costs.values.sum / costs.size.to_f
-          items.sort_by { |p| [-queue_weight_for(p, costs, dw), p] }
+          items.sort_by { |p| [-queue_weight_for(p, costs, dw, granularity: granularity), p] }
         else
           items.sort
         end

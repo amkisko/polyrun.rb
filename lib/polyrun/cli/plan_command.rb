@@ -7,6 +7,15 @@ module Polyrun
       private
 
       def cmd_plan(argv, config_path)
+        manifest, code = plan_command_compute_manifest(argv, config_path)
+        return code if code != 0
+
+        Polyrun::Log.puts JSON.generate(manifest)
+        0
+      end
+
+      # @return [Array(Hash, Integer)] manifest hash and exit code (+0+ on success, non-zero on failure)
+      def plan_command_compute_manifest(argv, config_path)
         cfg = Polyrun::Config.load(path: config_path || ENV["POLYRUN_CONFIG"])
         pc = cfg.partition
         ctx = plan_command_initial_context(pc)
@@ -14,30 +23,44 @@ module Polyrun
 
         paths_file = ctx[:paths_file] || (pc["paths_file"] || pc[:paths_file])
         code = Polyrun::Partition::PathsBuild.apply!(partition: pc, cwd: Dir.pwd)
-        return code if code != 0
+        return [nil, code] if code != 0
 
+        plan_command_manifest_from_paths(cfg, pc, argv, ctx, paths_file)
+      end
+
+      def plan_command_manifest_from_paths(cfg, pc, argv, ctx, paths_file)
         timing_path = plan_resolve_timing_path(pc, ctx[:timing_path], ctx[:strategy])
+        ctx[:timing_granularity] = resolve_partition_timing_granularity(pc, ctx[:timing_granularity])
         Polyrun::Log.warn "polyrun plan: using #{cfg.path}" if @verbose && cfg.path
 
-        items = plan_plan_items(paths_file, argv)
-        return 2 if items.nil?
+        bundle = plan_command_items_costs_strategy(paths_file, argv, timing_path, ctx)
+        return [nil, 2] if bundle.nil?
 
-        loaded = plan_load_costs_and_strategy(timing_path, ctx[:strategy])
-        return 2 if loaded.nil?
-
-        costs, strategy = loaded
-
+        items, costs, strategy = bundle
         constraints = load_partition_constraints(pc, ctx[:constraints_path])
 
-        plan_command_emit_manifest(
+        manifest = plan_command_build_manifest(
           items: items,
           total: ctx[:total],
           strategy: strategy,
           seed: ctx[:seed],
           costs: costs,
           constraints: constraints,
-          shard: ctx[:shard]
+          shard: ctx[:shard],
+          timing_granularity: ctx[:timing_granularity]
         )
+        [manifest, 0]
+      end
+
+      def plan_command_items_costs_strategy(paths_file, argv, timing_path, ctx)
+        items = plan_plan_items(paths_file, argv)
+        return nil if items.nil?
+
+        loaded = plan_load_costs_and_strategy(timing_path, ctx[:strategy], ctx[:timing_granularity])
+        return nil if loaded.nil?
+
+        costs, strategy = loaded
+        [items, costs, strategy]
       end
 
       def plan_command_initial_context(pc)
@@ -48,7 +71,8 @@ module Polyrun
           seed: pc["seed"] || pc[:seed],
           paths_file: nil,
           timing_path: nil,
-          constraints_path: nil
+          constraints_path: nil,
+          timing_granularity: nil
         }
       end
 
@@ -64,10 +88,13 @@ module Polyrun
           opts.on("--timing PATH", "path => seconds JSON; implies cost_binpack unless strategy is cost-based or hrw") do |v|
             ctx[:timing_path] = v
           end
+          opts.on("--timing-granularity VAL", "file (default) or example (experimental: path:line items)") do |v|
+            ctx[:timing_granularity] = v
+          end
         end.parse!(argv)
       end
 
-      def plan_command_emit_manifest(items:, total:, strategy:, seed:, costs:, constraints:, shard:)
+      def plan_command_build_manifest(items:, total:, strategy:, seed:, costs:, constraints:, shard:, timing_granularity: :file)
         plan = Polyrun::Debug.time("Partition::Plan.new (plan command)") do
           Polyrun::Partition::Plan.new(
             items: items,
@@ -76,7 +103,8 @@ module Polyrun
             seed: seed,
             costs: costs,
             constraints: constraints,
-            root: Dir.pwd
+            root: Dir.pwd,
+            timing_granularity: timing_granularity
           )
         end
         Polyrun::Debug.log_kv(
@@ -86,8 +114,7 @@ module Polyrun
           strategy: strategy,
           path_count: items.size
         )
-        Polyrun::Log.puts JSON.generate(plan.manifest(shard))
-        0
+        plan.manifest(shard)
       end
 
       def plan_resolve_timing_path(pc, timing_path, strategy)
@@ -110,9 +137,12 @@ module Polyrun
         end
       end
 
-      def plan_load_costs_and_strategy(timing_path, strategy)
+      def plan_load_costs_and_strategy(timing_path, strategy, timing_granularity)
         if timing_path
-          costs = Polyrun::Partition::Plan.load_timing_costs(File.expand_path(timing_path.to_s, Dir.pwd))
+          costs = Polyrun::Partition::Plan.load_timing_costs(
+            File.expand_path(timing_path.to_s, Dir.pwd),
+            granularity: timing_granularity
+          )
           if costs.empty?
             Polyrun::Log.warn "polyrun plan: timing file missing or has no entries: #{timing_path}"
             return nil

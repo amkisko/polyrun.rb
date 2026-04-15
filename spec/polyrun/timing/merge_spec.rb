@@ -15,6 +15,18 @@ RSpec.describe Polyrun::Timing::Merge do
       end
     end
 
+    it "merges path:line example keys with max seconds" do
+      Dir.mktmpdir do |dir|
+        a = File.join(dir, "a.json")
+        b = File.join(dir, "b.json")
+        File.write(a, JSON.dump({"/app/x_spec.rb:10" => 1.0}))
+        File.write(b, JSON.dump({"/app/x_spec.rb:10" => 2.0, "/app/y_spec.rb:1" => 0.5}))
+        m = described_class.merge_files([a, b])
+        expect(m["/app/x_spec.rb:10"]).to eq(2.0)
+        expect(m["/app/y_spec.rb:1"]).to eq(0.5)
+      end
+    end
+
     it "takes max seconds when the same path appears in multiple fragments" do
       Dir.mktmpdir do |dir|
         a = File.join(dir, "a.json")

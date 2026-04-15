@@ -1,3 +1,5 @@
+require_relative "timing_keys"
+
 module Polyrun
   module Partition
     # Hard constraints for plan assignment (spec_queue.md): pins, serial globs.
@@ -31,21 +33,30 @@ module Polyrun
       end
 
       # Returns Integer shard index if constrained, or nil if free to place by LPT/HRW.
+      # For +path:line+ items (example granularity), also matches pins/globs against the file path only.
       def forced_shard_for(path)
         rel = path.to_s
         abs = File.expand_path(rel, @root)
+        variants = [rel, abs]
+        if (fp = TimingKeys.file_part_for_constraint(rel))
+          variants << fp
+          variants << File.expand_path(fp, @root)
+        end
+        variants.uniq!
 
         @pin_map.each do |pattern, shard|
           next if pattern.to_s.empty?
 
-          if match_pattern?(pattern.to_s, rel, abs)
-            return shard
+          variants.each do |rel_i|
+            abs_i = File.expand_path(rel_i, @root)
+            return shard if match_pattern?(pattern.to_s, rel_i, abs_i)
           end
         end
 
         @serial_globs.each do |g|
-          if match_pattern?(g, rel, abs)
-            return @serial_shard
+          variants.each do |rel_i|
+            abs_i = File.expand_path(rel_i, @root)
+            return @serial_shard if match_pattern?(g, rel_i, abs_i)
           end
         end
 

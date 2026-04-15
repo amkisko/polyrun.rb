@@ -4,7 +4,8 @@ require_relative "../debug"
 
 module Polyrun
   module Timing
-    # Merges per-shard timing JSON files (spec2 §2.4): path => wall seconds (float).
+    # Merges per-shard timing JSON files (spec2 §2.4): path => wall seconds (float), or (experimental)
+    # +absolute_path:line+ => seconds for per-example timing.
     # Disjoint suites: values merged by taking the maximum per path when duplicates appear.
     module Merge
       module_function

@@ -1,0 +1,23 @@
+# CHANGELOG
+
+## 1.1.0 (2026-04-15)
+
+- Add `ci-shard-run` / `ci-shard-rspec` for matrix-style sharding (one job per `POLYRUN_SHARD_INDEX` / `POLYRUN_SHARD_TOTAL`): resolve paths via the same plan as `polyrun plan`, then `exec` the given command with this shard’s paths (unlike `run-shards`, which fans out multiple workers on one host).
+- Add experimental per-example partition timing: `partition.timing_granularity` / `--timing-granularity` (`file` default, `example` for `path:line` items), `POLYRUN_TIMING_GRANULARITY`, merged timing JSON with `absolute_path:line` keys, `TimingKeys.load_costs_json_file`, constraints matching pins/globs on the file part of locators, queue init support, and optional `Polyrun::Timing::RSpecExampleFormatter` plus `Polyrun::RSpec.install_example_timing!`.
+- Add `Polyrun::ProcessStdio.inherit_stdio_spawn_wait` and `spawn_wait` for subprocesses with inherited stdio (or temp-file capture when `silent: true`) to avoid Open3 pipe-thread noise on interrupt; used by prepare (shell / custom assets), `Prepare::Assets.precompile!`, and `Provision.prepare_template!` (`bin/rails db:prepare`). On failure, `db:prepare` / `assets:precompile` embed captured stdout/stderr in `Polyrun::Error` (truncated when huge).
+- Refactor `polyrun plan` around `plan_command_compute_manifest` and `plan_command_build_manifest`; `cmd_plan` output stays aligned with `plan_command_compute_manifest` (tests guard drift).
+- `TimingKeys.load_costs_json_file` accepts optional `root:` for key normalization; warns when two JSON keys normalize to the same entry with different seconds; `TimingKeys.canonical_file_path` / `normalize_locator` resolve directory symlinks so `/var/…` and `/private/var/…` (macOS) map to one key.
+- `Polyrun::RSpec.install_example_timing!(output_path:)` no longer sets `ENV` when an explicit path is passed; formatter uses `timing_output_path` (override or `ENV` / default filename).
+- Fix noisy `IOError` / broken-pipe behavior when interrupting long-running prepare / Rails subprocesses that previously used `Open3.capture3`.
+
+## 1.0.0 (2026-04-14)
+
+- Initial stable release of Polyrun: parallel tests, SimpleCov-compatible coverage formatters, fixtures/snapshots, assets and DB provisioning with zero runtime gem dependencies.
+- Add `polyrun` CLI with `plan`, `run-shards`, partition/load balancing, coverage merge and reporting, database helpers, queue helpers, and the Quick runner.
+- Add coverage Rake tasks and YAML configuration for merged / Cobertura-style output.
+- Add database command flows using `db:prepare` (replacing earlier `db:migrate`-only paths) for provisioning-style runs.
+- Implement graceful shutdown for worker processes in `run_shards` when the parent is interrupted.
+- Expand Quick runner defaults and parallel shard database creation.
+- Add examples tree, specs for merge and queue behavior, and docs for cwd-relative configuration.
+- Add RSpec suite, RuboCop (including a FileLength cop), YAML templates, and a `bin/release` script.
+- Add RBS signatures under `sig/` and validate them in CI; expand documentation and specs.

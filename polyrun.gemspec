@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.1.0"
 
-  spec.files = Dir["lib/**/*", "sig/**/*.rbs", "bin/polyrun", "README.md", "docs/SETUP_PROFILE.md", "LICENSE", "CONTRIBUTING.md", "CODE_OF_CONDUCT.md", "SECURITY.md", "polyrun.gemspec"].reject { |f| File.directory?(f) }
+  spec.files = Dir["lib/**/*", "sig/**/*.rbs", "bin/polyrun", "README.md", "CHANGELOG.md", "docs/SETUP_PROFILE.md", "LICENSE", "CONTRIBUTING.md", "CODE_OF_CONDUCT.md", "SECURITY.md", "polyrun.gemspec"].reject { |f| File.directory?(f) }
   spec.bindir = "bin"
   spec.executables = ["polyrun"]
   spec.require_paths = ["lib"]

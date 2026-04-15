@@ -6,6 +6,31 @@ require "tmpdir"
 require "rbconfig"
 
 RSpec.describe Polyrun::CLI do
+  it "queue init orders by example weights when --timing-granularity example" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        ra = File.join(dir, "a.rb")
+        rb = File.join(dir, "b.rb")
+        list = File.join(dir, "spec_paths.txt")
+        File.write(list, "#{ra}:1\n#{rb}:2\n")
+        timing = File.join(dir, "t.json")
+        File.write(timing, JSON.dump({"#{ra}:1" => 1.0, "#{rb}:2" => 9.0}))
+        _out_init, st_init = polyrun(
+          "queue", "init",
+          "--paths-file", list,
+          "--timing", timing,
+          "--timing-granularity", "example",
+          "--dir", ".polyrun-queue"
+        )
+        expect(st_init.success?).to be true
+        out_claim, st_claim = polyrun("queue", "claim", "--dir", ".polyrun-queue", "--batch", "1")
+        expect(st_claim.success?).to be true
+        claim = JSON.parse(out_claim)
+        expect(claim["paths"].first).to eq("#{rb}:2")
+      end
+    end
+  end
+
   it "queue init, claim, ack, and status via CLI" do
     Dir.mktmpdir do |dir|
       with_chdir(dir) do

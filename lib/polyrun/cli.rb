@@ -12,9 +12,15 @@ require_relative "cli/queue_command"
 require_relative "cli/timing_command"
 require_relative "cli/init_command"
 require_relative "cli/quick_command"
+require_relative "cli/ci_shard_run_command"
 
 module Polyrun
   class CLI
+    CI_SHARD_COMMANDS = {
+      "ci-shard-run" => :cmd_ci_shard_run,
+      "ci-shard-rspec" => :cmd_ci_shard_rspec
+    }.freeze
+
     include Helpers
     include PlanCommand
     include PrepareCommand
@@ -27,6 +33,7 @@ module Polyrun
     include TimingCommand
     include InitCommand
     include QuickCommand
+    include CiShardRunCommand
 
     def self.run(argv = ARGV)
       new.run(argv)
@@ -121,6 +128,8 @@ module Polyrun
         cmd_start(argv, config_path)
       when "build-paths"
         cmd_build_paths(config_path)
+      when *CI_SHARD_COMMANDS.keys
+        send(CI_SHARD_COMMANDS.fetch(command), argv, config_path)
       when "init"
         cmd_init(argv, config_path)
       when "queue"
@@ -152,6 +161,7 @@ module Polyrun
         Skip writing paths_file from partition.paths_build: POLYRUN_SKIP_PATHS_BUILD=1
         Warn if merge-coverage wall time exceeds N seconds (default 10): POLYRUN_MERGE_SLOW_WARN_SECONDS (0 disables)
         Parallel RSpec workers: POLYRUN_WORKERS default 5, max 10 (run-shards / parallel-rspec / start)
+        Partition timing granularity (default file): POLYRUN_TIMING_GRANULARITY=file|example (experimental per-example; see partition.timing_granularity)
 
         commands:
           version              print version
@@ -161,6 +171,8 @@ module Polyrun
           run-shards           fan out N parallel OS processes (POLYRUN_SHARD_*; not Ruby threads); optional --merge-coverage
           parallel-rspec       run-shards + merge-coverage (defaults to: bundle exec rspec after --)
           start                parallel-rspec; auto-runs prepare (shell/assets) and db:setup-* when polyrun.yml configures them; legacy script/build_spec_paths.rb if paths_build absent
+          ci-shard-run         CI matrix: build-paths + plan for POLYRUN_SHARD_INDEX / POLYRUN_SHARD_TOTAL (or config), then run your command with that shard's paths after -- (like run-shards; not multi-worker)
+          ci-shard-rspec       same as ci-shard-run -- bundle exec rspec; optional -- [rspec-only flags]
           build-paths          write partition.paths_file from partition.paths_build (same as auto step before plan/run-shards)
           init                 write a starter polyrun.yml or POLYRUN.md from built-in templates (see docs/SETUP_PROFILE.md)
           queue                file-backed batch queue (init / claim / ack / status)

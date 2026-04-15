@@ -70,9 +70,12 @@ module Polyrun
         [items, paths_source, nil]
       end
 
-      def run_shards_resolve_costs(timing_path, strategy)
+      def run_shards_resolve_costs(timing_path, strategy, timing_granularity)
         if timing_path
-          costs = Polyrun::Partition::Plan.load_timing_costs(File.expand_path(timing_path.to_s, Dir.pwd))
+          costs = Polyrun::Partition::Plan.load_timing_costs(
+            File.expand_path(timing_path.to_s, Dir.pwd),
+            granularity: timing_granularity
+          )
           if costs.empty?
             Polyrun::Log.warn "polyrun run-shards: timing file missing or empty: #{timing_path}"
             return [nil, nil, 2]
@@ -90,7 +93,7 @@ module Polyrun
         end
       end
 
-      def run_shards_make_plan(items, workers, strategy, seed, costs, constraints)
+      def run_shards_make_plan(items, workers, strategy, seed, costs, constraints, timing_granularity)
         Polyrun::Debug.time("Partition::Plan.new (partition #{items.size} paths → #{workers} shards)") do
           Polyrun::Partition::Plan.new(
             items: items,
@@ -99,7 +102,8 @@ module Polyrun
             seed: seed,
             costs: costs,
             constraints: constraints,
-            root: Dir.pwd
+            root: Dir.pwd,
+            timing_granularity: timing_granularity
           )
         end
       end

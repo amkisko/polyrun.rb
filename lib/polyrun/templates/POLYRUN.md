@@ -25,7 +25,7 @@ Adjust `--workers` or use `bin/rspec_parallel` if your repo provides a wrapper.
 ### Model B — matrix: one shard per job
 
 - Matrix sets `POLYRUN_SHARD_INDEX` and `POLYRUN_SHARD_TOTAL` explicitly (many runners do not set `CI_NODE_*` by default).
-- Each job runs `polyrun build-paths`, `polyrun plan`, then `bundle exec rspec` for that shard only (see `bin/polyrun-rspec` or `bin/rspec_ci_shard` patterns).
+- Each job runs `polyrun ci-shard-run -- …` (e.g. `-- bundle exec rspec` or `ci-shard-rspec`), or `build-paths` + `plan` + your runner manually. Legacy: `bin/polyrun-rspec` or `bin/rspec_ci_shard` patterns.
 - Upload `coverage/polyrun-fragment-<shard>.json` per job; a `merge-coverage` job downloads all fragments and merges.
 
 Do not combine Model A and Model B in one workflow without a documented reason (nested parallelism and duplicate merges).
