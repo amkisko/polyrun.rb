@@ -4,7 +4,7 @@ require_relative "resolver"
 module Polyrun
   class Config
     # Nested hash of values Polyrun uses: loaded YAML (string keys) with overlays for
-    # merged +prepare.env+, resolved +partition.shard_index+ / +shard_total+ / +timing_granularity+,
+    # merged +prepare.env+, resolved +partition.shard_index+ / +shard_total+ / +shard_processes+ / +timing_granularity+,
     # and top-level +workers+ (+POLYRUN_WORKERS+ default).
     #
     # +build+ memoizes the last (cfg, env) in-process so repeated +dig+ calls on the same load do not
@@ -44,6 +44,7 @@ module Polyrun
           part = deep_stringify_keys(pc).merge(
             "shard_index" => r.resolve_shard_index(pc, env),
             "shard_total" => r.resolve_shard_total(pc, env),
+            "shard_processes" => r.resolve_shard_processes(pc, env),
             "timing_granularity" => r.resolve_partition_timing_granularity(pc, nil, env).to_s
           )
           base["partition"] = part

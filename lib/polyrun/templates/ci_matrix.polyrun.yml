@@ -3,8 +3,9 @@
 #   bundle exec polyrun -c polyrun.yml ci-shard-run -- bundle exec rspec
 # (or ci-shard-rspec; or e.g. ci-shard-run -- bundle exec polyrun quick).
 # Equivalent to build-paths, plan --shard/--total, then run that command with this slice's paths.
-# A separate CI job downloads coverage/polyrun-fragment-*.json and runs merge-coverage.
-# Do not use parallel-rspec with multiple workers inside the same matrix row unless you intend nested parallelism.
+# A separate CI job downloads coverage/polyrun-fragment-*.json (e.g. shard<S>-worker<W>.json per N×M process) and runs merge-coverage.
+# For N×M (N matrix jobs × M processes per job): set shard_processes: M or POLYRUN_SHARD_PROCESSES,
+# or pass --shard-processes M to ci-shard-run / ci-shard-rspec (local split is round-robin).
 # See: docs/SETUP_PROFILE.md
 
 partition:

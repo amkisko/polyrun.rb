@@ -12,6 +12,8 @@ module Polyrun
           collector_finish: "start",
           polyrun_shard_index: ENV["POLYRUN_SHARD_INDEX"],
           polyrun_shard_total: ENV["POLYRUN_SHARD_TOTAL"],
+          polyrun_shard_matrix_index: ENV["POLYRUN_SHARD_MATRIX_INDEX"],
+          polyrun_shard_matrix_total: ENV["POLYRUN_SHARD_MATRIX_TOTAL"],
           output_path: cfg[:output_path]
         )
         Polyrun::Debug.time(Collector.finish_debug_time_label) do

@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.3.0 (2026-04-15)
+
+- Add safe parsing for `ci-shard-run` / `ci-shard-rspec` `--shard-processes` and `--workers` (warn + exit 2 on missing or non-integer values).
+- Fix `shard_child_env` when `matrix_total > 1` and `matrix_index` is nil: omit `POLYRUN_SHARD_MATRIX_*` and warn (avoid `Integer(nil)`).
+- Document in `polyrun help` that `POLYRUN_SHARD_PROCESSES` and ci-shard `--workers` / `--shard-processes` are local processes per matrix job, distinct from `POLYRUN_WORKERS` / `run-shards`.
+- BREAKING: Multi-worker shard runs may emit coverage JSON fragments whose basenames include `shard*` and `worker*` segments; `merge-coverage` still matches `polyrun-fragment-*.json`.
+
 ## 1.2.0 (2026-04-15)
 
 - Add `polyrun config <dotted.path>` to print values from `Polyrun::Config::Effective` (same effective tree as runtime: arbitrary YAML paths, merged `prepare.env.<KEY>` as for `polyrun prepare`, resolved `partition.shard_index`, `partition.shard_total`, `partition.timing_granularity`, and `workers`).

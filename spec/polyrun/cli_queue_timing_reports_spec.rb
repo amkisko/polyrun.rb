@@ -6,6 +6,50 @@ require "tmpdir"
 require "rbconfig"
 
 RSpec.describe Polyrun::CLI do
+  it "queue init shard 1 is disjoint from shard 0 for the same paths file" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        list = File.join(dir, "spec_paths.txt")
+        File.write(list, "a.rb\nb.rb\nc.rb\nd.rb\n")
+        _, st0 = polyrun("queue", "init", "--paths-file", list, "--shard", "0", "--total", "2", "--dir", ".q0")
+        _, st1 = polyrun("queue", "init", "--paths-file", list, "--shard", "1", "--total", "2", "--dir", ".q1")
+        expect(st0.success?).to be true
+        expect(st1.success?).to be true
+        out0, = polyrun("queue", "claim", "--dir", ".q0", "--batch", "10")
+        out1, = polyrun("queue", "claim", "--dir", ".q1", "--batch", "10")
+        c0 = JSON.parse(out0)["paths"]
+        c1 = JSON.parse(out1)["paths"]
+        expect(c0 & c1).to be_empty
+        expect((c0 | c1).size).to eq(4)
+      end
+    end
+  end
+
+  it "queue init applies the same shard slice as plan when --shard and --total are set" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        list = File.join(dir, "spec_paths.txt")
+        File.write(list, "a.rb\nb.rb\nc.rb\nd.rb\n")
+        out_init, st_init = polyrun(
+          "queue", "init",
+          "--paths-file", list,
+          "--shard", "0",
+          "--total", "2",
+          "--dir", ".polyrun-queue"
+        )
+        expect(st_init.success?).to be true
+        expect(JSON.parse(out_init)["count"]).to eq(2)
+        out_claim, st_claim = polyrun("queue", "claim", "--dir", ".polyrun-queue", "--batch", "1")
+        expect(st_claim.success?).to be true
+        first = JSON.parse(out_claim)["paths"].first
+        expect(first).to end_with("a.rb")
+        out_claim2, st2 = polyrun("queue", "claim", "--dir", ".polyrun-queue", "--batch", "1")
+        expect(st2.success?).to be true
+        expect(JSON.parse(out_claim2)["paths"].first).to end_with("c.rb")
+      end
+    end
+  end
+
   it "queue init orders by example weights when --timing-granularity example" do
     Dir.mktmpdir do |dir|
       with_chdir(dir) do
@@ -26,7 +70,7 @@ RSpec.describe Polyrun::CLI do
         out_claim, st_claim = polyrun("queue", "claim", "--dir", ".polyrun-queue", "--batch", "1")
         expect(st_claim.success?).to be true
         claim = JSON.parse(out_claim)
-        expect(claim["paths"].first).to eq("#{rb}:2")
+        expect(claim["paths"].first).to end_with("b.rb:2")
       end
     end
   end

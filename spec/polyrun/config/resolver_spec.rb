@@ -36,4 +36,22 @@ RSpec.describe Polyrun::Config::Resolver do
       expect(described_class.parallel_worker_count_default(env)).to eq(Polyrun::Config::DEFAULT_PARALLEL_WORKERS)
     end
   end
+
+  describe ".resolve_shard_processes" do
+    it "uses POLYRUN_SHARD_PROCESSES when set" do
+      pc = {"shard_processes" => 9}
+      env = {"POLYRUN_SHARD_PROCESSES" => "4"}
+      expect(described_class.resolve_shard_processes(pc, env)).to eq(4)
+    end
+
+    it "falls back to partition yaml" do
+      pc = {"shard_processes" => 3}
+      env = {}
+      expect(described_class.resolve_shard_processes(pc, env)).to eq(3)
+    end
+
+    it "defaults to 1" do
+      expect(described_class.resolve_shard_processes({}, {})).to eq(1)
+    end
+  end
 end

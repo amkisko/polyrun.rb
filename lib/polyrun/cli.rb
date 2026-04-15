@@ -12,6 +12,7 @@ require_relative "cli/queue_command"
 require_relative "cli/timing_command"
 require_relative "cli/init_command"
 require_relative "cli/quick_command"
+require_relative "cli/ci_shard_run_parse"
 require_relative "cli/ci_shard_run_command"
 require_relative "cli/config_command"
 require_relative "cli/default_run"
@@ -48,6 +49,7 @@ module Polyrun
     include TimingCommand
     include InitCommand
     include QuickCommand
+    include CiShardRunParse
     include CiShardRunCommand
     include ConfigCommand
     include DefaultRun

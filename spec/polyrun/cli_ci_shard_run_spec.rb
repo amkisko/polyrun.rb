@@ -1,5 +1,6 @@
 require "spec_helper"
 require "tmpdir"
+require "rbconfig"
 
 RSpec.describe "Polyrun::CLI ci-shard-run" do
   it "exits 2 when -- is missing" do
@@ -12,6 +13,25 @@ RSpec.describe "Polyrun::CLI ci-shard-run" do
     out, status = polyrun("ci-shard-run", "--")
     expect(status.exitstatus).to eq(2)
     expect(out).to match(/empty command/)
+  end
+
+  it "exits 2 when --shard-processes is not an integer" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        list = File.join(dir, "spec_paths.txt")
+        File.write(list, "a.rb\n")
+        cfg = File.join(dir, "polyrun.yml")
+        File.write(cfg, <<~YAML)
+          partition:
+            paths_file: #{list}
+            shard_total: 1
+            shard_index: 0
+        YAML
+        out, status = polyrun("-c", cfg, "ci-shard-run", "--shard-processes", "x", "--", "true")
+        expect(status.exitstatus).to eq(2)
+        expect(out).to match(/must be an integer/)
+      end
+    end
   end
 
   it "execs user command with planned paths appended" do
@@ -74,6 +94,69 @@ RSpec.describe "Polyrun::CLI ci-shard-run" do
         cli = Polyrun::CLI.new
         expect(cli).to receive(:exec).with("bundle", "exec", "ruby", "-Itest", "x.rb")
         cli.send(:cmd_ci_shard_run, ["--", "bundle exec ruby -Itest"], cfg)
+      end
+    end
+  end
+
+  it "fans out local processes when --shard-processes > 1" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        list = File.join(dir, "spec_paths.txt")
+        File.write(list, "a.rb\nb.rb\nc.rb\nd.rb\n")
+        # Shard 0 of 2 gets a.rb and c.rb; child script checks files exist.
+        %w[a.rb c.rb].each { |f| File.write(File.join(dir, f), "") }
+        cfg = File.join(dir, "polyrun.yml")
+        File.write(cfg, <<~YAML)
+          partition:
+            paths_file: #{list}
+            shard_total: 2
+            shard_index: 0
+        YAML
+        stub = File.join(dir, "_child.rb")
+        File.write(stub, <<~'RUBY')
+          ARGV.each { |f| abort("missing #{f}") unless File.file?(f) }
+          exit 0
+        RUBY
+        out, status = polyrun(
+          "-c", cfg,
+          "ci-shard-run", "--shard-processes", "2", "--",
+          RbConfig.ruby, stub
+        )
+        expect(status.success?).to be true
+        expect(out).to include("NxM")
+        expect(out).to include("pid=")
+      end
+    end
+  end
+
+  it "sets POLYRUN_SHARD_MATRIX_* in children when matrix has N>1 and M>1" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        list = File.join(dir, "spec_paths.txt")
+        File.write(list, "a.rb\nb.rb\nc.rb\nd.rb\n")
+        # Shard 1 of 2 gets b.rb and d.rb.
+        %w[b.rb d.rb].each { |f| File.write(File.join(dir, f), "") }
+        cfg = File.join(dir, "polyrun.yml")
+        File.write(cfg, <<~YAML)
+          partition:
+            paths_file: #{list}
+            shard_total: 2
+            shard_index: 1
+        YAML
+        stub = File.join(dir, "_child.rb")
+        File.write(stub, <<~'RUBY')
+          idx = ENV["POLYRUN_SHARD_INDEX"]
+          File.write("seen-#{idx}.txt", [ENV["POLYRUN_SHARD_MATRIX_INDEX"], ENV["POLYRUN_SHARD_MATRIX_TOTAL"]].join(","))
+          exit 0
+        RUBY
+        _, status = polyrun(
+          "-c", cfg,
+          "ci-shard-run", "--shard-processes", "2", "--",
+          RbConfig.ruby, stub
+        )
+        expect(status.success?).to be true
+        expect(File.read(File.join(dir, "seen-0.txt")).strip).to eq("1,2")
+        expect(File.read(File.join(dir, "seen-1.txt")).strip).to eq("1,2")
       end
     end
   end

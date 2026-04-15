@@ -76,21 +76,31 @@ module Polyrun
         }
       end
 
+      # Partition flags shared by +polyrun plan+ and +queue init+ (excluding +--paths-file+, which each command registers once).
+      def plan_command_register_partition_options!(opts, ctx)
+        opts.on("--shard INDEX", Integer) { |v| ctx[:shard] = v }
+        opts.on("--total N", Integer) { |v| ctx[:total] = v }
+        opts.on("--strategy NAME", String) { |v| ctx[:strategy] = v }
+        opts.on("--seed VAL") { |v| ctx[:seed] = v }
+        opts.on("--constraints PATH", "YAML: pin / serial_glob (see spec_queue.md)") { |v| ctx[:constraints_path] = v }
+        opts.on("--timing PATH", "path => seconds JSON; implies cost_binpack unless strategy is cost-based or hrw") do |v|
+          ctx[:timing_path] = v
+        end
+        opts.on("--timing-granularity VAL", "file (default) or example (experimental: path:line items)") do |v|
+          ctx[:timing_granularity] = v
+        end
+      end
+
+      # Shared by +polyrun plan+ and +queue init+ so partition flags match +Partition::Plan+ / +plan+ JSON.
+      def plan_command_register_options!(opts, ctx)
+        opts.on("--paths-file PATH", String) { |v| ctx[:paths_file] = v }
+        plan_command_register_partition_options!(opts, ctx)
+      end
+
       def plan_command_parse_argv!(argv, ctx)
         OptionParser.new do |opts|
           opts.banner = "usage: polyrun plan [options] [--] [paths...]"
-          opts.on("--shard INDEX", Integer) { |v| ctx[:shard] = v }
-          opts.on("--total N", Integer) { |v| ctx[:total] = v }
-          opts.on("--strategy NAME", String) { |v| ctx[:strategy] = v }
-          opts.on("--seed VAL") { |v| ctx[:seed] = v }
-          opts.on("--paths-file PATH", String) { |v| ctx[:paths_file] = v }
-          opts.on("--constraints PATH", "YAML: pin / serial_glob (see spec_queue.md)") { |v| ctx[:constraints_path] = v }
-          opts.on("--timing PATH", "path => seconds JSON; implies cost_binpack unless strategy is cost-based or hrw") do |v|
-            ctx[:timing_path] = v
-          end
-          opts.on("--timing-granularity VAL", "file (default) or example (experimental: path:line items)") do |v|
-            ctx[:timing_granularity] = v
-          end
+          plan_command_register_options!(opts, ctx)
         end.parse!(argv)
       end
 

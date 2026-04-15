@@ -17,12 +17,14 @@ RSpec.describe Polyrun::Config::Effective do
           env = {
             "POLYRUN_SHARD_INDEX" => "1",
             "POLYRUN_SHARD_TOTAL" => "5",
-            "POLYRUN_WORKERS" => "3"
+            "POLYRUN_WORKERS" => "3",
+            "POLYRUN_SHARD_PROCESSES" => "4"
           }
           h = described_class.build(cfg, env: env)
           expect(h["partition"]["paths_file"]).to eq("spec/list.txt")
           expect(h["partition"]["shard_index"]).to eq(1)
           expect(h["partition"]["shard_total"]).to eq(5)
+          expect(h["partition"]["shard_processes"]).to eq(4)
           expect(h["workers"]).to eq(3)
         end
       end

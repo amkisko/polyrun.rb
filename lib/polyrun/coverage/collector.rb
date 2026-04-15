@@ -8,6 +8,7 @@ require_relative "formatter"
 require_relative "merge"
 require_relative "result"
 require_relative "track_files"
+require_relative "collector_fragment_meta"
 require_relative "../debug"
 
 module Polyrun
@@ -24,7 +25,7 @@ module Polyrun
 
       # @param root [String] project root (absolute or relative)
       # @param reject_patterns [Array<String>] path substrings to drop (like SimpleCov add_filter)
-      # @param output_path [String, nil] default coverage/polyrun-fragment-<shard>.json
+      # @param output_path [String, nil] default see {.fragment_default_basename_from_env}
       # @param minimum_line_percent [Float, nil] exit 1 if below (when strict)
       # @param strict [Boolean] whether to exit non-zero on threshold failure (default true when minimum set)
       # @param track_under [Array<String>] when +track_files+ is nil, only keep coverage keys under these dirs relative to +root+. Default +["lib"]+.
@@ -34,17 +35,24 @@ module Polyrun
       # @param formatter [Object, nil] Object responding to +format(result, output_dir:, basename:)+ like SimpleCov formatters (e.g. {Formatter.multi} or {Formatter::MultiFormatter})
       # @param report_output_dir [String, nil] directory for +formatter+ outputs (default +coverage/+ under +root+)
       # @param report_basename [String] file prefix for formatter outputs (default +polyrun-coverage+)
+      # See {CollectorFragmentMeta.fragment_default_basename_from_env}.
+      def self.fragment_default_basename_from_env(env = ENV)
+        CollectorFragmentMeta.fragment_default_basename_from_env(env)
+      end
+
       def start!(root:, reject_patterns: [], track_under: ["lib"], track_files: nil, groups: nil, output_path: nil, minimum_line_percent: nil, strict: nil, meta: {}, formatter: nil, report_output_dir: nil, report_basename: "polyrun-coverage")
         return if disabled?
 
         root = File.expand_path(root)
-        shard = ENV.fetch("POLYRUN_SHARD_INDEX", "0")
-        output_path ||= File.join(root, "coverage", "polyrun-fragment-#{shard}.json")
+        basename = fragment_default_basename_from_env
+        output_path ||= File.join(root, "coverage", "polyrun-fragment-#{basename}.json")
         strict = if minimum_line_percent.nil?
           false
         else
           strict.nil? || strict
         end
+
+        fragment_meta = CollectorFragmentMeta.fragment_meta_from_env(basename)
 
         @config = {
           root: root,
@@ -59,7 +67,8 @@ module Polyrun
           formatter: formatter,
           report_output_dir: report_output_dir,
           report_basename: report_basename,
-          shard_total_at_start: ENV["POLYRUN_SHARD_TOTAL"].to_i
+          shard_total_at_start: ENV["POLYRUN_SHARD_TOTAL"].to_i,
+          fragment_meta: fragment_meta
         }
 
         unless ::Coverage.running?
@@ -110,11 +119,7 @@ module Polyrun
       end
 
       def self.finish_debug_time_label
-        if ENV["POLYRUN_SHARD_TOTAL"].to_i > 1
-          "worker pid=#{$$} shard=#{ENV.fetch("POLYRUN_SHARD_INDEX", "?")} Coverage::Collector.finish (write fragment)"
-        else
-          "Coverage::Collector.finish (write fragment)"
-        end
+        CollectorFragmentMeta.finish_debug_time_label
       end
 
       def build_meta(cfg)
@@ -123,6 +128,7 @@ module Polyrun
         m["timestamp"] ||= Time.now.to_i
         m["command_name"] ||= "rspec"
         m["polyrun_coverage_root"] = cfg[:root].to_s
+        CollectorFragmentMeta.merge_fragment_meta!(m, cfg[:fragment_meta])
         if cfg[:groups]
           m["polyrun_coverage_groups"] = cfg[:groups].transform_keys(&:to_s).transform_values(&:to_s)
         end
