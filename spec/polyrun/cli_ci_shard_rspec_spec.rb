@@ -62,6 +62,45 @@ RSpec.describe "Polyrun::CLI ci-shard-rspec" do
     end
   end
 
+  it "exits 2 when --shard-processes is not an integer" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        list = File.join(dir, "spec_paths.txt")
+        File.write(list, "a.rb\n")
+        cfg = File.join(dir, "polyrun.yml")
+        File.write(cfg, <<~YAML)
+          partition:
+            paths_file: #{list}
+            shard_total: 1
+            shard_index: 0
+        YAML
+        out, status = polyrun("-c", cfg, "ci-shard-rspec", "--shard-processes", "bad")
+        expect(status.exitstatus).to eq(2)
+        expect(out).to match(/must be an integer/)
+      end
+    end
+  end
+
+  it "fans out via ci_shard_run_fanout! when --shard-processes > 1" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        list = File.join(dir, "spec_paths.txt")
+        File.write(list, "a.rb\nb.rb\nc.rb\n")
+        cfg = File.join(dir, "polyrun.yml")
+        File.write(cfg, <<~YAML)
+          partition:
+            paths_file: #{list}
+            shard_total: 2
+            shard_index: 0
+        YAML
+        cli = Polyrun::CLI.new
+        allow(cli).to receive(:ci_shard_run_fanout!).and_return(0)
+        cli.send(:cmd_ci_shard_rspec, ["--shard-processes", "2", "--shard", "0", "--total", "2"], cfg)
+        expect(cli).to have_received(:ci_shard_run_fanout!)
+      end
+    end
+  end
+
   it "with only -- and RSpec flags (empty plan argv), uses partition shard and passes flags before paths" do
     Dir.mktmpdir do |dir|
       with_chdir(dir) do

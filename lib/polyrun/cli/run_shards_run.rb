@@ -50,6 +50,8 @@ module Polyrun
         cfg = ctx[:cfg]
         plan = ctx[:plan]
         parallel = ctx[:parallel]
+        mx = ctx[:matrix_shard_index]
+        mt = ctx[:matrix_shard_total]
 
         pids = []
         workers.times do |shard|
@@ -59,7 +61,7 @@ module Polyrun
             next
           end
 
-          child_env = shard_child_env(cfg: cfg, workers: workers, shard: shard)
+          child_env = shard_child_env(cfg: cfg, workers: workers, shard: shard, matrix_index: mx, matrix_total: mt)
 
           Polyrun::Log.warn "polyrun run-shards: shard #{shard} → #{paths.size} file(s)" if @verbose
           pid = Process.spawn(child_env, *cmd, *paths)
@@ -140,7 +142,7 @@ module Polyrun
 
         if ctx[:parallel]
           Polyrun::Log.warn <<~MSG
-            polyrun run-shards: coverage — each worker writes coverage/polyrun-fragment-<shard>.json when Polyrun coverage is enabled (POLYRUN_SHARD_INDEX per process).
+            polyrun run-shards: coverage — each worker writes coverage/polyrun-fragment-worker<N>.json when Polyrun coverage is enabled (POLYRUN_SHARD_INDEX per process).
             polyrun run-shards: next step — merge with: polyrun merge-coverage -i 'coverage/polyrun-fragment-*.json' -o coverage/merged.json --format json,cobertura,console
           MSG
         end

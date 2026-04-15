@@ -54,6 +54,14 @@ module Polyrun
         partition_int(pc, %w[shard_total total], 1)
       end
 
+      # Processes per CI matrix job for +ci-shard-run+ / +ci-shard-rspec+ (NxM: N jobs × M processes).
+      # +POLYRUN_SHARD_PROCESSES+ or +partition.shard_processes+; CLI +--shard-processes+ / +--workers+ overrides.
+      def resolve_shard_processes(pc, env = ENV)
+        return Integer(env["POLYRUN_SHARD_PROCESSES"]) if env["POLYRUN_SHARD_PROCESSES"] && !env["POLYRUN_SHARD_PROCESSES"].empty?
+
+        partition_int(pc, %w[shard_processes shard_workers workers_per_shard], 1)
+      end
+
       # +cli_val+ is an override (e.g. +run-shards --timing-granularity+); +nil+ uses YAML then +POLYRUN_TIMING_GRANULARITY+.
       def resolve_partition_timing_granularity(pc, cli_val, env = ENV)
         raw = cli_val

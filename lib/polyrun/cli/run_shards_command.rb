@@ -15,7 +15,7 @@ module Polyrun
       # Default and upper bound for parallel OS processes (POLYRUN_WORKERS / --workers); see {Polyrun::Config}.
 
       # Spawns N OS processes (not Ruby threads) with POLYRUN_SHARD_INDEX / POLYRUN_SHARD_TOTAL so
-      # {Coverage::Collector} writes coverage/polyrun-fragment-<shard>.json. Merge with merge-coverage.
+      # {Coverage::Collector} writes coverage/polyrun-fragment-worker<N>.json (or shard<S>-worker<W>.json in N×M CI). Merge with merge-coverage.
       def cmd_run_shards(argv, config_path)
         run_shards_run!(argv, config_path)
       end
@@ -112,10 +112,21 @@ module Polyrun
       end
 
       # ENV for a worker process: POLYRUN_SHARD_* plus per-shard database URLs from polyrun.yml or DATABASE_URL.
-      def shard_child_env(cfg:, workers:, shard:)
+      # When +matrix_total+ > 1 with multiple local workers, sets +POLYRUN_SHARD_MATRIX_INDEX+ / +POLYRUN_SHARD_MATRIX_TOTAL+
+      # so {Coverage::Collector} can name fragments uniquely across CI matrix jobs (NxM sharding).
+      def shard_child_env(cfg:, workers:, shard:, matrix_index: nil, matrix_total: nil)
         child_env = ENV.to_h.merge(
           Polyrun::Database::Shard.env_map(shard_index: shard, shard_total: workers)
         )
+        mt = matrix_total.nil? ? 0 : Integer(matrix_total)
+        if mt > 1
+          if matrix_index.nil?
+            Polyrun::Log.warn "polyrun run-shards: matrix_total=#{mt} but matrix_index is nil; omit POLYRUN_SHARD_MATRIX_*"
+          else
+            child_env["POLYRUN_SHARD_MATRIX_INDEX"] = Integer(matrix_index).to_s
+            child_env["POLYRUN_SHARD_MATRIX_TOTAL"] = mt.to_s
+          end
+        end
         dh = cfg.databases
         if dh.is_a?(Hash) && !dh.empty?
           child_env.merge!(Polyrun::Database::UrlBuilder.env_exports_for_databases(dh, shard_index: shard))

@@ -21,7 +21,7 @@ module Polyrun
           Skip start auto-prepare / auto DB provision: POLYRUN_START_SKIP_PREPARE=1, POLYRUN_START_SKIP_DATABASES=1
           Skip writing paths_file from partition.paths_build: POLYRUN_SKIP_PATHS_BUILD=1
           Warn if merge-coverage wall time exceeds N seconds (default 10): POLYRUN_MERGE_SLOW_WARN_SECONDS (0 disables)
-          Parallel RSpec workers: POLYRUN_WORKERS default 5, max 10 (run-shards / parallel-rspec / start)
+          Parallel RSpec workers: POLYRUN_WORKERS default 5, max 10 (run-shards / parallel-rspec / start); distinct from POLYRUN_SHARD_PROCESSES / ci-shard --shard-processes (local processes per CI matrix job)
           Partition timing granularity (default file): POLYRUN_TIMING_GRANULARITY=file|example (experimental per-example; see partition.timing_granularity)
 
           commands:
@@ -32,11 +32,11 @@ module Polyrun
             run-shards           fan out N parallel OS processes (POLYRUN_SHARD_*; not Ruby threads); optional --merge-coverage
             parallel-rspec       run-shards + merge-coverage (defaults to: bundle exec rspec after --)
             start                parallel-rspec; auto-runs prepare (shell/assets) and db:setup-* when polyrun.yml configures them; legacy script/build_spec_paths.rb if paths_build absent
-            ci-shard-run         CI matrix: build-paths + plan for POLYRUN_SHARD_INDEX / POLYRUN_SHARD_TOTAL (or config), then run your command with that shard's paths after -- (like run-shards; not multi-worker)
-            ci-shard-rspec       same as ci-shard-run -- bundle exec rspec; optional -- [rspec-only flags]
+            ci-shard-run         CI matrix: build-paths + plan for POLYRUN_SHARD_INDEX / POLYRUN_SHARD_TOTAL (or config), then run your command with that shard's paths after --; optional --shard-processes M or --workers M (POLYRUN_SHARD_PROCESSES; not POLYRUN_WORKERS) for N×M jobs × processes on this host
+            ci-shard-rspec       same as ci-shard-run -- bundle exec rspec; optional --shard-processes / --workers / -- [rspec-only flags]
             build-paths          write partition.paths_file from partition.paths_build (same as auto step before plan/run-shards)
             init                 write a starter polyrun.yml or POLYRUN.md from built-in templates (see docs/SETUP_PROFILE.md)
-            queue                file-backed batch queue (init / claim / ack / status)
+            queue                file-backed batch queue: init (optional --shard/--total etc. as plan, then claim/ack); M workers share one dir; no duplicate paths across claims
             quick                run Polyrun::Quick (describe/it, before/after, let, expect…to, assert_*; optional capybara!)
             report-coverage      write all coverage formats from one JSON file
             report-junit         RSpec JSON or Polyrun testcase JSON → JUnit XML (CI)

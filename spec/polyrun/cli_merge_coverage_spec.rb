@@ -43,6 +43,22 @@ RSpec.describe Polyrun::CLI do
     end
   end
 
+  it "merge-coverage globs include N×M fragment names (shard*-worker*)" do
+    Dir.mktmpdir do |dir|
+      a = File.join(dir, "polyrun-fragment-shard0-worker0.json")
+      b = File.join(dir, "polyrun-fragment-shard0-worker1.json")
+      File.write(a, JSON.dump({"coverage" => {"/y.rb" => {"lines" => [nil, 1]}}}))
+      File.write(b, JSON.dump({"coverage" => {"/y.rb" => {"lines" => [nil, 0]}}}))
+      pattern = File.join(dir, "polyrun-fragment-*.json")
+      with_chdir(dir) do
+        _, status = polyrun("merge-coverage", "-i", pattern, "-o", "merged.json", "--format", "json")
+        expect(status.success?).to be true
+        merged = JSON.parse(File.read(File.join(dir, "merged.json")))
+        expect(merged["coverage"]["/y.rb"]["lines"]).to eq([nil, 1])
+      end
+    end
+  end
+
   it "report-coverage writes multiple artifacts" do
     Dir.mktmpdir do |dir|
       j = File.join(dir, "in.json")

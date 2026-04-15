@@ -27,6 +27,14 @@ RSpec.configure do |config|
   config.before do
     ENV.delete("POLYRUN_SHARD_INDEX")
     ENV.delete("POLYRUN_SHARD_TOTAL")
+    ENV.delete("POLYRUN_SHARD_PROCESSES")
+    # So partition shard_index/total resolve from YAML in tests, not the host CI runner.
+    ENV.delete("CI_NODE_INDEX")
+    ENV.delete("CI_NODE_TOTAL")
+    ENV.delete("BUILDKITE_PARALLEL_JOB")
+    ENV.delete("BUILDKITE_PARALLEL_JOB_COUNT")
+    ENV.delete("CIRCLE_NODE_INDEX")
+    ENV.delete("CIRCLE_NODE_TOTAL")
   end
 
   config.include PolyrunCliHelpers, file_path: %r{/spec/polyrun/}
