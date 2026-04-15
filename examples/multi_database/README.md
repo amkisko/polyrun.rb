@@ -25,6 +25,8 @@ bundle exec polyrun -c polyrun.yml parallel-rspec --workers 4
 
 **Cost-balanced** shards (merged timing JSON): see **`../cost_balancing/demo_rails.sh`** and **`../cost_balancing/polyrun_rails.yml`**. **All strategies** (round-robin, random, cost, HRW) are summarized in **`../partition_strategies/README.md`**.
 
+**CLI extras** (`polyrun config`, no-subcommand default parallel, `ci-shard-rspec` for matrix jobs): **[../README.md](../README.md)** (section *CLI features*).
+
 ## Commands
 
 ```bash

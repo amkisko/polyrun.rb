@@ -5,6 +5,10 @@ module Polyrun
   class Config
     DEFAULT_FILENAMES = %w[polyrun.yml config/polyrun.yml].freeze
 
+    # Parallel worker defaults (+run-shards+, +POLYRUN_WORKERS+); single source with {Resolver} and {Effective}.
+    DEFAULT_PARALLEL_WORKERS = 5
+    MAX_PARALLEL_WORKERS = 10
+
     attr_reader :path, :raw
 
     def self.load(path: nil)
@@ -59,3 +63,6 @@ module Polyrun
     end
   end
 end
+
+require_relative "config/resolver"
+require_relative "config/effective"

@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 1.2.0 (2026-04-15)
+
+- Add `polyrun config <dotted.path>` to print values from `Polyrun::Config::Effective` (same effective tree as runtime: arbitrary YAML paths, merged `prepare.env.<KEY>` as for `polyrun prepare`, resolved `partition.shard_index`, `partition.shard_total`, `partition.timing_granularity`, and `workers`).
+- Memoize `Polyrun::Config::Effective.build` per thread (keyed by config path, object id, and env fingerprint) so repeated `dig` calls do not rebuild the merged tree.
+- Add `DISPATCH_SUBCOMMAND_NAMES` and `IMPLICIT_PATH_EXCLUSION_TOKENS`; route implicit path-only argv against one list (includes `ci-shard-*`, `help`, `version`); add spec that dispatch names match `when` branches in `lib/polyrun/cli.rb`.
+- Run `polyrun` with no subcommand to fan out parallel tests: pick RSpec (`start`), Minitest (`bundle exec rails test` or `bundle exec ruby -I test`), or Polyrun Quick (`bundle exec polyrun quick`) from `spec/**/*_spec.rb` vs `test/**/*_test.rb` vs Quick globs.
+- Accept path-only argv (and optional `run-shards` options before paths, e.g. `--workers`) to shard those files without naming a subcommand; infer suite from `_spec.rb` / `_test.rb` vs other `.rb` files.
+- Add optional `partition.suite` (`auto`, `rspec`, `minitest`, `quick`) when resolving globbed paths for `run-shards` / `parallel-rspec` / default runs.
+- Document implicit argv (known subcommand first vs path-like implicit parallel) and parallel Quick `bundle exec` from app root in `polyrun help` and `examples/README.md`.
+- Comment `detect_auto_suite` glob order in `lib/polyrun/partition/paths.rb` (RSpec/Minitest globs before Quick discovery).
+- Remove redundant `OptionParser` from `polyrun config` (no options; banner only).
+
 ## 1.1.0 (2026-04-15)
 
 - Add `ci-shard-run` / `ci-shard-rspec` for matrix-style sharding (one job per `POLYRUN_SHARD_INDEX` / `POLYRUN_SHARD_TOTAL`): resolve paths via the same plan as `polyrun plan`, then `exec` the given command with this shard’s paths (unlike `run-shards`, which fans out multiple workers on one host).

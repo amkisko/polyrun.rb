@@ -12,9 +12,7 @@ module Polyrun
 
       private
 
-      # Default and upper bound for parallel OS processes (POLYRUN_WORKERS / --workers).
-      DEFAULT_PARALLEL_WORKERS = 5
-      MAX_PARALLEL_WORKERS = 10
+      # Default and upper bound for parallel OS processes (POLYRUN_WORKERS / --workers); see {Polyrun::Config}.
 
       # Spawns N OS processes (not Ruby threads) with POLYRUN_SHARD_INDEX / POLYRUN_SHARD_TOTAL so
       # {Coverage::Collector} writes coverage/polyrun-fragment-<shard>.json. Merge with merge-coverage.
@@ -35,6 +33,54 @@ module Polyrun
           end
         Polyrun::Debug.log_kv(parallel_rspec: "combined argv", argv: combined)
         cmd_run_shards(combined, config_path)
+      end
+
+      # Same as parallel-rspec but runs +bundle exec rails test+ or +bundle exec ruby -I test+ after +--+.
+      def cmd_parallel_minitest(argv, config_path)
+        cfg = Polyrun::Config.load(path: config_path || ENV["POLYRUN_CONFIG"])
+        code = start_bootstrap!(cfg, argv, config_path)
+        return code if code != 0
+
+        sep = argv.index("--")
+        combined =
+          if sep
+            head = argv[0...sep]
+            tail = argv[sep..]
+            head + ["--merge-coverage"] + tail
+          else
+            argv + ["--merge-coverage", "--"] + minitest_parallel_cmd
+          end
+        Polyrun::Debug.log_kv(parallel_minitest: "combined argv", argv: combined)
+        cmd_run_shards(combined, config_path)
+      end
+
+      # Same as parallel-rspec but runs +bundle exec polyrun quick+ after +--+ (one Quick process per shard).
+      # Run from the app root with +bundle exec+ so workers resolve the same gem as the parent (same concern as +bundle exec rspec+).
+      def cmd_parallel_quick(argv, config_path)
+        cfg = Polyrun::Config.load(path: config_path || ENV["POLYRUN_CONFIG"])
+        code = start_bootstrap!(cfg, argv, config_path)
+        return code if code != 0
+
+        sep = argv.index("--")
+        combined =
+          if sep
+            head = argv[0...sep]
+            tail = argv[sep..]
+            head + ["--merge-coverage"] + tail
+          else
+            argv + ["--merge-coverage", "--", "bundle", "exec", "polyrun", "quick"]
+          end
+        Polyrun::Debug.log_kv(parallel_quick: "combined argv", argv: combined)
+        cmd_run_shards(combined, config_path)
+      end
+
+      def minitest_parallel_cmd
+        rails_bin = File.expand_path("bin/rails", Dir.pwd)
+        if File.file?(rails_bin)
+          ["bundle", "exec", "rails", "test"]
+        else
+          ["bundle", "exec", "ruby", "-I", "test"]
+        end
       end
 
       # Convenience alias: optional legacy script/build_spec_paths.rb (if present and partition.paths_build unset), then parallel-rspec.

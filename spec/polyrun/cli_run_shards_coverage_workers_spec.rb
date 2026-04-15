@@ -81,7 +81,7 @@ RSpec.describe Polyrun::CLI do
           RbConfig.ruby, stub
         )
         expect(status.success?).to be true
-        expect(out).to include("spec path(s) from")
+        expect(out).to include("path(s) from")
         expect(out).to include("spec/**/*_spec.rb glob")
         expect(out).to include("parallel worker")
         expect(out).to include("pid=")

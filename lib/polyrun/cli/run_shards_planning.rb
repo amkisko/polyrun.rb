@@ -38,9 +38,9 @@ module Polyrun
           Polyrun::Log.warn "polyrun run-shards: --workers must be >= 1"
           return 2
         end
-        if w > RunShardsCommand::MAX_PARALLEL_WORKERS
-          Polyrun::Log.warn "polyrun run-shards: capping --workers / POLYRUN_WORKERS from #{w} to #{RunShardsCommand::MAX_PARALLEL_WORKERS}"
-          o[:workers] = RunShardsCommand::MAX_PARALLEL_WORKERS
+        if w > Polyrun::Config::MAX_PARALLEL_WORKERS
+          Polyrun::Log.warn "polyrun run-shards: capping --workers / POLYRUN_WORKERS from #{w} to #{Polyrun::Config::MAX_PARALLEL_WORKERS}"
+          o[:workers] = Polyrun::Config::MAX_PARALLEL_WORKERS
         end
         nil
       end
@@ -53,18 +53,18 @@ module Polyrun
         nil
       end
 
-      def run_shards_resolve_items(paths_file)
-        resolved = Polyrun::Partition::Paths.resolve_run_shard_items(paths_file: paths_file)
+      def run_shards_resolve_items(paths_file, partition)
+        resolved = Polyrun::Partition::Paths.resolve_run_shard_items(paths_file: paths_file, partition: partition)
         if resolved[:error]
           Polyrun::Log.warn "polyrun run-shards: #{resolved[:error]}"
           return [nil, nil, 2]
         end
         items = resolved[:items]
         paths_source = resolved[:source]
-        Polyrun::Log.warn "polyrun run-shards: #{items.size} spec path(s) from #{paths_source}"
+        Polyrun::Log.warn "polyrun run-shards: #{items.size} path(s) from #{paths_source}"
 
         if items.empty?
-          Polyrun::Log.warn "polyrun run-shards: no spec paths (spec/spec_paths.txt, partition.paths_file, or spec/**/*_spec.rb)"
+          Polyrun::Log.warn "polyrun run-shards: no paths (empty paths file or list)"
           return [nil, nil, 2]
         end
         [items, paths_source, nil]
@@ -119,7 +119,7 @@ module Polyrun
 
       def run_shards_warn_parallel_banner(item_count, workers, strategy)
         Polyrun::Log.warn <<~MSG
-          polyrun run-shards: #{item_count} spec path(s) -> #{workers} parallel worker processes (not Ruby threads); strategy=#{strategy}
+          polyrun run-shards: #{item_count} path(s) -> #{workers} parallel worker processes (not Ruby threads); strategy=#{strategy}
           (plain `bundle exec rspec` is one process; this command fans out.)
         MSG
       end

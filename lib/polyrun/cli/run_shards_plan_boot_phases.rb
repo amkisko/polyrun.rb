@@ -25,7 +25,7 @@ module Polyrun
       end
 
       def run_shards_plan_phase_b(o, cmd, cfg, pc, run_t0, config_path)
-        items, paths_source, err = run_shards_resolve_items(o[:paths_file])
+        items, paths_source, err = run_shards_resolve_items(o[:paths_file], pc)
         return [err, nil] if err
 
         costs, strategy, err = run_shards_resolve_costs(o[:timing_path], o[:strategy], o[:timing_granularity])
