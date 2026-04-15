@@ -1,4 +1,4 @@
-require "open3"
+require_relative "../process_stdio"
 
 module Polyrun
   class CLI
@@ -22,8 +22,7 @@ module Polyrun
           return [manifest, nil]
         end
         if custom && !custom.to_s.strip.empty?
-          _out, err, st = Open3.capture3(*([child_env].compact + ["sh", "-c", custom.to_s]), chdir: rails_root)
-          prepare_log_stderr(err)
+          st = prepare_run_shell_inherit_stdio(child_env, custom.to_s, rails_root, silent: !@verbose)
           unless st.success?
             Polyrun::Log.warn "polyrun prepare: assets custom command failed (exit #{st.exitstatus})"
             return [manifest, 1]
@@ -59,8 +58,7 @@ module Polyrun
           return [manifest, nil]
         end
         lines.each_with_index do |line, i|
-          _out, err, st = Open3.capture3(*([child_env].compact + ["sh", "-c", line]), chdir: rails_root)
-          prepare_log_stderr(err)
+          st = prepare_run_shell_inherit_stdio(child_env, line, rails_root, silent: !@verbose)
           unless st.success?
             Polyrun::Log.warn "polyrun prepare: shell step #{i + 1} failed (exit #{st.exitstatus})"
             return [manifest, 1]
@@ -69,8 +67,15 @@ module Polyrun
         [manifest, nil]
       end
 
-      def prepare_log_stderr(err)
-        Polyrun::Log.warn err unless err.to_s.empty?
+      def prepare_run_shell_inherit_stdio(child_env, script, rails_root, silent: false)
+        Polyrun::ProcessStdio.inherit_stdio_spawn_wait(
+          child_env,
+          "sh",
+          "-c",
+          script.to_s,
+          chdir: rails_root,
+          silent: silent
+        )
       end
     end
   end

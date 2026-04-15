@@ -100,6 +100,8 @@ RSpec/DescribedClass:
 ThreadSafety/NewThread:
   Exclude:
     - spec/**/*
+    - lib/polyrun/cli/database_commands.rb
+    - lib/polyrun/database/clone_shards.rb
 
 Lint/ConstantDefinitionInBlock:
   Exclude:
@@ -119,6 +121,7 @@ ThreadSafety/DirChdir:
     - "*.gemspec"
     - lib/polyrun/coverage/track_files.rb
     - spec/polyrun/cli_spec.rb
+    - spec/polyrun/quick_runner_spec.rb
 
 Lint/Debugger:
   Enabled: true

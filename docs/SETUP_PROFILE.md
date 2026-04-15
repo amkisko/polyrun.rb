@@ -81,7 +81,7 @@ Model A — one job, N worker processes
 Model B — matrix of jobs (one shard per job)
 
 - Each job sets `POLYRUN_SHARD_INDEX` / `POLYRUN_SHARD_TOTAL` (and DB URLs per shard if needed).
-- Run `polyrun build-paths`, `polyrun plan`, then `bundle exec rspec` (or `bin/rspec_ci_shard`) for that shard only.
+- Run `polyrun ci-shard-run -- bundle exec rspec` (or `ci-shard-rspec`), or `ci-shard-run -- bundle exec polyrun quick` / other runners; or the same steps manually (`bin/rspec_ci_shard` wrappers).
 - Upload `coverage/polyrun-fragment-*.json` (or named per shard).
 - A final `merge-coverage` job downloads artifacts and merges.
 

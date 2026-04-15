@@ -103,6 +103,33 @@ RSpec.describe Polyrun::Partition::Plan do
     expect(plan.shard(a)).to include("spec/a_spec.rb")
   end
 
+  it "cost_binpack uses per-example weights when timing_granularity is example (experimental)" do
+    Dir.mktmpdir do |dir|
+      a = "a_spec.rb:1"
+      b = "b_spec.rb:2"
+      c = "c_spec.rb:3"
+      costs = {
+        "#{File.expand_path("a_spec.rb", dir)}:1" => 10.0,
+        "#{File.expand_path("b_spec.rb", dir)}:2" => 5.0,
+        "#{File.expand_path("c_spec.rb", dir)}:3" => 5.0
+      }
+      root = File.expand_path(dir)
+      plan = described_class.new(
+        items: [a, b, c],
+        total_shards: 2,
+        strategy: "cost_binpack",
+        costs: costs,
+        root: dir,
+        timing_granularity: :example
+      )
+      exp = lambda { |rel, line| Polyrun::Partition::TimingKeys.normalize_locator("#{rel}:#{line}", root, :example) }
+      expect(plan.shard(0)).to eq([exp.call("a_spec.rb", 1)])
+      expect(plan.shard(1)).to contain_exactly(exp.call("b_spec.rb", 2), exp.call("c_spec.rb", 3))
+      m = plan.manifest(0)
+      expect(m["timing_granularity"]).to eq("example")
+    end
+  end
+
   it "pins override LPT placement" do
     c = Polyrun::Partition::Constraints.new(
       pin_map: {"b" => 1},

@@ -8,7 +8,7 @@ Running tests in parallel across processes still requires a single merged covera
 
 Polyrun provides:
 
-- Orchestration: `plan`, `run-shards`, and `parallel-rspec` (run-shards plus merge-coverage), with an optional on-disk queue and constraints for file lists and load balancing.
+- Orchestration: `plan`, `run-shards`, and `parallel-rspec` (run-shards plus merge-coverage), with an optional on-disk queue and constraints for file lists and load balancing. For **GitHub Actions-style matrix sharding** (one job per global shard), use `ci-shard-run -- …` (any test runner) or `ci-shard-rspec`—not `run-shards` / `parallel-rspec`, which fan out N workers on one machine.
 - Coverage: merge SimpleCov-compatible JSON fragments; emit JSON, LCOV, Cobertura, or console summaries (you can drop separate SimpleCov merge plugins for this path).
 - CI reporting: JUnit XML from RSpec JSON; slow-file reports from merged timing JSON.
 - Parallel hygiene: asset digest markers, SQL snapshots, YAML fixture batches, and DB URL or shard helpers aligned with `POLYRUN_SHARD_*`.
@@ -32,6 +32,8 @@ If the current directory already has `polyrun.yml` or `config/polyrun.yml`, you 
 ```bash
 bin/polyrun version
 bin/polyrun build-paths   # write spec/spec_paths.txt from partition.paths_build (uses polyrun.yml in cwd)
+bin/polyrun ci-shard-run -- bundle exec rspec   # CI matrix: shard plan + append paths to the command after --
+bin/polyrun ci-shard-rspec   # same as ci-shard-run -- bundle exec rspec
 bin/polyrun parallel-rspec --workers 5   # run-shards + merge-coverage (default: bundle exec rspec)
 bin/polyrun run-shards --workers 5 --merge-coverage -- bundle exec rspec
 bin/polyrun merge-coverage -i cov1.json -i cov2.json -o merged.json --format json,lcov,cobertura,console
@@ -40,6 +42,12 @@ bin/polyrun init --list
 bin/polyrun init --profile gem -o polyrun.yml   # starter YAML; see docs/SETUP_PROFILE.md
 bin/polyrun quick   # Polyrun::Quick examples under spec/polyrun_quick/ or test/polyrun_quick/
 ```
+
+### Matrix shards and timing
+
+- `ci-shard-run` — Pass the command as separate words after `--` (e.g. `ci-shard-run -- bundle exec rspec`). One combined string with spaces is split via `Shellwords`, not a full shell; shell-only quoting does not apply.
+- Timing JSON — Run `plan`, `queue init`, and `merge-timing` from the same repository root (cwd) you use when producing `polyrun_timing.json` so path keys normalize consistently. `Polyrun::Partition::Plan.load_timing_costs` and `TimingKeys.load_costs_json_file` accept `root:` to align keys to a fixed directory.
+- Per-example timing (`--timing-granularity example`) — Experimental. Cost maps and plan items scale with example count, not file count; expect larger memory use and slower planning than file mode on big suites.
 
 ### Adopting Polyrun (setup profile and scaffolds)
 
@@ -131,7 +139,19 @@ See [`examples/README.md`](examples/README.md) for Rails apps (Capybara, Playwri
 
 You can replace SimpleCov and simplecov plugins, parallel_tests, and rspec_junit_formatter with Polyrun for those roles. Use `merge-timing`, `report-timing`, and `Data::FactoryCounts` (optionally with `Data::FactoryInstrumentation`) for slow-file and factory metrics. YAML fixture batches and bulk inserts can use `Data::Fixtures` and `ParallelProvisioning` for shard-aware seeding; wire your own `truncate` and `load_seed` in hooks.
 
----
+## License
+
+Released under the [MIT License](LICENSE). Copyright (c) 2026 Andrei Makarov.
+
+## Contributing
+
+Bug reports and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, tests, RuboCop, RBS, optional Trunk, and PR conventions. Community participation follows [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
+## Security
+
+Do not open public issues for security vulnerabilities. See [SECURITY.md](SECURITY.md) for how to report them.
+
+## Sponsors
 
 Sponsored by [Kisko Labs](https://www.kiskolabs.com).
 

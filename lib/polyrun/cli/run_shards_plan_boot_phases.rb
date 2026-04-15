@@ -28,13 +28,13 @@ module Polyrun
         items, paths_source, err = run_shards_resolve_items(o[:paths_file])
         return [err, nil] if err
 
-        costs, strategy, err = run_shards_resolve_costs(o[:timing_path], o[:strategy])
+        costs, strategy, err = run_shards_resolve_costs(o[:timing_path], o[:strategy], o[:timing_granularity])
         return [err, nil] if err
 
         run_shards_plan_ready_log(o, strategy, cmd, paths_source, items.size)
 
         constraints = load_partition_constraints(pc, o[:constraints_path])
-        plan = run_shards_make_plan(items, o[:workers], strategy, o[:seed], costs, constraints)
+        plan = run_shards_make_plan(items, o[:workers], strategy, o[:seed], costs, constraints, o[:timing_granularity])
 
         run_shards_debug_shard_sizes(plan, o[:workers])
         Polyrun::Log.warn "polyrun run-shards: #{items.size} paths → #{o[:workers]} workers (#{strategy})" if @verbose

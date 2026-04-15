@@ -1,5 +1,7 @@
 require "yaml"
 
+require_relative "../partition/timing_keys"
+
 module Polyrun
   class CLI
     module Helpers
@@ -95,9 +97,15 @@ module Polyrun
 
       # +default_weight+ should be precomputed when sorting many paths (e.g. +queue init+), matching
       # {Partition::Plan#default_weight} semantics: mean of known timing costs for missing paths.
-      def queue_weight_for(path, costs, default_weight = nil)
-        abs = File.expand_path(path.to_s, Dir.pwd)
-        return costs[abs] if costs.key?(abs)
+      def queue_weight_for(path, costs, default_weight = nil, granularity: :file)
+        g = Polyrun::Partition::TimingKeys.normalize_granularity(granularity)
+        key =
+          if g == :example
+            Polyrun::Partition::TimingKeys.normalize_locator(path.to_s, Dir.pwd, :example)
+          else
+            File.expand_path(path.to_s, Dir.pwd)
+          end
+        return costs[key] if costs.key?(key)
 
         unless default_weight.nil?
           return default_weight
@@ -107,6 +115,14 @@ module Polyrun
         return 1.0 if vals.empty?
 
         vals.sum / vals.size.to_f
+      end
+
+      # CLI + polyrun.yml + POLYRUN_TIMING_GRANULARITY; default +:file+.
+      def resolve_partition_timing_granularity(pc, cli_val)
+        raw = cli_val
+        raw ||= pc && (pc["timing_granularity"] || pc[:timing_granularity])
+        raw ||= ENV["POLYRUN_TIMING_GRANULARITY"]
+        Polyrun::Partition::TimingKeys.normalize_granularity(raw || "file")
       end
     end
   end

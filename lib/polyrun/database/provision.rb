@@ -1,5 +1,6 @@
 require "open3"
 require "shellwords"
+require_relative "../process_stdio"
 
 module Polyrun
   module Database
@@ -49,20 +50,24 @@ module Polyrun
       # Multi-DB Rails apps must pass all template URLs in one invocation so each DB uses its own +migrations_paths+.
       # Uses +db:prepare+ (not +db:migrate+ alone) so empty template databases load +schema.rb+ first;
       # apps that squash or archive migrations and keep only incremental files need that path.
+      #
+      # Streams stdout/stderr to the terminal by default. With +silent: true+, redirects child stdio
+      # to +File::NULL+ (no live output; non-interactive).
       def prepare_template!(rails_root:, env:, silent: true)
         exe = File.join(rails_root, "bin", "rails")
         raise Polyrun::Error, "Provision: missing #{exe}" unless File.executable?(exe)
 
         child_env = ENV.to_h.merge(env)
         child_env["RAILS_ENV"] ||= ENV["RAILS_ENV"] || "test"
-        rails_out, err, st = Open3.capture3(child_env, exe, "db:prepare", chdir: rails_root)
-        Polyrun::Log.warn err if !silent && !err.to_s.empty?
+        st, out, err = Polyrun::ProcessStdio.spawn_wait(
+          child_env,
+          exe,
+          "db:prepare",
+          chdir: rails_root,
+          silent: silent
+        )
         unless st.success?
-          msg = +"db:prepare failed"
-          msg << "\n--- stderr ---\n#{err}" unless err.to_s.strip.empty?
-          # Rails often prints the first migration/SQL error on stdout; stderr may only show InFailedSqlTransaction.
-          msg << "\n--- stdout ---\n#{rails_out}" unless rails_out.to_s.strip.empty?
-          raise Polyrun::Error, msg
+          raise Polyrun::Error, Polyrun::ProcessStdio.format_failure_message("db:prepare", st, out, err)
         end
 
         true

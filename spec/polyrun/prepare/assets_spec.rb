@@ -1,4 +1,5 @@
 require "spec_helper"
+require "fileutils"
 require "tmpdir"
 
 RSpec.describe Polyrun::Prepare::Assets do
@@ -22,6 +23,21 @@ RSpec.describe Polyrun::Prepare::Assets do
       expect(described_class.stale?(m, f)).to be false
       File.write(f, "y")
       expect(described_class.stale?(m, f)).to be true
+    end
+  end
+
+  it "precompile! forwards silent to ProcessStdio.spawn_wait" do
+    Dir.mktmpdir do |dir|
+      exe = File.join(dir, "bin", "rails")
+      FileUtils.mkdir_p(File.dirname(exe))
+      File.write(exe, "#!/bin/sh\nexit 0\n")
+      File.chmod(0o755, exe)
+      ok = instance_double(Process::Status, success?: true)
+      allow(Polyrun::ProcessStdio).to receive(:spawn_wait).and_return([ok, "", ""])
+      expect(described_class.precompile!(rails_root: dir, silent: false)).to be true
+      expect(Polyrun::ProcessStdio).to have_received(:spawn_wait).with(
+        nil, exe, "assets:precompile", chdir: dir, silent: false
+      )
     end
   end
 end

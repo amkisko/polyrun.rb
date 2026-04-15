@@ -1,6 +1,6 @@
 require "digest/md5"
 require "fileutils"
-require "open3"
+require_relative "../process_stdio"
 
 module Polyrun
   module Prepare
@@ -41,14 +41,21 @@ module Polyrun
       end
 
       # Shells out to +bin/rails assets:precompile+ when +rails_root+ contains +bin/rails+.
+      # +silent: true+ discards child stdio (+File::NULL+); +silent: false+ inherits the terminal.
       def precompile!(rails_root:, silent: true)
         exe = File.join(rails_root, "bin", "rails")
         raise Polyrun::Error, "Prepare::Assets: no #{exe}" unless File.executable?(exe)
 
-        cmd = [exe, "assets:precompile"]
-        _out, err, st = Open3.capture3(*cmd, chdir: rails_root)
-        Polyrun::Log.warn err if !silent && !err.empty?
-        raise Polyrun::Error, "assets:precompile failed: #{err}" unless st.success?
+        st, out, err = Polyrun::ProcessStdio.spawn_wait(
+          nil,
+          exe,
+          "assets:precompile",
+          chdir: rails_root,
+          silent: silent
+        )
+        unless st.success?
+          raise Polyrun::Error, Polyrun::ProcessStdio.format_failure_message("assets:precompile", st, out, err)
+        end
 
         true
       end
