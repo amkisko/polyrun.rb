@@ -61,6 +61,11 @@ module Polyrun
     def version
       raw["version"] || raw[:version]
     end
+
+    # Optional +hooks:+ block for +run-shards+ / +parallel-rspec+ / +ci-shard-*+ (see {Hooks}).
+    def hooks
+      raw["hooks"] || raw[:hooks] || {}
+    end
   end
 end
 

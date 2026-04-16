@@ -35,6 +35,9 @@ RSpec.configure do |config|
     ENV.delete("BUILDKITE_PARALLEL_JOB_COUNT")
     ENV.delete("CIRCLE_NODE_INDEX")
     ENV.delete("CIRCLE_NODE_TOTAL")
+    ENV.delete("POLYRUN_HOOKS_DISABLE")
+    ENV.delete("POLYRUN_HOOKS_SUITE_PER_MATRIX_JOB")
+    ENV.delete("POLYRUN_HOOKS_RUBY_FILE")
   end
 
   config.include PolyrunCliHelpers, file_path: %r{/spec/polyrun/}

@@ -1,5 +1,7 @@
 require "shellwords"
 
+require_relative "ci_shard_hooks"
+
 module Polyrun
   class CLI
     # One CI matrix job = one global shard (POLYRUN_SHARD_INDEX / POLYRUN_SHARD_TOTAL), not +run-shards+
@@ -14,6 +16,8 @@ module Polyrun
     # After +--+, prefer **multiple argv tokens** (+bundle+, +exec+, +rspec+, …). A single token that
     # contains spaces is split with +Shellwords+ (not a full shell); exotic quoting differs from +sh -c+.
     module CiShardRunCommand
+      include CiShardHooks
+
       private
 
       # @return [Array(Array<String>, Integer)] [paths, 0] on success, or [nil, exit_code] on failure
@@ -45,24 +49,6 @@ module Polyrun
         return [nil, nil] if n <= 1 || shard_processes <= 1
 
         [resolve_shard_index(pc), n]
-      end
-
-      def ci_shard_run_fanout!(ctx)
-        pids = run_shards_spawn_workers(ctx)
-        return 1 if pids.empty?
-
-        run_shards_warn_interleaved(ctx[:parallel], pids.size)
-        shard_results = run_shards_wait_all_children(pids)
-        failed = shard_results.reject { |r| r[:success] }.map { |r| r[:shard] }
-
-        if failed.any?
-          Polyrun::Log.warn "polyrun ci-shard: finished #{pids.size} worker(s) (some failed)"
-          run_shards_log_failed_reruns(failed, shard_results, ctx[:plan], ctx[:parallel], ctx[:workers], ctx[:cmd])
-          return 1
-        end
-
-        Polyrun::Log.warn "polyrun ci-shard: finished #{pids.size} worker(s) (exit 0)"
-        0
       end
 
       def ci_shard_fanout_context(cfg:, pc:, paths:, shard_processes:, cmd:, config_path:)
@@ -113,8 +99,7 @@ module Polyrun
         return code if code != 0
 
         if shard_processes <= 1
-          exec(*cmd, *paths)
-          return 0
+          return ci_shard_run_single!(cmd, paths, cfg, pc, config_path)
         end
 
         ctx = ci_shard_fanout_context(
@@ -145,8 +130,7 @@ module Polyrun
         cmd = ["bundle", "exec", "rspec", *rspec_argv]
 
         if shard_processes <= 1
-          exec(*cmd, *paths)
-          return 0
+          return ci_shard_run_single!(cmd, paths, cfg, pc, config_path)
         end
 
         ctx = ci_shard_fanout_context(

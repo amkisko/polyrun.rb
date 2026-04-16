@@ -38,6 +38,7 @@ module Polyrun
             init                 write a starter polyrun.yml or POLYRUN.md from built-in templates (see docs/SETUP_PROFILE.md)
             queue                file-backed batch queue: init (optional --shard/--total etc. as plan, then claim/ack); M workers share one dir; no duplicate paths across claims
             quick                run Polyrun::Quick (describe/it, before/after, let, expect…to, assert_*; optional capybara!)
+            hook run <phase>     run one shell hook from polyrun.yml hooks: (e.g. before_suite); optional --shard/--total
             report-coverage      write all coverage formats from one JSON file
             report-junit         RSpec JSON or Polyrun testcase JSON → JUnit XML (CI)
             report-timing        print slow-file summary from merged timing JSON

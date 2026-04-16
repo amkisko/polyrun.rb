@@ -73,6 +73,7 @@ RSpec.describe Polyrun::CLI do
     expect(out).to include("build-paths")
     expect(out).to include("ci-shard-run")
     expect(out).to include("ci-shard-rspec")
+    expect(out).to include("hook run")
     expect(out).to include("POLYRUN_SKIP_BUILD_SPEC_PATHS")
     expect(out).to include("POLYRUN_SKIP_PATHS_BUILD")
     expect(out).to include("POLYRUN_MERGE_SLOW_WARN_SECONDS")

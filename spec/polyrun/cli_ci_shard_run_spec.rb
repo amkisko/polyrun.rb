@@ -98,6 +98,116 @@ RSpec.describe "Polyrun::CLI ci-shard-run" do
     end
   end
 
+  it "skips suite hooks when shard_total > 1 (matrix); shard hooks still run" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        list = File.join(dir, "spec_paths.txt")
+        File.write(list, "a.rb\n")
+        File.write(File.join(dir, "a.rb"), "")
+        cfg = File.join(dir, "polyrun.yml")
+        File.write(cfg, <<~YAML)
+          hooks:
+            before_suite: 'printf suite > suite_before.txt'
+            after_suite: 'printf suite > suite_after.txt'
+            before_shard: 'printf shard > shard_before.txt'
+            after_shard: 'printf shard > shard_after.txt'
+          partition:
+            paths_file: #{list}
+            shard_total: 2
+            shard_index: 0
+        YAML
+        stub = File.join(dir, "_child.rb")
+        File.write(stub, "exit 0\n")
+        _, status = polyrun(
+          "-c", cfg,
+          "ci-shard-run", "--shard", "0", "--total", "2", "--",
+          RbConfig.ruby, stub
+        )
+        expect(status.success?).to be true
+        expect(File.file?(File.join(dir, "suite_before.txt"))).to be false
+        expect(File.file?(File.join(dir, "suite_after.txt"))).to be false
+        expect(File.read(File.join(dir, "shard_before.txt"))).to eq("shard")
+        expect(File.read(File.join(dir, "shard_after.txt"))).to eq("shard")
+      end
+    end
+  end
+
+  it "runs suite hooks for ci-shard-run when shard_total is 1" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        list = File.join(dir, "spec_paths.txt")
+        File.write(list, "a.rb\n")
+        File.write(File.join(dir, "a.rb"), "")
+        cfg = File.join(dir, "polyrun.yml")
+        File.write(cfg, <<~YAML)
+          hooks:
+            before_suite: 'printf suite > suite_before.txt'
+            after_suite: 'printf suite > suite_after.txt'
+            before_shard: 'printf shard > shard_before.txt'
+            after_shard: 'printf shard > shard_after.txt'
+          partition:
+            paths_file: #{list}
+            shard_total: 1
+            shard_index: 0
+        YAML
+        stub = File.join(dir, "_child.rb")
+        File.write(stub, "exit 0\n")
+        _, status = polyrun(
+          "-c", cfg,
+          "ci-shard-run", "--",
+          RbConfig.ruby, stub
+        )
+        expect(status.success?).to be true
+        expect(File.read(File.join(dir, "suite_before.txt"))).to eq("suite")
+        expect(File.read(File.join(dir, "suite_after.txt"))).to eq("suite")
+        expect(File.read(File.join(dir, "shard_before.txt"))).to eq("shard")
+        expect(File.read(File.join(dir, "shard_after.txt"))).to eq("shard")
+      end
+    end
+  end
+
+  it "runs suite hooks on each matrix job when POLYRUN_HOOKS_SUITE_PER_MATRIX_JOB=1" do
+    old = ENV["POLYRUN_HOOKS_SUITE_PER_MATRIX_JOB"]
+    ENV["POLYRUN_HOOKS_SUITE_PER_MATRIX_JOB"] = "1"
+    begin
+      Dir.mktmpdir do |dir|
+        with_chdir(dir) do
+          list = File.join(dir, "spec_paths.txt")
+          File.write(list, "a.rb\n")
+          File.write(File.join(dir, "a.rb"), "")
+          cfg = File.join(dir, "polyrun.yml")
+          File.write(cfg, <<~YAML)
+            hooks:
+              before_suite: 'printf suite > suite_before.txt'
+              after_suite: 'printf suite > suite_after.txt'
+              before_shard: 'printf shard > shard_before.txt'
+              after_shard: 'printf shard > shard_after.txt'
+            partition:
+              paths_file: #{list}
+              shard_total: 2
+              shard_index: 0
+          YAML
+          stub = File.join(dir, "_child.rb")
+          File.write(stub, "exit 0\n")
+          _, status = polyrun(
+            "-c", cfg,
+            "ci-shard-run", "--shard", "0", "--total", "2", "--",
+            RbConfig.ruby, stub
+          )
+          expect(status.success?).to be true
+          expect(File.read(File.join(dir, "suite_before.txt"))).to eq("suite")
+          expect(File.read(File.join(dir, "suite_after.txt"))).to eq("suite")
+        end
+      end
+    ensure
+      if old.nil?
+        ENV.delete("POLYRUN_HOOKS_SUITE_PER_MATRIX_JOB")
+      else
+        ENV["POLYRUN_HOOKS_SUITE_PER_MATRIX_JOB"] = old
+      end
+    end
+  end
+
   it "fans out local processes when --shard-processes > 1" do
     Dir.mktmpdir do |dir|
       with_chdir(dir) do

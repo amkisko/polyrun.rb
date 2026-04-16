@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 1.4.0 (2026-04-16)
+
+- Add `hooks:` in `polyrun.yml` — shell commands for `before_suite` / `after_suite`, `before_shard` / `after_shard`, `before_worker` / `after_worker` (RSpec-style YAML keys `before(:suite)`, `before(:all)`, `before(:each)` accepted). Wire hooks into `run-shards`, `parallel-rspec`, and `ci-shard-*`.
+- Add `hooks.ruby` / `hooks.ruby_file` and `Polyrun::Hooks::Dsl` (`before(:suite)` … `after(:each)` blocks); worker Ruby hooks run in the child via `ruby -e` + `POLYRUN_HOOKS_RUBY_FILE`.
+- Add `polyrun hook run <phase>` (`--shard` / `--total` optional). Set `POLYRUN_HOOKS_DISABLE=1` to skip hooks during orchestration only; `hook run` still executes.
+- On `ci-shard-run` / `ci-shard-rspec`, skip automatic `before_suite` / `after_suite` when `POLYRUN_SHARD_TOTAL` > 1 (matrix); run suite hooks once via `polyrun hook run` or set `POLYRUN_HOOKS_SUITE_PER_MATRIX_JOB=1` to run them on every matrix job.
+- Document hook phases, matrix vs suite, and `after_shard` ordering in `README.md`; list `Polyrun::Hooks` and `Polyrun::Hooks::Dsl` in the library section.
+
 ## 1.3.0 (2026-04-15)
 
 - Add safe parsing for `ci-shard-run` / `ci-shard-rspec` `--shard-processes` and `--workers` (warn + exit 2 on missing or non-integer values).
