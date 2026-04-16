@@ -2,12 +2,14 @@ require "shellwords"
 require "rbconfig"
 
 require_relative "run_shards_planning"
+require_relative "run_shards_parallel_children"
 
 module Polyrun
   class CLI
     # Partition + spawn workers for `polyrun run-shards` (keeps {RunShardsCommand} file small).
     module RunShardsRun
       include RunShardsPlanning
+      include RunShardsParallelChildren
 
       private
 
@@ -18,86 +20,74 @@ module Polyrun
         run_shards_workers_and_merge(ctx)
       end
 
+      # rubocop:disable Metrics/AbcSize -- orchestration: hooks, merge, worker failures
       def run_shards_workers_and_merge(ctx)
-        pids = run_shards_spawn_workers(ctx)
-        return 1 if pids.empty?
+        hook_cfg = Polyrun::Hooks.from_config(ctx[:cfg])
+        suite_started = false
+        exit_code = 1
 
-        run_shards_warn_interleaved(ctx[:parallel], pids.size)
+        begin
+          env_suite = ENV.to_h.merge(
+            "POLYRUN_HOOK_ORCHESTRATOR" => "1",
+            "POLYRUN_SHARD_TOTAL" => ctx[:workers].to_s
+          )
+          code = hook_cfg.run_phase_if_enabled(:before_suite, env_suite)
+          return code if code != 0
 
-        shard_results = run_shards_wait_all_children(pids)
-        failed = shard_results.reject { |r| r[:success] }.map { |r| r[:shard] }
+          suite_started = true
 
-        Polyrun::Debug.log(format(
-          "run-shards: workers wall time since start: %.3fs",
-          Process.clock_gettime(Process::CLOCK_MONOTONIC) - ctx[:run_t0]
-        ))
-
-        if ctx[:parallel]
-          Polyrun::Log.warn "polyrun run-shards: finished #{pids.size} worker(s)" + (failed.any? ? " (some failed)" : " (exit 0)")
-        end
-
-        if failed.any?
-          run_shards_log_failed_reruns(failed, shard_results, ctx[:plan], ctx[:parallel], ctx[:workers], ctx[:cmd])
-          return 1
-        end
-
-        run_shards_merge_or_hint_coverage(ctx)
-      end
-
-      def run_shards_spawn_workers(ctx)
-        workers = ctx[:workers]
-        cmd = ctx[:cmd]
-        cfg = ctx[:cfg]
-        plan = ctx[:plan]
-        parallel = ctx[:parallel]
-        mx = ctx[:matrix_shard_index]
-        mt = ctx[:matrix_shard_total]
-
-        pids = []
-        workers.times do |shard|
-          paths = plan.shard(shard)
-          if paths.empty?
-            Polyrun::Log.warn "polyrun run-shards: shard #{shard} skipped (no paths)" if @verbose || parallel
-            next
+          pids, spawn_err = run_shards_spawn_workers(ctx, hook_cfg)
+          if spawn_err
+            exit_code = spawn_err
+            return spawn_err
+          end
+          if pids.empty?
+            exit_code = 1
+            return 1
           end
 
-          child_env = shard_child_env(cfg: cfg, workers: workers, shard: shard, matrix_index: mx, matrix_total: mt)
+          run_shards_warn_interleaved(ctx[:parallel], pids.size)
 
-          Polyrun::Log.warn "polyrun run-shards: shard #{shard} → #{paths.size} file(s)" if @verbose
-          pid = Process.spawn(child_env, *cmd, *paths)
-          pids << {pid: pid, shard: shard}
-          Polyrun::Debug.log("[parent pid=#{$$}] run-shards: Process.spawn shard=#{shard} child_pid=#{pid} spec_files=#{paths.size}")
-          Polyrun::Log.warn "polyrun run-shards: started shard #{shard} pid=#{pid} (#{paths.size} file(s))" if parallel
+          shard_results, wait_hook_err = run_shards_wait_all_children(pids, hook_cfg, ctx)
+          failed = shard_results.reject { |r| r[:success] }.map { |r| r[:shard] }
+
+          Polyrun::Debug.log(format(
+            "run-shards: workers wall time since start: %.3fs",
+            Process.clock_gettime(Process::CLOCK_MONOTONIC) - ctx[:run_t0]
+          ))
+
+          if ctx[:parallel]
+            Polyrun::Log.warn "polyrun run-shards: finished #{pids.size} worker(s)" + (failed.any? ? " (some failed)" : " (exit 0)")
+          end
+
+          if failed.any?
+            run_shards_log_failed_reruns(failed, shard_results, ctx[:plan], ctx[:parallel], ctx[:workers], ctx[:cmd])
+            exit_code = 1
+            exit_code = 1 if wait_hook_err != 0
+            return exit_code
+          end
+
+          exit_code = run_shards_merge_or_hint_coverage(ctx)
+          exit_code = 1 if wait_hook_err != 0 && exit_code == 0
+          exit_code
+        ensure
+          if suite_started
+            env_after = ENV.to_h.merge(
+              "POLYRUN_HOOK_ORCHESTRATOR" => "1",
+              "POLYRUN_SHARD_TOTAL" => ctx[:workers].to_s,
+              "POLYRUN_SUITE_EXIT_STATUS" => exit_code.to_s
+            )
+            hook_cfg.run_phase_if_enabled(:after_suite, env_after)
+          end
         end
-        pids
       end
+      # rubocop:enable Metrics/AbcSize
 
       def run_shards_warn_interleaved(parallel, pid_count)
         return unless parallel && pid_count > 1
 
         Polyrun::Log.warn "polyrun run-shards: #{pid_count} children running; RSpec output below may be interleaved."
         Polyrun::Log.warn "polyrun run-shards: each worker prints its own summary line; the last \"N examples\" line is not a total across shards."
-      end
-
-      def run_shards_wait_all_children(pids)
-        shard_results = []
-        Polyrun::Debug.time("Process.wait (#{pids.size} worker process(es))") do
-          pids.each do |h|
-            Process.wait(h[:pid])
-            exitstatus = $?.exitstatus
-            ok = $?.success?
-            Polyrun::Debug.log("[parent pid=#{$$}] run-shards: Process.wait child_pid=#{h[:pid]} shard=#{h[:shard]} exit=#{exitstatus} success=#{ok}")
-            shard_results << {shard: h[:shard], exitstatus: exitstatus, success: ok}
-          end
-        rescue Interrupt
-          # Do not trap SIGINT: Process.wait raises Interrupt; a trap races and prints Interrupt + SystemExit traces.
-          run_shards_shutdown_on_signal!(pids, 130)
-        rescue SignalException => e
-          raise unless e.signm == "SIGTERM"
-
-          run_shards_shutdown_on_signal!(pids, 143)
-        end
-        shard_results
       end
 
       # Best-effort worker teardown then exit. Does not return.

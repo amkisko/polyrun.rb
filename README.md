@@ -25,6 +25,61 @@ Capybara and Playwright stay in your application; Polyrun does not replace brows
 4. Run workers with `bin/polyrun run-shards --workers N -- bundle exec rspec`: N separate OS processes, each running RSpec with its own file list from `partition.paths_file`, or `spec/spec_paths.txt`, or else `spec/**/*_spec.rb`. Stderr shows where paths came from; after a successful multi-worker run it reminds you to run merge-coverage unless you use `parallel-rspec` or `run-shards --merge-coverage`.
 5. Merge artifacts with `bin/polyrun merge-coverage` on `coverage/polyrun-fragment-*.json` (one fragment per `POLYRUN_SHARD_INDEX` when coverage is on), or use `bin/polyrun parallel-rspec` or `run-shards --merge-coverage` so Polyrun runs merge for you. Optional: `merge-timing`, `report-timing`, `report-junit`.
 
+### Hooks (`hooks:` in `polyrun.yml`)
+
+Optional **shell** commands and/or a **Ruby DSL** file for instrumentation (telemetry, Slack, logging, manual debugging). Names mirror RSpec’s API (`before(:suite)`, `before(:all)`, `before(:each)`), but **Polyrun hooks are about process orchestration**, not RSpec example groups. Below, **suite / shard / worker** mean Polyrun’s model unless stated otherwise.
+
+#### What “suite”, “shard”, and “worker” mean
+
+| Term | Process | Meaning |
+|------|---------|---------|
+| **Suite** | **Parent** only | One **orchestration run** on a single machine: a single `polyrun run-shards` / `parallel-rspec` / `ci-shard-run` (with **one** global shard, see below). `before_suite` runs once before any worker is started; `after_suite` runs once after all workers have exited and (when used) merge-coverage has finished. This is **not** the same as “the whole RSpec suite in one process”—with `--workers N`, RSpec runs in **N separate processes**, each with its own examples. |
+| **Shard** | **Parent** only | One **partition** of the path list for this run, identified by `POLYRUN_SHARD_INDEX` / `POLYRUN_SHARD_TOTAL` **for that parallel layout** (0 … N−1 for `run-shards` with N workers). `before_shard` runs in the parent **immediately before** `Process.spawn` for that index; `after_shard` runs **after** that child has exited. The parent **waits workers in shard index order** (0, then 1, …), so `after_shard` runs in that order—not in “who finished first” order if workers overlap in time. Empty partitions are skipped (no spawn, no hooks). |
+| **Worker** | **Child** OS process | The process that runs your command after `--` (e.g. `bundle exec rspec …`). `before_worker` / `after_worker` run **in that child**, directly before and after the test command. **Individual examples run only after `before_worker` completes** (inside the same process as RSpec/Minitest). |
+
+**CI matrix** (`POLYRUN_SHARD_TOTAL` > 1, one job per index): each job is a **global shard**, not a full “suite” in the pipeline sense. **`ci-shard-run` / `ci-shard-rspec` with one process per job do not run `before_suite` / `after_suite` automatically**—otherwise they would run once per matrix cell. Put pipeline-wide setup/teardown in a **separate CI step** (e.g. `bin/polyrun hook run before_suite` and `hook run after_suite` once), or set `POLYRUN_HOOKS_SUITE_PER_MATRIX_JOB=1` to restore the old behaviour (suite hooks on every matrix job). **`before_shard` / `after_shard` / worker hooks still run** per job, with `POLYRUN_SHARD_INDEX` / `POLYRUN_SHARD_TOTAL` set from the matrix. A **single** non-matrix `ci-shard-run` (`POLYRUN_SHARD_TOTAL` is 1) still runs suite hooks like `run-shards --workers 1`. Fan-out on one host (`--shard-processes` > 1) still runs **`before_suite` / `after_suite` once** for that job, around the local workers.
+
+#### Lifecycle (typical `run-shards` with multiple workers)
+
+```text
+[Parent]  before_suite
+[Parent]  for each shard index i that has paths:
+            before_shard(i) → spawn worker i
+[Child i] before_worker →  test runner starts → examples run → runner exits
+[Parent]  after_shard(i)   (parent waits children in shard index order 0…N−1, not global finish order)
+[Parent]  merge-coverage (if requested)
+[Parent]  after_suite
+```
+
+`after_worker` runs in the child after the test command exits, before the parent’s `after_shard`.
+
+#### Order and priority within one phase
+
+1. **Ruby DSL, then shell (YAML)** — For the same phase (e.g. `before_suite`), all **Ruby** blocks from `hooks.ruby` run first, then every **shell** command from YAML for that phase.
+2. **Multiple Ruby blocks** — In one DSL file, registrations run in **source order** (e.g. two `before(:suite)` blocks run top to bottom).
+3. **Multiple shell commands** — Use a **YAML list**; entries run in list order:
+   ```yaml
+   before_suite:
+     - echo first
+     - echo second
+   ```
+4. **Duplicate YAML keys** — Do **not** repeat the same key (e.g. two `before_suite:` lines). Parsers may keep only one value; behaviour is undefined. Prefer a **list** under a single key.
+5. **Failure** — If any step in a phase fails (non-zero exit from shell; uncaught error in Ruby), orchestration stops or marks failure per existing `run-shards` rules; `after_worker` shell steps use `|| true` so a failing teardown does not mask the test exit code (Ruby `after_worker` is wrapped similarly in the worker script).
+
+Environment includes `POLYRUN_HOOK_PHASE`, `POLYRUN_HOOK=1`, `POLYRUN_HOOK_ORCHESTRATOR` (`1` in parent, `0` in workers), `POLYRUN_SHARD_*`, and `POLYRUN_SUITE_EXIT_STATUS` on `after_suite`. Worker children get `POLYRUN_HOOKS_RUBY_FILE` when using the Ruby DSL. Set `POLYRUN_HOOKS_DISABLE=1` to skip hooks during `run-shards` / `parallel-rspec` / `ci-shard-*` (orchestration only); `polyrun hook run` still executes hooks. **`POLYRUN_HOOKS_SUITE_PER_MATRIX_JOB=1`** — when set, run `before_suite` / `after_suite` on every CI matrix job (not recommended for expensive global setup).
+
+**YAML keys (shell) and RSpec-style names in YAML:**
+
+| YAML key | DSL in `hooks.ruby` | When |
+|----------|----------------------|------|
+| `before_suite` / `after_suite` | `before(:suite)` / `after(:suite)` | Parent: once per orchestration on one host; **skipped** for `ci-shard-run` when `POLYRUN_SHARD_TOTAL` > 1 unless `POLYRUN_HOOKS_SUITE_PER_MATRIX_JOB=1` (see matrix paragraph above) |
+| `before_shard` / `after_shard` | `before(:all)` / `after(:all)` | Parent: per shard index (spawn / after exit) |
+| `before_worker` / `after_worker` | `before(:each)` / `after(:each)` | Child: around the test command |
+
+**Ruby DSL (`hooks.ruby` or `hooks.ruby_file`):** path to a `.rb` file (relative to the project root). Blocks receive a `Hash` with **string keys** (same env as shell hooks). Worker-phase Ruby hooks run in the child via `ruby -e 'require "polyrun"; …'`.
+
+Run one phase by hand: `bin/polyrun hook run before_suite` (optional `--shard N --total M`). YAML may use quoted keys such as `"before(:suite)"` instead of `before_suite`.
+
 Quick CLI samples:
 
 If the current directory already has `polyrun.yml` or `config/polyrun.yml`, you can omit `-c` (same as `Config.load` default discovery). Pass `-c PATH` or set `POLYRUN_CONFIG` when the file lives elsewhere or uses another name.
@@ -41,6 +96,7 @@ bin/polyrun env --shard 0 --total 4   # print DATABASE_URL exports from polyrun.
 bin/polyrun init --list
 bin/polyrun init --profile gem -o polyrun.yml   # starter YAML; see docs/SETUP_PROFILE.md
 bin/polyrun quick   # Polyrun::Quick examples under spec/polyrun_quick/ or test/polyrun_quick/
+bin/polyrun hook run before_suite   # run hooks.before_suite from polyrun.yml (manual / CI)
 ```
 
 ### Matrix shards and timing
@@ -87,6 +143,8 @@ That single require loads the CLI and core library **without** loading RSpec or 
 | `Polyrun::Prepare::Assets` | Digest trees, marker file, `assets:precompile`. |
 | `Polyrun::Database::Shard` | Shard env map, `%{shard}` DB names, URL path suffix for `postgres://`, `mysql2://`, `mongodb://`, etc. |
 | `Polyrun::Database::UrlBuilder` | URLs from `polyrun.yml` `databases:` — nested blocks or `adapter:` for common Rails stacks (`postgresql`, `mysql`/`mysql2`, `trilogy`, `sqlserver`/`mssql`, `sqlite3`/`sqlite`, `mongodb`/`mongo`). |
+| `Polyrun::Hooks` | Load from `Config#hooks`; `run_phase` / `run_phase_if_enabled`; `build_worker_shell_script` wraps the worker command. |
+| `Polyrun::Hooks::Dsl` | Ruby hook file (`hooks.ruby`); `before(:suite)` / `after(:each)` etc. in `config/polyrun_hooks.rb` (see README). |
 
 ## Development
 

@@ -16,6 +16,7 @@ require_relative "cli/ci_shard_run_parse"
 require_relative "cli/ci_shard_run_command"
 require_relative "cli/config_command"
 require_relative "cli/default_run"
+require_relative "cli/hooks_command"
 require_relative "cli/help"
 
 module Polyrun
@@ -29,7 +30,7 @@ module Polyrun
     DISPATCH_SUBCOMMAND_NAMES = %w[
       plan prepare merge-coverage report-coverage report-junit report-timing
       env config merge-timing db:setup-template db:setup-shard db:clone-shards
-      run-shards parallel-rspec start build-paths init queue quick
+      run-shards parallel-rspec start build-paths init queue quick hook
     ].freeze
 
     # First argv token that is a normal subcommand (not a path); if argv[0] is not here but looks like paths, run implicit parallel.
@@ -53,6 +54,7 @@ module Polyrun
     include CiShardRunCommand
     include ConfigCommand
     include DefaultRun
+    include HooksCommand
     include Help
 
     def self.run(argv = ARGV)
@@ -177,6 +179,8 @@ module Polyrun
         cmd_queue(argv)
       when "quick"
         cmd_quick(argv)
+      when "hook"
+        cmd_hook(argv, config_path)
       else
         Polyrun::Log.warn "unknown command: #{command}"
         2
