@@ -2,12 +2,14 @@ require "optparse"
 require "rbconfig"
 
 require_relative "start_bootstrap"
+require_relative "failure_commands"
 require_relative "run_shards_run"
 
 module Polyrun
   class CLI
     module RunShardsCommand
       include StartBootstrap
+      include FailureCommands
       include RunShardsRun
 
       private
@@ -114,10 +116,11 @@ module Polyrun
       # ENV for a worker process: POLYRUN_SHARD_* plus per-shard database URLs from polyrun.yml or DATABASE_URL.
       # When +matrix_total+ > 1 with multiple local workers, sets +POLYRUN_SHARD_MATRIX_INDEX+ / +POLYRUN_SHARD_MATRIX_TOTAL+
       # so {Coverage::Collector} can name fragments uniquely across CI matrix jobs (NxM sharding).
-      def shard_child_env(cfg:, workers:, shard:, matrix_index: nil, matrix_total: nil)
+      def shard_child_env(cfg:, workers:, shard:, matrix_index: nil, matrix_total: nil, failure_fragments: false)
         child_env = ENV.to_h.merge(
           Polyrun::Database::Shard.env_map(shard_index: shard, shard_total: workers)
         )
+        child_env["POLYRUN_FAILURE_FRAGMENTS"] = "1" if failure_fragments
         mt = matrix_total.nil? ? 0 : Integer(matrix_total)
         if mt > 1
           if matrix_index.nil?

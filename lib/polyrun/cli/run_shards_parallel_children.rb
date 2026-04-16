@@ -34,7 +34,14 @@ module Polyrun
             return [pids, code]
           end
 
-          child_env = shard_child_env(cfg: cfg, workers: workers, shard: shard, matrix_index: mx, matrix_total: mt)
+          child_env = shard_child_env(
+            cfg: cfg,
+            workers: workers,
+            shard: shard,
+            matrix_index: mx,
+            matrix_total: mt,
+            failure_fragments: ctx[:merge_failures]
+          )
           child_env = child_env.merge("POLYRUN_HOOK_ORCHESTRATOR" => "0")
           child_env = hook_cfg.merge_worker_ruby_env(child_env)
 

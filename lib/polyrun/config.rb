@@ -66,6 +66,11 @@ module Polyrun
     def hooks
       raw["hooks"] || raw[:hooks] || {}
     end
+
+    # Optional +reporting:+ block (merge-failures output paths, etc.).
+    def reporting
+      raw["reporting"] || raw[:reporting] || {}
+    end
   end
 end
 

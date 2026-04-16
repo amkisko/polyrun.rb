@@ -24,7 +24,10 @@ module Polyrun
           timing_granularity: nil,
           merge_coverage: false,
           merge_output: nil,
-          merge_format: nil
+          merge_format: nil,
+          merge_failures: false,
+          merge_failures_output: nil,
+          merge_failures_format: nil
         }
       end
 
@@ -34,8 +37,9 @@ module Polyrun
         end.parse!(head)
       end
 
+      # rubocop:disable Metrics/AbcSize -- one argv block for run-shards
       def run_shards_plan_options_register!(opts, st)
-        opts.banner = "usage: polyrun run-shards [--workers N] [--strategy NAME] [--paths-file P] [--timing P] [--timing-granularity VAL] [--constraints P] [--seed S] [--merge-coverage] [--merge-output P] [--merge-format LIST] [--] <command> [args...]"
+        opts.banner = "usage: polyrun run-shards [--workers N] [--strategy NAME] [--paths-file P] [--timing P] [--timing-granularity VAL] [--constraints P] [--seed S] [--merge-coverage] [--merge-output P] [--merge-format LIST] [--merge-failures] [--merge-failures-output P] [--merge-failures-format jsonl|json] [--] <command> [args...]"
         opts.on("--workers N", Integer) { |v| st[:workers] = v }
         opts.on("--strategy NAME", String) { |v| st[:strategy] = v }
         opts.on("--seed VAL") { |v| st[:seed] = v }
@@ -46,7 +50,11 @@ module Polyrun
         opts.on("--merge-coverage", "After success, merge coverage/polyrun-fragment-*.json (Polyrun coverage must be enabled)") { st[:merge_coverage] = true }
         opts.on("--merge-output PATH", String) { |v| st[:merge_output] = v }
         opts.on("--merge-format LIST", String) { |v| st[:merge_format] = v }
+        opts.on("--merge-failures", "After all workers exit, merge tmp/polyrun_failures/polyrun-failure-fragment-*.jsonl (use Polyrun::RSpec.install_failure_fragments!)") { st[:merge_failures] = true }
+        opts.on("--merge-failures-output PATH", String) { |v| st[:merge_failures_output] = v }
+        opts.on("--merge-failures-format VAL", "jsonl (default) or json") { |v| st[:merge_failures_format] = v }
       end
+      # rubocop:enable Metrics/AbcSize
     end
   end
 end

@@ -31,7 +31,7 @@ module Polyrun
         costs, strategy, err = run_shards_resolve_costs(o[:timing_path], o[:strategy], o[:timing_granularity])
         return [err, nil] if err
 
-        run_shards_plan_ready_log(o, strategy, cmd, paths_source, items.size)
+        run_shards_plan_ready_log(o, cfg, strategy, cmd, paths_source, items.size)
 
         constraints = load_partition_constraints(pc, o[:constraints_path])
         plan = run_shards_make_plan(items, o[:workers], strategy, o[:seed], costs, constraints, o[:timing_granularity])
@@ -59,17 +59,49 @@ module Polyrun
         [run_t0, head, cmd, cfg, cfg.partition]
       end
 
-      def run_shards_plan_ready_log(o, strategy, cmd, paths_source, item_count)
+      def run_shards_plan_ready_log(o, cfg, strategy, cmd, paths_source, item_count)
         Polyrun::Debug.log_kv(
           run_shards: "ready to partition",
           workers: o[:workers],
           strategy: strategy,
           merge_coverage: o[:merge_coverage],
+          merge_failures: run_shards_merge_failures_flag(o, cfg),
           command: cmd,
           timing_path: o[:timing_path],
           paths_source: paths_source,
           item_count: item_count
         )
+      end
+
+      def run_shards_merge_failures_flag(o, cfg)
+        return true if o[:merge_failures]
+        return true if %w[1 true yes].include?(ENV["POLYRUN_MERGE_FAILURES"].to_s.downcase)
+
+        rep = cfg.reporting
+        v = rep["merge_failures"] || rep[:merge_failures]
+        v == true || %w[1 true yes].include?(v.to_s.downcase)
+      end
+
+      def run_shards_merge_failures_output_opt(o, cfg)
+        x = o[:merge_failures_output]
+        return x if x && !x.to_s.strip.empty?
+
+        x = ENV["POLYRUN_MERGED_FAILURES_OUT"]
+        return x if x && !x.to_s.strip.empty?
+
+        rep = cfg.reporting
+        rep["merge_failures_output"] || rep[:merge_failures_output]
+      end
+
+      def run_shards_merge_failures_format_opt(o, cfg)
+        x = o[:merge_failures_format]
+        return x if x && !x.to_s.strip.empty?
+
+        x = ENV["POLYRUN_MERGED_FAILURES_FORMAT"]
+        return x if x && !x.to_s.strip.empty?
+
+        rep = cfg.reporting
+        rep["merge_failures_format"] || rep[:merge_failures_format]
       end
 
       def run_shards_plan_context_hash(o, cmd, cfg, plan, run_t0, parallel, config_path)
@@ -83,6 +115,9 @@ module Polyrun
           merge_coverage: o[:merge_coverage],
           merge_output: o[:merge_output],
           merge_format: o[:merge_format],
+          merge_failures: run_shards_merge_failures_flag(o, cfg),
+          merge_failures_output: run_shards_merge_failures_output_opt(o, cfg),
+          merge_failures_format: run_shards_merge_failures_format_opt(o, cfg),
           config_path: config_path
         }
       end
