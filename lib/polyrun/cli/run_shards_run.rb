@@ -25,6 +25,8 @@ module Polyrun
         hook_cfg = Polyrun::Hooks.from_config(ctx[:cfg])
         suite_started = false
         exit_code = 1
+        merged_failures_path = nil
+        merge_failures_errored = false
 
         begin
           env_suite = ENV.to_h.merge(
@@ -60,8 +62,20 @@ module Polyrun
             Polyrun::Log.warn "polyrun run-shards: finished #{pids.size} worker(s)" + (failed.any? ? " (some failed)" : " (exit 0)")
           end
 
+          if ctx[:merge_failures]
+            begin
+              merged_failures_path = merge_failures_after_shards(ctx)
+            rescue Polyrun::Error => e
+              Polyrun::Log.warn e.message.to_s
+              merge_failures_errored = true
+            end
+          end
+
           if failed.any?
-            run_shards_log_failed_reruns(failed, shard_results, ctx[:plan], ctx[:parallel], ctx[:workers], ctx[:cmd])
+            run_shards_log_failed_reruns(
+              failed, shard_results, ctx[:plan], ctx[:parallel], ctx[:workers], ctx[:cmd],
+              merge_failures: ctx[:merge_failures]
+            )
             exit_code = 1
             exit_code = 1 if wait_hook_err != 0
             return exit_code
@@ -69,13 +83,15 @@ module Polyrun
 
           exit_code = run_shards_merge_or_hint_coverage(ctx)
           exit_code = 1 if wait_hook_err != 0 && exit_code == 0
+          exit_code = 1 if merge_failures_errored && exit_code == 0
           exit_code
         ensure
           if suite_started
             env_after = ENV.to_h.merge(
               "POLYRUN_HOOK_ORCHESTRATOR" => "1",
               "POLYRUN_SHARD_TOTAL" => ctx[:workers].to_s,
-              "POLYRUN_SUITE_EXIT_STATUS" => exit_code.to_s
+              "POLYRUN_SUITE_EXIT_STATUS" => exit_code.to_s,
+              "POLYRUN_MERGED_FAILURES_PATH" => merged_failures_path.to_s
             )
             hook_cfg.run_phase_if_enabled(:after_suite, env_after)
           end
@@ -139,7 +155,7 @@ module Polyrun
         0
       end
 
-      def run_shards_log_failed_reruns(failed, shard_results, plan, parallel, workers, cmd)
+      def run_shards_log_failed_reruns(failed, shard_results, plan, parallel, workers, cmd, merge_failures: false)
         exit_by_shard = shard_results.each_with_object({}) { |r, h| h[r[:shard]] = r[:exitstatus] }
         failed_detail = failed.sort.map { |s| "#{s} (exit #{exit_by_shard[s]})" }.join(", ")
         Polyrun::Log.warn "polyrun run-shards: failed shard(s): #{failed_detail}"
@@ -153,6 +169,9 @@ module Polyrun
           rerun = "export POLYRUN_SHARD_INDEX=#{s} POLYRUN_SHARD_TOTAL=#{workers}; "
           rerun << Shellwords.join(cmd + paths)
           Polyrun::Log.warn "polyrun run-shards: shard #{s} re-run (same spec list, no interleave): #{rerun}"
+        end
+        unless merge_failures
+          Polyrun::Log.warn "polyrun run-shards: one merged failure report — use run-shards --merge-failures with Polyrun::RSpec.install_failure_fragments!; POLYRUN_MERGED_FAILURES_PATH is set on after_suite when merge runs."
         end
       end
     end

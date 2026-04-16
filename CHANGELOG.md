@@ -2,6 +2,11 @@
 
 ## 1.4.0 (2026-04-16)
 
+- Add `polyrun merge-failures` and `run-shards --merge-failures` / `--merge-failures-output` / `--merge-failures-format`; merge per-worker JSONL under `tmp/polyrun_failures/polyrun-failure-fragment-*.jsonl` (or RSpec JSON via `-i`). Run merge after all workers exit, including when a shard failed (`--merge-coverage` still runs only after all shards succeed).
+- Add `Polyrun::Reporting::FailureMerge`, `Polyrun::RSpec.install_failure_fragments!`, and `Polyrun::Reporting::RspecFailureFragmentFormatter`; parent sets `POLYRUN_FAILURE_FRAGMENTS=1` on workers when merge-failures is enabled.
+- Add optional `reporting:` in `polyrun.yml` and `Polyrun::Config#reporting` for merge-failures toggles and paths; honor `POLYRUN_MERGE_FAILURES`, `POLYRUN_MERGED_FAILURES_OUT`, `POLYRUN_MERGED_FAILURES_FORMAT`; set `POLYRUN_MERGED_FAILURES_PATH` for `after_suite` when merge wrote a file.
+- On bad JSONL or non-RSpec JSON, raise `Polyrun::Error` with path and line where applicable; `merge-failures` exits 1 without a full stack trace; a failed merge after successful workers forces `run-shards` exit 1.
+- Fix `run_shards_plan_ready_log` to take `cfg` so debug logging for merge-failures does not raise `NameError`.
 - Add `hooks:` in `polyrun.yml` — shell commands for `before_suite` / `after_suite`, `before_shard` / `after_shard`, `before_worker` / `after_worker` (RSpec-style YAML keys `before(:suite)`, `before(:all)`, `before(:each)` accepted). Wire hooks into `run-shards`, `parallel-rspec`, and `ci-shard-*`.
 - Add `hooks.ruby` / `hooks.ruby_file` and `Polyrun::Hooks::Dsl` (`before(:suite)` … `after(:each)` blocks); worker Ruby hooks run in the child via `ruby -e` + `POLYRUN_HOOKS_RUBY_FILE`.
 - Add `polyrun hook run <phase>` (`--shard` / `--total` optional). Set `POLYRUN_HOOKS_DISABLE=1` to skip hooks during orchestration only; `hook run` still executes.

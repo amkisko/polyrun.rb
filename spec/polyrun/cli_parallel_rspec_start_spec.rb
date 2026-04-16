@@ -90,6 +90,64 @@ RSpec.describe Polyrun::CLI do
     end
   end
 
+  it "run-shards --merge-failures merges fragments after shard failure" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        FileUtils.mkdir_p("spec")
+        File.write("spec/a_spec.rb", "")
+        stub = File.join(dir, "_shard.rb")
+        File.write(stub, <<~RUBY)
+          abort "expected POLYRUN_FAILURE_FRAGMENTS=1" unless ENV["POLYRUN_FAILURE_FRAGMENTS"] == "1"
+          require "fileutils"
+          require "json"
+          FileUtils.mkdir_p("tmp/polyrun_failures")
+          idx = ENV.fetch("POLYRUN_SHARD_INDEX", "0")
+          path = File.join("tmp/polyrun_failures", "polyrun-failure-fragment-worker\#{idx}.jsonl")
+          File.write(path, JSON.generate({"id" => "rspec_a", "message" => "failed here"}) + "\\n")
+          exit 1
+        RUBY
+        _, status = polyrun(
+          "run-shards", "--workers", "1", "--merge-failures", "--",
+          RbConfig.ruby, stub
+        )
+        expect(status.success?).to be false
+        merged = File.join(dir, "tmp", "polyrun_failures", "merged.jsonl")
+        expect(File.file?(merged)).to be true
+        line = File.read(merged).lines.first.strip
+        expect(JSON.parse(line)["message"]).to eq("failed here")
+      end
+    end
+  end
+
+  it "merge-failures command writes json" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        f = File.join(dir, "f.jsonl")
+        File.write(f, JSON.generate({"id" => "z", "message" => "m"}) + "\n")
+        out = File.join(dir, "out.json")
+        _, status = polyrun(
+          "merge-failures", "-i", f, "-o", out, "--format", "json"
+        )
+        expect(status.success?).to be true
+        expect(JSON.parse(File.read(out))["failures"].size).to eq(1)
+      end
+    end
+  end
+
+  it "merge-failures command exits 1 on invalid JSONL" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        f = File.join(dir, "bad.jsonl")
+        File.write(f, "not json\n")
+        _, status = polyrun(
+          "merge-failures", "-i", f, "-o", File.join(dir, "out.jsonl"), "--format", "jsonl"
+        )
+        expect(status.success?).to be false
+        expect(status.exitstatus).to eq(1)
+      end
+    end
+  end
+
   it "start runs script/build_spec_paths.rb when present" do
     Dir.mktmpdir do |dir|
       with_chdir(dir) do

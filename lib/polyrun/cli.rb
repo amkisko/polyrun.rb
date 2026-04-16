@@ -28,7 +28,7 @@ module Polyrun
 
     # Keep in sync with +dispatch_cli_command_subcommands+ (+when+ branches). Used for implicit path routing.
     DISPATCH_SUBCOMMAND_NAMES = %w[
-      plan prepare merge-coverage report-coverage report-junit report-timing
+      plan prepare merge-coverage merge-failures report-coverage report-junit report-timing
       env config merge-timing db:setup-template db:setup-shard db:clone-shards
       run-shards parallel-rspec start build-paths init queue quick hook
     ].freeze
@@ -145,6 +145,8 @@ module Polyrun
         cmd_prepare(argv, config_path)
       when "merge-coverage"
         cmd_merge_coverage(argv, config_path)
+      when "merge-failures"
+        cmd_merge_failures(argv, config_path)
       when "report-coverage"
         cmd_report_coverage(argv)
       when "report-junit"

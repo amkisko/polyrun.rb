@@ -30,5 +30,19 @@ module Polyrun
         config.add_formatter fmt
       end
     end
+
+    # Per-worker failure JSONL fragments for +polyrun run-shards --merge-failures+ (parity with coverage shards).
+    # Requires +POLYRUN_FAILURE_FRAGMENTS=1+ (set by the parent when --merge-failures is used) unless +only_if+ overrides.
+    # Writes +tmp/polyrun_failures/polyrun-failure-fragment-*.jsonl+ (override dir with +POLYRUN_FAILURE_FRAGMENT_DIR+).
+    def install_failure_fragments!(only_if: nil)
+      pred = only_if || -> { %w[1 true yes].include?(ENV["POLYRUN_FAILURE_FRAGMENTS"].to_s.downcase) }
+      return unless pred.call
+
+      require "rspec/core"
+      require_relative "reporting/rspec_failure_fragment_formatter"
+      ::RSpec.configure do |config|
+        config.add_formatter Polyrun::Reporting::RspecFailureFragmentFormatter
+      end
+    end
   end
 end
