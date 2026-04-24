@@ -150,9 +150,32 @@ RSpec.describe Polyrun::Coverage::Merge do
   end
 
   describe ".emit_html" do
-    it "includes summary and escaped file paths" do
-      html = described_class.emit_html({"/app/a.rb" => {"lines" => [nil, 1, 0]}}, title: "Test")
-      expect(html).to include("<!DOCTYPE html>", "Test", "/app/a.rb", "50.00", "<tbody>")
+    it "includes summary, groups, and source details" do
+      Dir.mktmpdir do |root|
+        file = File.join(root, "lib", "a.rb")
+        FileUtils.mkdir_p(File.dirname(file))
+        File.write(file, "puts '<tag>'\nvalue = 1\n")
+
+        html = described_class.emit_html(
+          {file => {"lines" => [1, 0]}},
+          title: "Test",
+          root: root,
+          groups: {"Lib" => {"lines" => {"covered_percent" => 50.0}}},
+          generated_at: Time.utc(2026, 4, 24, 10, 27, 45)
+        )
+
+        expect(html).to include(
+          "<!DOCTYPE html>",
+          "Test",
+          "Generated 2026-04-24 10:27:45 UTC",
+          "All Files",
+          "Avg. Hits / Line",
+          "Lib",
+          "lib/a.rb",
+          "&lt;tag&gt;",
+          "source_table"
+        )
+      end
     end
   end
 
