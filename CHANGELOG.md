@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.4.2 (2026-04-24)
+
 - Add richer HTML coverage reports: summary cards, group coverage, sortable file tables, project-relative paths, and per-file source detail.
 - Refactor HTML coverage rendering into stdlib `ERB` templates with `_*.html.erb` partials and isolated `report.css` / `report.js` assets; inline assets into final standalone report.
 - Fix `track_files` coverage scope in `Collector.finish`: keep only files matched by tracked globs, drop unrelated loaded runtime files, and add unloaded tracked files only for non-sharded runs.
