@@ -1,0 +1,18 @@
+<% unless group_rows_html.empty? %>
+  <div class="group-summary">
+    <h3>Groups</h3>
+    <div class="file_list--responsive">
+      <table class="group-table" data-sortable="true">
+        <thead>
+          <tr>
+            <th>Group</th>
+            <th class="cell--number">% covered</th>
+          </tr>
+        </thead>
+        <tbody>
+          <%= group_rows_html %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% end %>

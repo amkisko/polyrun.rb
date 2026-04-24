@@ -1,0 +1,21 @@
+<div class="panel file_list_container" id="file-list">
+  <h2>Files</h2>
+  <div class="file_list--responsive">
+    <table class="file_list" data-sortable="true">
+      <thead>
+        <tr>
+          <th>File</th>
+          <th class="cell--number">% covered</th>
+          <th class="cell--number">Lines</th>
+          <th class="cell--number">Relevant Lines</th>
+          <th class="cell--number">Lines covered</th>
+          <th class="cell--number">Lines missed</th>
+          <th class="cell--number">Avg. Hits / Line</th>
+        </tr>
+      </thead>
+      <tbody>
+        <%= file_rows_html %>
+      </tbody>
+    </table>
+  </div>
+</div>

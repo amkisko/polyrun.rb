@@ -1,0 +1,47 @@
+<div class="panel file_list_container" id="overview">
+  <h2>
+    <span class="group_name">All Files</span>
+    (<span class="covered_percent"><span class="<%= summary_badge_class %>"><%= format("%.2f", summary[:line_percent]) %>%</span></span>
+    covered at
+    <span class="covered_strength"><span class="<%= summary_badge_class %>"><%= format("%.2f", summary[:avg_hits]) %></span></span>
+    hits/line)
+  </h2>
+
+  <div><b><%= summary[:files] %></b> files in total.</div>
+  <div class="t-line-summary">
+    <b><%= summary[:lines_relevant] %></b> relevant lines,
+    <span class="green"><b><%= summary[:lines_covered] %></b> lines covered</span> and
+    <span class="red"><b><%= summary[:lines_missed] %></b> lines missed</span>
+    (<span class="<%= summary_badge_class %>"><%= format("%.2f", summary[:line_percent]) %>%</span>)
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Coverage</div>
+      <div class="metric-value"><%= format("%.2f", summary[:line_percent]) %>%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Relevant Lines</div>
+      <div class="metric-value"><%= summary[:lines_relevant] %></div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Lines Covered</div>
+      <div class="metric-value"><%= summary[:lines_covered] %></div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Lines Missed</div>
+      <div class="metric-value"><%= summary[:lines_missed] %></div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Avg. Hits / Line</div>
+      <div class="metric-value"><%= format("%.2f", summary[:avg_hits]) %></div>
+    </div>
+  </div>
+
+  <%= groups_html %>
+
+  <div class="nav-links">
+    <a href="#file-list">File List</a>
+    <a href="#source-files">Source Files</a>
+  </div>
+</div>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title><%= title %></title>
+  <style>
+<%= stylesheet %>
+  </style>
+</head>
+<body>
+  <div id="wrapper">
+    <div class="topbar">
+      <h1><%= title %></h1>
+      <div class="timestamp">Generated <%= generated_label %></div>
+    </div>
+
+    <%= overview_html %>
+
+    <%= file_list_html %>
+
+    <div id="source-files">
+      <%= file_sections_html %>
+    </div>
+  </div>
+
+  <script>
+<%= javascript %>
+  </script>
+</body>
+</html>

@@ -106,7 +106,8 @@ module Polyrun
         def write_files(result, output_dir, basename)
           path = File.join(output_dir, "#{basename}.html")
           title = (result.meta && result.meta["title"]) || (result.meta && result.meta[:title]) || "Polyrun coverage"
-          File.write(path, Merge.emit_html(result.coverage_blob, title: title))
+          root = result.meta && (result.meta["polyrun_coverage_root"] || result.meta[:polyrun_coverage_root])
+          File.write(path, Merge.emit_html(result.coverage_blob, title: title, root: root, groups: result.groups))
           {html: path}
         end
       end

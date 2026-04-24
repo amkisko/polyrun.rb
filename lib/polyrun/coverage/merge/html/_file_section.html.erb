@@ -1,0 +1,26 @@
+<div class="panel file-section source_file" id="<%= file[:id] %>">
+  <div class="file-heading">
+    <h2><%= CGI.escapeHTML(file[:display_path]) %></h2>
+    <a href="#overview">Back to summary</a>
+  </div>
+  <div class="file-meta">
+    <span class="badge <%= file[:badge_class] %>"><%= format("%.2f", file[:line_percent]) %>%</span>
+    <%= file[:covered] %> / <%= file[:relevant] %> relevant lines covered,
+    <%= file[:missed] %> missed,
+    <%= format("%.2f", file[:avg_hits]) %> avg. hits / line
+  </div>
+  <div class="file_list--responsive">
+    <table class="source_table">
+      <thead>
+        <tr>
+          <th class="line-num">Line</th>
+          <th class="line-hits">Hits</th>
+          <th class="line-source">Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        <%= file[:source_rows].join("\n") %>
+      </tbody>
+    </table>
+  </div>
+</div>
