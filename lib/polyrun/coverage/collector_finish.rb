@@ -41,9 +41,10 @@ module Polyrun
       def self.track_blob_for_finish(cfg, blob)
         sharded = ENV["POLYRUN_SHARD_TOTAL"].to_i > 1
         if cfg[:track_files]
-          return Collector.keep_under_root(blob, cfg[:root], cfg[:track_under]) if sharded
+          filtered = TrackFiles.keep_tracked_files(blob, cfg[:root], cfg[:track_files])
+          return filtered if sharded
 
-          TrackFiles.merge_untracked_into_blob(blob, cfg[:root], cfg[:track_files])
+          TrackFiles.merge_untracked_into_blob(filtered, cfg[:root], cfg[:track_files])
         else
           Collector.keep_under_root(blob, cfg[:root], cfg[:track_under])
         end

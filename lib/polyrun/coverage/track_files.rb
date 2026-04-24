@@ -22,6 +22,15 @@ module Polyrun
         end.map { |rel| File.expand_path(rel, root) }.uniq
       end
 
+      # Keeps only loaded files that match configured +track_files+ globs.
+      def keep_tracked_files(blob, root, track_files)
+        tracked = expand_globs(root, track_files).each_with_object({}) { |abs, acc| acc[abs] = true }
+        blob.each_with_object({}) do |(path, entry), out|
+          abs = File.expand_path(path.to_s)
+          out[abs] = entry if tracked[abs]
+        end
+      end
+
       # Adds tracked files that were never required, with simulated line arrays (blank/comment => nil, else 0).
       # Matches SimpleCov +add_not_loaded_files+ behavior for coverage completeness.
       def merge_untracked_into_blob(blob, root, track_files)

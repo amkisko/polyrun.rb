@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Unreleased
+
+- Fix `track_files` coverage scope in `Collector.finish`: keep only files matched by tracked globs, drop unrelated loaded runtime files, and add unloaded tracked files only for non-sharded runs.
+- Add coverage specs for divergent `track_under` / `track_files` configs in serial and sharded finish paths; add `TrackFiles.keep_tracked_files`.
+
 ## 1.4.1 (2026-04-16)
 
 - Add `polyrun merge-failures` and `run-shards --merge-failures` / `--merge-failures-output` / `--merge-failures-format`; merge per-worker JSONL under `tmp/polyrun_failures/polyrun-failure-fragment-*.jsonl` (or RSpec JSON via `-i`). Run merge after all workers exit, including when a shard failed (`--merge-coverage` still runs only after all shards succeed).

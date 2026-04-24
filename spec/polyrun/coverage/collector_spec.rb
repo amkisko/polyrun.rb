@@ -43,6 +43,95 @@ RSpec.describe Polyrun::Coverage::Collector do
     end
   end
 
+  describe ".track_blob_for_finish" do
+    around do |example|
+      old_total = ENV["POLYRUN_SHARD_TOTAL"]
+      example.run
+      old_total ? ENV.store("POLYRUN_SHARD_TOTAL", old_total) : ENV.delete("POLYRUN_SHARD_TOTAL")
+    end
+
+    it "filters non-project files before adding tracked unloaded files for non-sharded runs" do
+      Dir.mktmpdir do |root|
+        app_file = File.join(root, "app", "models", "loaded.rb")
+        unloaded_file = File.join(root, "app", "models", "unloaded.rb")
+        FileUtils.mkdir_p(File.dirname(app_file))
+        File.write(app_file, "class Loaded; end\n")
+        File.write(unloaded_file, "class Unloaded; end\n")
+
+        blob = {
+          app_file => {"lines" => [nil, 1]},
+          "/ruby/stdlib/forwardable.rb" => {"lines" => [nil, 1]}
+        }
+        cfg = {
+          root: root,
+          track_under: ["app"],
+          track_files: "app/**/*.rb"
+        }
+
+        ENV["POLYRUN_SHARD_TOTAL"] = "0"
+        out = described_class.send(:track_blob_for_finish, cfg, blob)
+
+        expect(out.keys.sort).to eq([app_file, unloaded_file].sort)
+        expect(out[app_file]["lines"]).to eq([nil, 1])
+        expect(out[unloaded_file]["lines"]).to eq([0])
+      end
+    end
+
+    it "keeps loaded files matched by track_files even when track_under differs for non-sharded runs" do
+      Dir.mktmpdir do |root|
+        app_file = File.join(root, "app", "models", "loaded.rb")
+        lib_file = File.join(root, "lib", "loaded.rb")
+        FileUtils.mkdir_p(File.dirname(app_file))
+        FileUtils.mkdir_p(File.dirname(lib_file))
+        File.write(app_file, "class AppLoaded; end\n")
+        File.write(lib_file, "class LibLoaded; end\n")
+
+        blob = {
+          app_file => {"lines" => [nil, 1]},
+          lib_file => {"lines" => [nil, 3]}
+        }
+        cfg = {
+          root: root,
+          track_under: ["app"],
+          track_files: "{app,lib}/**/*.rb"
+        }
+
+        ENV["POLYRUN_SHARD_TOTAL"] = "0"
+        out = described_class.send(:track_blob_for_finish, cfg, blob)
+
+        expect(out.keys.sort).to eq([app_file, lib_file].sort)
+        expect(out[lib_file]["lines"]).to eq([nil, 3])
+      end
+    end
+
+    it "keeps loaded files matched by track_files even when track_under differs for sharded runs" do
+      Dir.mktmpdir do |root|
+        app_file = File.join(root, "app", "models", "loaded.rb")
+        lib_file = File.join(root, "lib", "loaded.rb")
+        FileUtils.mkdir_p(File.dirname(app_file))
+        FileUtils.mkdir_p(File.dirname(lib_file))
+        File.write(app_file, "class AppLoaded; end\n")
+        File.write(lib_file, "class LibLoaded; end\n")
+
+        blob = {
+          app_file => {"lines" => [nil, 1]},
+          lib_file => {"lines" => [nil, 3]}
+        }
+        cfg = {
+          root: root,
+          track_under: ["app"],
+          track_files: "{app,lib}/**/*.rb"
+        }
+
+        ENV["POLYRUN_SHARD_TOTAL"] = "2"
+        out = described_class.send(:track_blob_for_finish, cfg, blob)
+
+        expect(out.keys.sort).to eq([app_file, lib_file].sort)
+        expect(out[lib_file]["lines"]).to eq([nil, 3])
+      end
+    end
+  end
+
   describe ".result_to_blob" do
     it "maps stdlib coverage result to lines-only file entries" do
       raw = {
