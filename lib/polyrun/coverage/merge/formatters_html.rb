@@ -1,3 +1,4 @@
+# rubocop:disable Polyrun/FileLength -- HTML merge formatter + helpers in one file
 require "cgi"
 require "digest/sha1"
 require "erb"
@@ -9,6 +10,7 @@ module Polyrun
       module_function
 
       # Standalone HTML report with summary, file table, and per-file source details.
+      # rubocop:disable Metrics/AbcSize -- linear assembly of overview, file table, sections, asset reads
       def emit_html(coverage_blob, title: "Polyrun coverage", root: nil, groups: nil, generated_at: Time.now)
         files = coverage_blob.keys.sort.map { |path| html_file_payload(path, coverage_blob[path], root) }
         summary = html_summary(files)
@@ -31,6 +33,7 @@ module Polyrun
           javascript: File.read(html_javascript_path)
         )
       end
+      # rubocop:enable Metrics/AbcSize
 
       def html_asset_dir
         File.join(__dir__, "html")
@@ -197,3 +200,4 @@ module Polyrun
     end
   end
 end
+# rubocop:enable Polyrun/FileLength

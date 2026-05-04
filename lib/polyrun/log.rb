@@ -6,6 +6,9 @@ module Polyrun
   #
   #   Polyrun::Log.stderr = Logger.new($stderr)
   #   Polyrun::Log.stdout = StringIO.new
+  #
+  # Orchestration (+orchestration_warn+): worker timeout and SIGINT lines use the same sink as +warn+ unless
+  # +POLYRUN_ORCHESTRATION_STDERR=1+ and stderr is not process +$stderr+ (then the summary is copied to +$stderr+).
   module Log
     class << self
       attr_writer :stderr
@@ -23,6 +26,19 @@ module Polyrun
         return if msg.nil?
 
         emit_line(stderr, msg)
+      end
+
+      # Like {#warn}, and when +POLYRUN_ORCHESTRATION_STDERR=1+ and {#stderr} is not the process +$stderr+,
+      # also writes one line to +$stderr+ so timeout/interrupt attribution survives custom/null Log sinks.
+      def orchestration_warn(msg)
+        warn(msg)
+        return unless %w[1 true yes].include?(ENV["POLYRUN_ORCHESTRATION_STDERR"]&.downcase)
+        return if stderr.equal?($stderr)
+
+        # Intentionally the real stderr stream (+Kernel#warn+ routes through +Log.stderr+).
+        # rubocop:disable Style/StderrPuts
+        $stderr.puts(msg.to_s.chomp)
+        # rubocop:enable Style/StderrPuts
       end
 
       def puts(msg = "")

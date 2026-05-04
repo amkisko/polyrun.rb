@@ -3,5 +3,9 @@ module Polyrun
     def self.install_parallel_provisioning!: (untyped rspec_config) -> void
 
     def self.install_example_timing!: (?output_path: String? ) -> void
+
+    def self.install_failure_fragments!: (?only_if: untyped?) -> void
+
+    def self.install_worker_ping!: () -> void
   end
 end

@@ -19,6 +19,9 @@ module Polyrun
         err = run_shards_validate_cmd(cmd)
         return [:fail, err] if err
 
+        run_shards_normalize_worker_timeout_option!(o)
+        run_shards_normalize_worker_idle_timeout_option!(o)
+
         cmd = Shellwords.split(cmd.first) if cmd.size == 1 && cmd.first.include?(" ")
 
         [:ok, o, cmd]
@@ -118,8 +121,38 @@ module Polyrun
           merge_failures: run_shards_merge_failures_flag(o, cfg),
           merge_failures_output: run_shards_merge_failures_output_opt(o, cfg),
           merge_failures_format: run_shards_merge_failures_format_opt(o, cfg),
-          config_path: config_path
+          config_path: config_path,
+          worker_timeout_sec: run_shards_resolved_worker_timeout_sec(o),
+          worker_idle_timeout_sec: run_shards_resolved_worker_idle_timeout_sec(o)
         }
+      end
+
+      def run_shards_normalize_worker_idle_timeout_option!(o)
+        v = o[:worker_idle_timeout_sec]
+        return if v.nil?
+
+        o[:worker_idle_timeout_sec] = nil if v <= 0
+      end
+
+      def run_shards_resolved_worker_idle_timeout_sec(o)
+        cli = o[:worker_idle_timeout_sec]
+        return cli.to_f if cli.is_a?(Numeric) && cli > 0
+
+        env_worker_idle_timeout_sec
+      end
+
+      def run_shards_normalize_worker_timeout_option!(o)
+        v = o[:worker_timeout_sec]
+        return if v.nil?
+
+        o[:worker_timeout_sec] = nil if v <= 0
+      end
+
+      def run_shards_resolved_worker_timeout_sec(o)
+        cli = o[:worker_timeout_sec]
+        return cli.to_f if cli.is_a?(Numeric) && cli > 0
+
+        env_worker_timeout_sec
       end
     end
   end

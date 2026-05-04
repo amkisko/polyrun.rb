@@ -1,3 +1,4 @@
+# rubocop:disable Polyrun/FileLength -- exhaustive ci-shard-run integration cases
 require "spec_helper"
 require "tmpdir"
 require "rbconfig"
@@ -271,3 +272,4 @@ RSpec.describe "Polyrun::CLI ci-shard-run" do
     end
   end
 end
+# rubocop:enable Polyrun/FileLength

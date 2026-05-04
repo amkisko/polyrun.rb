@@ -1,3 +1,4 @@
+# rubocop:disable Polyrun/FileLength -- collector behavior matrix
 require "spec_helper"
 require "fileutils"
 require "tmpdir"
@@ -250,3 +251,4 @@ RSpec.describe Polyrun::Coverage::Collector do
     end
   end
 end
+# rubocop:enable Polyrun/FileLength

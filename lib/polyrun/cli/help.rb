@@ -23,6 +23,9 @@ module Polyrun
           Warn if merge-coverage wall time exceeds N seconds (default 10): POLYRUN_MERGE_SLOW_WARN_SECONDS (0 disables)
           Failure fragments (run-shards --merge-failures): POLYRUN_MERGE_FAILURES=1; parent sets POLYRUN_FAILURE_FRAGMENTS=1 in workers; POLYRUN_FAILURE_FRAGMENT_DIR, POLYRUN_MERGED_FAILURES_OUT, POLYRUN_MERGED_FAILURES_FORMAT; after_suite sets POLYRUN_MERGED_FAILURES_PATH when merge ran
           Parallel RSpec workers: POLYRUN_WORKERS default 5, max 10 (run-shards / parallel-rspec / start); distinct from POLYRUN_SHARD_PROCESSES / ci-shard --shard-processes (local processes per CI matrix job)
+          Per-worker wall timeout: run-shards --worker-timeout SEC or POLYRUN_WORKER_TIMEOUT_SEC (max time since each worker spawn). Parent polls all live workers together. Exit 124; remaining workers stopped.
+          Per-worker idle timeout: --worker-idle-timeout SEC or POLYRUN_WORKER_IDLE_TIMEOUT_SEC counts only after a successful ping timestamp (positive float in POLYRUN_WORKER_PING_FILE); empty or unreadable pings do not satisfy idle enforcement—use wall timeout until the first ping. RSpec/Minitest/Quick installers call Polyrun::WorkerPing.ping! per example/suite. Ping files live under tmp/polyrun/ (gitignored via tmp/); parent unlinks each after its worker exits. Exit 125. Optional outer cap: --worker-timeout (exit 124). Optional periodic pings: POLYRUN_WORKER_PING_THREAD=1 (POLYRUN_WORKER_PING_INTERVAL_SEC); WorkerPing.ensure_interval_ping_thread! (installers invoke it—call yourself if wiring workers without install_worker_ping!).
+          If Polyrun::Log.stderr is null or redirected away, set POLYRUN_ORCHESTRATION_STDERR=1 to also print timeout/SIGINT summary lines to process stderr.
           Partition timing granularity (default file): POLYRUN_TIMING_GRANULARITY=file|example (experimental per-example; see partition.timing_granularity)
 
           commands:

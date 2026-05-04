@@ -118,6 +118,9 @@ module Polyrun
       if reg&.any?(phase)
         begin
           reg.run(phase, merged)
+        rescue Interrupt
+          Polyrun::Log.warn "polyrun hooks: #{phase} ruby hook interrupted"
+          return 130
         rescue => e
           Polyrun::Log.warn "polyrun hooks: #{phase} ruby hook failed: #{e.class}: #{e.message}"
           return 1
@@ -125,7 +128,12 @@ module Polyrun
       end
 
       commands_for(phase).each do |cmd|
-        ok = system(merged, "sh", "-c", cmd)
+        ok = begin
+          system(merged, "sh", "-c", cmd)
+        rescue Interrupt
+          Polyrun::Log.warn "polyrun hooks: #{phase} shell hook interrupted"
+          return 130
+        end
         return $?.exitstatus unless ok
       end
       0

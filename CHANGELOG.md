@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 1.5.0 (2026-05-04)
+
+- Add `run-shards --worker-timeout SEC` and `POLYRUN_WORKER_TIMEOUT_SEC` (wall time per worker since spawn); stop stuck workers; record exit 124 for that shard.
+- Add `run-shards --worker-idle-timeout SEC` and `POLYRUN_WORKER_IDLE_TIMEOUT_SEC`; parent reads monotonic timestamps from `POLYRUN_WORKER_PING_FILE`; record exit 125 when the last ping is stale. Idle applies only after a valid positive ping (use wall timeout until the first ping).
+- Add `Polyrun::WorkerPing` (`ping!`, `ensure_interval_ping_thread!` when `POLYRUN_WORKER_PING_THREAD`). Add `Polyrun::RSpec.install_worker_ping!` and `Polyrun::Minitest.install_worker_ping!`; Polyrun Quick calls `WorkerPing.ping!` around each example. Parent creates ping paths under `tmp/polyrun/` and unlinks files after workers exit.
+- Poll every live shard worker together when timeouts are enabled so idle and wall limits apply to all children, not only the first waiter.
+- Split parallel worker teardown into `RunShardsParallelWait` and `RunShardsWorkerInterrupt`; keep spawn logic in `RunShardsParallelChildren`.
+- Add `Polyrun::Log.orchestration_warn`; when `POLYRUN_ORCHESTRATION_STDERR=1`, copy one line to process `$stderr` if `Log.stderr` is not the same object (custom/null sinks).
+- Wire `env_worker_timeout_sec` / `env_worker_idle_timeout_sec` into `ci-shard-run` plan context. Rescue `Interrupt` around `after_suite` in `run-shards` and `ci-shard` orchestration where suite hooks run.
+- In `Polyrun::Hooks#run_phase`, rescue `Interrupt` for Ruby DSL and shell hook phases (return 130).
+- Document worker timeout, idle ping, and `POLYRUN_ORCHESTRATION_STDERR` in `polyrun help`. Add `sig/polyrun/worker_ping.rbs` and extend `Polyrun::RSpec` / `Polyrun::Minitest` installer signatures.
+
 ## 1.4.2 (2026-04-24)
 
 - Add richer HTML coverage reports: summary cards, group coverage, sortable file tables, project-relative paths, and per-file source detail.

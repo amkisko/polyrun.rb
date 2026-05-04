@@ -1,6 +1,9 @@
+require_relative "../worker_ping"
 require_relative "assertions"
 require_relative "errors"
 require_relative "matchers"
+
+Polyrun::WorkerPing.ensure_interval_ping_thread!
 
 module Polyrun
   module Quick
@@ -20,6 +23,8 @@ module Polyrun
         define_let_methods!
         run_let_bangs_from_chain
         extend_capybara_if_enabled!
+        qloc = quick_example_location(block)
+        Polyrun::WorkerPing.ping!(location: qloc)
         begin
           run_before_hooks_from_chain(ancestor_chain)
           instance_eval(&block)
@@ -32,10 +37,16 @@ module Polyrun
           run_after_hooks_from_chain(ancestor_chain)
           reset_capybara_if_enabled!
           @_let_cache = {}
+          Polyrun::WorkerPing.ping!(location: qloc)
         end
       end
 
       private
+
+      def quick_example_location(block)
+        loc = block&.source_location
+        loc ? "#{loc[0]}:#{loc[1]}" : nil
+      end
 
       def merge_lets_from_chain(ancestor_chain)
         @merged_lets = {}
