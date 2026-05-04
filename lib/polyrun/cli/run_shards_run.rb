@@ -2,6 +2,7 @@ require "shellwords"
 require "rbconfig"
 
 require_relative "run_shards_planning"
+require_relative "run_shards_worker_interrupt"
 require_relative "run_shards_parallel_children"
 
 module Polyrun
@@ -9,6 +10,7 @@ module Polyrun
     # Partition + spawn workers for `polyrun run-shards` (keeps {RunShardsCommand} file small).
     module RunShardsRun
       include RunShardsPlanning
+      include RunShardsWorkerInterrupt
       include RunShardsParallelChildren
 
       private
@@ -93,7 +95,11 @@ module Polyrun
               "POLYRUN_SUITE_EXIT_STATUS" => exit_code.to_s,
               "POLYRUN_MERGED_FAILURES_PATH" => merged_failures_path.to_s
             )
-            hook_cfg.run_phase_if_enabled(:after_suite, env_after)
+            begin
+              hook_cfg.run_phase_if_enabled(:after_suite, env_after)
+            rescue Interrupt
+              Polyrun::Log.warn "polyrun run-shards: after_suite hook interrupted; workers are stopped or were not started"
+            end
           end
         end
       end
@@ -104,38 +110,6 @@ module Polyrun
 
         Polyrun::Log.warn "polyrun run-shards: #{pid_count} children running; RSpec output below may be interleaved."
         Polyrun::Log.warn "polyrun run-shards: each worker prints its own summary line; the last \"N examples\" line is not a total across shards."
-      end
-
-      # Best-effort worker teardown then exit. Does not return.
-      def run_shards_shutdown_on_signal!(pids, code)
-        run_shards_terminate_children!(pids)
-        exit(code)
-      rescue Interrupt
-        pids.each do |h|
-          Process.kill(:KILL, h[:pid])
-        rescue Errno::ESRCH
-          # already reaped
-        end
-        pids.each do |h|
-          Process.wait(h[:pid])
-        rescue Errno::ESRCH, Errno::ECHILD, Interrupt
-          # already reaped or give up
-        end
-        exit(code)
-      end
-
-      # Send SIGTERM to each worker PID and wait so Ctrl+C / SIGTERM does not leave orphans.
-      def run_shards_terminate_children!(pids)
-        pids.each do |h|
-          Process.kill(:TERM, h[:pid])
-        rescue Errno::ESRCH
-          # already reaped
-        end
-        pids.each do |h|
-          Process.wait(h[:pid])
-        rescue Errno::ESRCH, Errno::ECHILD
-          # already reaped
-        end
       end
 
       def run_shards_merge_or_hint_coverage(ctx)

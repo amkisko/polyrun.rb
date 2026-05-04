@@ -44,5 +44,23 @@ module Polyrun
         config.add_formatter Polyrun::Reporting::RspecFailureFragmentFormatter
       end
     end
+
+    # Writes {WorkerPing} after suite start, before/after each example (+location+ is file:line from metadata).
+    # Keeps +--worker-idle-timeout+ sensitive to example progress (not only a background thread).
+    def install_worker_ping!
+      require "rspec/core"
+      require_relative "worker_ping"
+      ::RSpec.configure do |config|
+        config.before(:suite) { Polyrun::WorkerPing.ping! }
+        config.before(:each) do |example|
+          Polyrun::WorkerPing.ping!(location: example.metadata[:location] || example.location)
+        end
+        config.after(:each) do |example|
+          Polyrun::WorkerPing.ping!(location: example.metadata[:location] || example.location)
+        end
+      end
+
+      Polyrun::WorkerPing.ensure_interval_ping_thread!
+    end
   end
 end

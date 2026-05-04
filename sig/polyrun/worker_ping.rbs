@@ -1,0 +1,10 @@
+module Polyrun
+  module WorkerPing
+    def self.ping!: (?location: String?) -> void
+
+    def self.ping_file_path: () -> String
+
+    # Idempotent — installers call once; POLYRUN_WORKER_PING_THREAD gates the periodic thread.
+    def self.ensure_interval_ping_thread!: () -> void
+  end
+end

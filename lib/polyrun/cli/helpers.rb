@@ -11,6 +11,28 @@ module Polyrun
         Polyrun::Config::Resolver.env_int(name, fallback)
       end
 
+      # Per-worker wall clock (from spawn) for run-shards / ci-shard fan-out; unset or invalid means no limit.
+      def env_worker_timeout_sec
+        s = ENV["POLYRUN_WORKER_TIMEOUT_SEC"].to_s.strip
+        return nil if s.empty?
+
+        f = Float(s, exception: false)
+        return nil if f.nil? || f <= 0
+
+        f
+      end
+
+      # Max seconds without a new monotonic timestamp ping in the worker (see +polyrun/worker_ping+).
+      def env_worker_idle_timeout_sec
+        s = ENV["POLYRUN_WORKER_IDLE_TIMEOUT_SEC"].to_s.strip
+        return nil if s.empty?
+
+        f = Float(s, exception: false)
+        return nil if f.nil? || f <= 0
+
+        f
+      end
+
       def resolve_shard_index(pc)
         Polyrun::Config::Resolver.resolve_shard_index(pc)
       end

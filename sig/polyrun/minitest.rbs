@@ -1,5 +1,7 @@
 module Polyrun
   module Minitest
     def self.install_parallel_provisioning!: () -> void
+
+    def self.install_worker_ping!: () -> void
   end
 end

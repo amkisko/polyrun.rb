@@ -66,7 +66,9 @@ module Polyrun
           merge_format: nil,
           config_path: config_path,
           matrix_shard_index: mx,
-          matrix_shard_total: mt
+          matrix_shard_total: mt,
+          worker_timeout_sec: env_worker_timeout_sec,
+          worker_idle_timeout_sec: env_worker_idle_timeout_sec
         }
       end
 

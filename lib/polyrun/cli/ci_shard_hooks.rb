@@ -49,7 +49,11 @@ module Polyrun
               "POLYRUN_SHARD_TOTAL" => ctx[:workers].to_s,
               "POLYRUN_SUITE_EXIT_STATUS" => exit_code.to_s
             )
-            hook_cfg.run_phase_if_enabled(:after_suite, env_after)
+            begin
+              hook_cfg.run_phase_if_enabled(:after_suite, env_after)
+            rescue Interrupt
+              Polyrun::Log.warn "polyrun ci-shard: after_suite hook interrupted"
+            end
           end
         end
       end
@@ -109,9 +113,13 @@ module Polyrun
           exit_code
         ensure
           if suite_started
-            hook_cfg.run_phase_if_enabled(:after_suite, env_orch.merge(
-              "POLYRUN_SUITE_EXIT_STATUS" => exit_code.to_s
-            ))
+            begin
+              hook_cfg.run_phase_if_enabled(:after_suite, env_orch.merge(
+                "POLYRUN_SUITE_EXIT_STATUS" => exit_code.to_s
+              ))
+            rescue Interrupt
+              Polyrun::Log.warn "polyrun ci-shard: after_suite hook interrupted"
+            end
           end
         end
       end

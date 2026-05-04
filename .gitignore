@@ -1,6 +1,7 @@
 /.bundle/
 /vendor/bundle
 /coverage/
+# run-shards worker ping timestamps: tmp/polyrun/worker-ping-*.txt
 /tmp/
 *.gem
 Gemfile.lock
