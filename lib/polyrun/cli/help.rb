@@ -27,6 +27,7 @@ module Polyrun
           Per-worker idle timeout: --worker-idle-timeout SEC or POLYRUN_WORKER_IDLE_TIMEOUT_SEC counts only after a successful ping timestamp (positive float in POLYRUN_WORKER_PING_FILE); empty or unreadable pings do not satisfy idle enforcement—use wall timeout until the first ping. RSpec/Minitest/Quick installers call Polyrun::WorkerPing.ping! per example/suite. Ping files live under tmp/polyrun/ (gitignored via tmp/); parent unlinks each after its worker exits. Exit 125. Optional outer cap: --worker-timeout (exit 124). Optional periodic pings: POLYRUN_WORKER_PING_THREAD=1 (POLYRUN_WORKER_PING_INTERVAL_SEC); WorkerPing.ensure_interval_ping_thread! (installers invoke it—call yourself if wiring workers without install_worker_ping!).
           If Polyrun::Log.stderr is null or redirected away, set POLYRUN_ORCHESTRATION_STDERR=1 to also print timeout/SIGINT summary lines to process stderr.
           Partition timing granularity (default file): POLYRUN_TIMING_GRANULARITY=file|example (experimental per-example; see partition.timing_granularity)
+          Partition strategies: round_robin (default, sorted), preserve_order_round_robin (paths-file order), lazy_robin (sorted RR + timing diagnostics), cost_binpack (LPT), hrw. partition.timing_file without strategy implies cost_binpack.
 
           commands:
             version              print version
@@ -41,7 +42,8 @@ module Polyrun
             ci-shard-rspec       same as ci-shard-run -- bundle exec rspec; optional --shard-processes / --workers / -- [rspec-only flags]
             build-paths          write partition.paths_file from partition.paths_build (same as auto step before plan/run-shards)
             init                 write a starter polyrun.yml or POLYRUN.md from built-in templates (see docs/SETUP_PROFILE.md)
-            queue                file-backed batch queue: init (optional --shard/--total etc. as plan, then claim/ack); M workers share one dir; no duplicate paths across claims
+            queue                file-backed batch queue: init (optional --shard/--total etc. as plan, then claim/ack/reclaim/status --json)
+            run-queue            init queue and run N workers that claim batches until drained
             quick                run Polyrun::Quick (describe/it, before/after, let, expect…to, assert_*; optional capybara!)
             hook run <phase>     run one shell hook from polyrun.yml hooks: (e.g. before_suite); optional --shard/--total
             report-coverage      write all coverage formats from one JSON file

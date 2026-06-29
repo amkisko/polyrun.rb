@@ -10,7 +10,7 @@ RSpec.describe Polyrun::CLI do
   it "emits plan manifest" do
     out, status = polyrun("plan", "--total", "2", "--shard", "0", "a.rb", "b.rb", "c.rb")
     expect(status.success?).to be true
-    j = JSON.parse(out)
+    j = parse_polyrun_json(out)
     expect(j["paths"]).to eq(%w[a.rb c.rb])
   end
 
@@ -33,7 +33,7 @@ RSpec.describe Polyrun::CLI do
           "--strategy", "cost_binpack"
         )
         expect(status.success?).to be true
-        j = JSON.parse(out)
+        j = parse_polyrun_json(out)
         expect(j["strategy"]).to eq("cost_binpack")
         expect(j["timing_granularity"]).to eq("example")
         expect(j["shard_seconds"]).to eq([10.0, 4.0])
@@ -52,7 +52,7 @@ RSpec.describe Polyrun::CLI do
         File.write(timing, JSON.dump({"a.rb" => 10.0, "b.rb" => 4.0, "c.rb" => 4.0}))
         out, status = polyrun("plan", "--total", "2", "--shard", "0", "--timing", timing, "--paths-file", list)
         expect(status.success?).to be true
-        j = JSON.parse(out)
+        j = parse_polyrun_json(out)
         expect(j["strategy"]).to eq("cost_binpack")
         expect(j["shard_seconds"]).to eq([10.0, 8.0])
         expect(j["paths"]).to eq(["a.rb"])
@@ -73,7 +73,7 @@ RSpec.describe Polyrun::CLI do
       YAML
       out, status = polyrun("-c", cfg, "plan", "--shard", "0", "--total", "2")
       expect(status.success?).to be true
-      expect(JSON.parse(out)["paths"]).to eq(%w[a.rb c.rb])
+      expect(parse_polyrun_json(out)["paths"]).to eq(%w[a.rb c.rb])
     end
   end
 
