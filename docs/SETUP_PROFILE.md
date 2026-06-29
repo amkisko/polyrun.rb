@@ -45,6 +45,8 @@ Rule: anything expensive (compile, `yarn`, Playwright download) belongs in prepa
 | Plain glob | `partition.paths_build.all_glob: spec/**/*_spec.rb` and empty or minimal `stages` |
 | Ordered stages | `partition.paths_build.stages`: regex (e.g. slow integration first) or `sort_by_substring_order` for stable ordering |
 
+`paths_build` controls **membership** in `partition.paths_file`, not shard assignment order. Default `round_robin` sorts paths alphabetically before mod assignment. Use `strategy: preserve_order_round_robin` to honor paths-file line order. Set `partition.timing_file` without `strategy` to auto-select `cost_binpack`; use `lazy_robin` for round-robin assignment with timing diagnostics.
+
 Refresh list: `polyrun -c polyrun.yml build-paths` (also runs automatically before `plan` / `run-shards` when configured).
 
 ## 6. Coverage and CI reports

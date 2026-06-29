@@ -77,18 +77,119 @@ module Polyrun
         true
       end
 
-      def status
+      def status(detailed: false)
         with_lock do
           meta = load_meta!
-          {
+          leases = read_leases
+          base = {
             "pending" => Integer(meta["pending_count"]),
             "done" => Integer(meta["done_count"]),
-            "leases" => read_leases.keys.size
+            "leases" => leases.keys.size
+          }
+          return base unless detailed
+
+          base.merge("lease_details" => lease_details(leases))
+        end
+      end
+
+      # Reclaim leases older than +older_than+ seconds, or all leases for +worker_id+ when set.
+      # @return [Integer] number of paths returned to pending
+      def reclaim!(older_than: nil, worker_id: nil)
+        reclaimed_paths = 0
+        with_lock do
+          meta = load_meta!
+          leases = read_leases
+          keep = {}
+          leases.each do |lease_id, lease|
+            if reclaim_lease?(lease, older_than: older_than, worker_id: worker_id)
+              paths = lease["paths"] || []
+              return_paths_to_pending!(meta, paths)
+              reclaimed_paths += paths.size
+              append_ledger(
+                "RECLAIM" => lease_id,
+                "worker_id" => lease["worker_id"],
+                "paths" => paths
+              )
+            else
+              keep[lease_id] = lease
+            end
+          end
+          write_leases!(keep)
+          write_meta!(meta)
+        end
+        reclaimed_paths
+      end
+
+      def reclaim_lease!(lease_id)
+        reclaimed = 0
+        with_lock do
+          leases = read_leases
+          lease = leases[lease_id]
+          return 0 unless lease
+
+          leases.delete(lease_id)
+          write_leases!(leases)
+          meta = load_meta!
+          paths = lease["paths"] || []
+          return_paths_to_pending!(meta, paths)
+          write_meta!(meta)
+          reclaimed = paths.size
+          append_ledger("RECLAIM" => lease_id, "worker_id" => lease["worker_id"], "paths" => paths)
+        end
+        reclaimed
+      end
+
+      private
+
+      def reclaim_lease?(lease, older_than:, worker_id:)
+        if worker_id
+          return lease["worker_id"].to_s == worker_id.to_s
+        end
+        return false unless older_than
+
+        claimed = Time.parse(lease["claimed_at"].to_s)
+        (Time.now - claimed) >= older_than
+      rescue ArgumentError
+        true
+      end
+
+      def lease_details(leases)
+        now = Time.now
+        leases.map do |lease_id, lease|
+          claimed = Time.parse(lease["claimed_at"].to_s)
+          {
+            "lease_id" => lease_id,
+            "worker_id" => lease["worker_id"],
+            "paths_count" => (lease["paths"] || []).size,
+            "claimed_at" => lease["claimed_at"],
+            "age_seconds" => (now - claimed).round(1)
+          }
+        rescue ArgumentError
+          {
+            "lease_id" => lease_id,
+            "worker_id" => lease["worker_id"],
+            "paths_count" => (lease["paths"] || []).size,
+            "claimed_at" => lease["claimed_at"],
+            "age_seconds" => nil
           }
         end
       end
 
-      private
+      def return_paths_to_pending!(meta, paths)
+        return if paths.empty?
+
+        meta["pending_count"] = Integer(meta["pending_count"]) + paths.size
+        files = sorted_chunk_files
+        if files.empty?
+          FileUtils.mkdir_p(pending_dir)
+          atomic_write(File.join(pending_dir, "000001.json"), JSON.generate(paths.map(&:to_s)))
+        else
+          head = files.first
+          chunk = JSON.parse(File.read(head))
+          chunk = paths.map(&:to_s) + chunk
+          atomic_write(head, JSON.generate(chunk))
+        end
+      end
 
       def queue_path
         File.join(@root, "queue.json")

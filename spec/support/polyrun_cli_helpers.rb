@@ -54,6 +54,13 @@ module PolyrunCliHelpers
   end
 
   # Tests need a stable cwd; Dir.chdir is process-wide (acceptable in isolated examples).
+  def parse_polyrun_json(out)
+    line = out.lines.map(&:strip).find { |l| l.start_with?("{") }
+    raise "no JSON in polyrun output: #{out.inspect}" unless line
+
+    JSON.parse(line)
+  end
+
   def with_chdir(dir, &block)
     Dir.chdir(dir, &block) # rubocop:disable ThreadSafety/DirChdir -- spec helper; callers use with_chdir
   end

@@ -189,7 +189,7 @@ bin/polyrun quick spec/polyrun_quick/smoke.rb
 
 Shard index and total in CI (`Polyrun::Env::Ci`): when set, `POLYRUN_SHARD_INDEX` and `POLYRUN_SHARD_TOTAL` take precedence. When `CI` is truthy, `CI_NODE_INDEX` / `CI_NODE_TOTAL` and other parallel-job environment variables are read if present. If your runner does not export those, set `POLYRUN_SHARD_*` from the job matrix.
 
-File queue (`polyrun queue …`): batches live on disk under a lock file; paths move from `pending` to `leases` on claim and to `done` on ack. There is no lease TTL: if a worker dies after claiming, paths remain in `leases` until you recover them (manually or with a future reclaim command).
+File queue (`polyrun queue …`): batches live on disk under a lock file; paths move from `pending` to `leases` on claim and to `done` on ack. Stale leases can be returned to `pending` with `polyrun queue reclaim --older-than 10m` (or `--worker ID`). Use `polyrun queue status --json` for lease ages. `polyrun run-queue` reclaims a worker's open lease when that worker exits before ack.
 
 ## Examples
 

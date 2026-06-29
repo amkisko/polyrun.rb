@@ -11,7 +11,8 @@ RSpec.describe Polyrun::Timing::Merge do
         File.write(a, JSON.dump({"/a.rb" => 1.0}))
         File.write(b, JSON.dump({"/b.rb" => 2.0}))
         m = described_class.merge_files([a, b])
-        expect(m).to eq({"/a.rb" => 1.0, "/b.rb" => 2.0})
+        expect(m["/a.rb"]["last_seconds"]).to eq(1.0)
+        expect(m["/b.rb"]["last_seconds"]).to eq(2.0)
       end
     end
 
@@ -22,8 +23,8 @@ RSpec.describe Polyrun::Timing::Merge do
         File.write(a, JSON.dump({"/app/x_spec.rb:10" => 1.0}))
         File.write(b, JSON.dump({"/app/x_spec.rb:10" => 2.0, "/app/y_spec.rb:1" => 0.5}))
         m = described_class.merge_files([a, b])
-        expect(m["/app/x_spec.rb:10"]).to eq(2.0)
-        expect(m["/app/y_spec.rb:1"]).to eq(0.5)
+        expect(m["/app/x_spec.rb:10"]["last_seconds"]).to eq(2.0)
+        expect(m["/app/y_spec.rb:1"]["last_seconds"]).to eq(0.5)
       end
     end
 
@@ -34,9 +35,9 @@ RSpec.describe Polyrun::Timing::Merge do
         File.write(a, JSON.dump({"/x.rb" => 1.0, "/y.rb" => 3.0}))
         File.write(b, JSON.dump({"/x.rb" => 2.5, "/z.rb" => 0.5}))
         m = described_class.merge_files([a, b])
-        expect(m["/x.rb"]).to eq(2.5)
-        expect(m["/y.rb"]).to eq(3.0)
-        expect(m["/z.rb"]).to eq(0.5)
+        expect(m["/x.rb"]["last_seconds"]).to eq(2.5)
+        expect(m["/y.rb"]["last_seconds"]).to eq(3.0)
+        expect(m["/z.rb"]["last_seconds"]).to eq(0.5)
       end
     end
 
@@ -47,7 +48,7 @@ RSpec.describe Polyrun::Timing::Merge do
         File.write(bad, JSON.dump([1, 2, 3]))
         File.write(good, JSON.dump({"/a.rb" => 1.0}))
         m = described_class.merge_files([bad, good])
-        expect(m).to eq({"/a.rb" => 1.0})
+        expect(m["/a.rb"]["last_seconds"]).to eq(1.0)
       end
     end
   end
@@ -59,7 +60,8 @@ RSpec.describe Polyrun::Timing::Merge do
         File.write(f, JSON.dump({"/a.rb" => 1.0}))
         out = File.join(dir, "out.json")
         described_class.merge_and_write([f], out)
-        expect(JSON.parse(File.read(out))).to eq({"/a.rb" => 1.0})
+        parsed = JSON.parse(File.read(out))
+        expect(parsed["/a.rb"]["last_seconds"]).to eq(1.0)
         expect(File.read(out)).to include("\n") # pretty_generate
       end
     end
