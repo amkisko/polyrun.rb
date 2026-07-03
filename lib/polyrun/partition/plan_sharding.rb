@@ -7,10 +7,14 @@ module Polyrun
         @hrw_shards ||= begin
           buckets = Array.new(total_shards) { [] }
           salt = hrw_salt
+          weighted = strategy == "weighted_hrw"
           items.each do |path|
             j =
               if @constraints && (fj = @constraints.forced_shard_for(path))
                 Integer(fj)
+              elsif weighted
+                w = send(:weight_for_optional, path)
+                Hrw.weighted_shard_for(path: path, total_shards: total_shards, seed: salt, weight: w)
               else
                 Hrw.shard_for(path: path, total_shards: total_shards, seed: salt)
               end

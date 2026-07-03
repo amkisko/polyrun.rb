@@ -23,13 +23,10 @@ module Polyrun
         run_shards_plan_phase_b(o, cmd, cfg, pc, run_t0, config_path)
       end
 
-      def run_shards_default_timing_path(pc, timing_path, strategy)
+      def run_shards_default_timing_path(pc, timing_path, _strategy = nil)
         return timing_path if timing_path
 
-        tf = pc["timing_file"] || pc[:timing_file]
-        return tf if tf && (Polyrun::Partition::Plan.cost_strategy?(strategy) || Polyrun::Partition::Plan.hrw_strategy?(strategy))
-
-        nil
+        pc["timing_file"] || pc[:timing_file]
       end
 
       def run_shards_validate_workers!(o)
@@ -70,8 +67,13 @@ module Polyrun
         [items, paths_source, nil]
       end
 
-      def run_shards_resolve_costs(timing_path, strategy, timing_granularity)
+      def run_shards_resolve_costs(timing_path, strategy, timing_granularity, strategy_explicit: false)
+        strategy = strategy.to_s
         if timing_path
+          if strategy_explicit && strategy == "round_robin"
+            return [nil, strategy, nil]
+          end
+
           costs = Polyrun::Partition::Plan.load_timing_costs(
             File.expand_path(timing_path.to_s, Dir.pwd),
             granularity: timing_granularity
@@ -80,12 +82,16 @@ module Polyrun
             Polyrun::Log.warn "polyrun run-shards: timing file missing or empty: #{timing_path}"
             return [nil, nil, 2]
           end
-          unless Polyrun::Partition::Plan.cost_strategy?(strategy) || Polyrun::Partition::Plan.hrw_strategy?(strategy)
-            Polyrun::Log.warn "polyrun run-shards: using cost_binpack (timing data present)" if @verbose
-            strategy = "cost_binpack"
+          if Polyrun::Partition::Plan.timing_load_strategy?(strategy)
+            return [costs, strategy, nil]
           end
-          [costs, strategy, nil]
-        elsif Polyrun::Partition::Plan.cost_strategy?(strategy)
+          unless strategy_explicit
+            Polyrun::Log.warn "polyrun run-shards: using cost_binpack (timing data present)" if @verbose
+            return [costs, "cost_binpack", nil]
+          end
+
+          return [nil, strategy, nil]
+        elsif Polyrun::Partition::Plan.cost_strategy?(strategy) || Polyrun::Partition::Plan.lazy_robin_strategy?(strategy)
           Polyrun::Log.warn "polyrun run-shards: --timing or partition.timing_file required for strategy #{strategy}"
           [nil, nil, 2]
         else
@@ -93,7 +99,7 @@ module Polyrun
         end
       end
 
-      def run_shards_make_plan(items, workers, strategy, seed, costs, constraints, timing_granularity)
+      def run_shards_make_plan(items, workers, strategy, seed, costs, constraints, timing_granularity, stable_assignment = nil)
         Polyrun::Debug.time("Partition::Plan.new (partition #{items.size} paths → #{workers} shards)") do
           Polyrun::Partition::Plan.new(
             items: items,
@@ -103,7 +109,8 @@ module Polyrun
             costs: costs,
             constraints: constraints,
             root: Dir.pwd,
-            timing_granularity: timing_granularity
+            timing_granularity: timing_granularity,
+            stable_assignment: stable_assignment
           )
         end
       end
