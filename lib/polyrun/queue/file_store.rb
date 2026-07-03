@@ -1,3 +1,4 @@
+# rubocop:disable Polyrun/FileLength, Metrics/ClassLength -- file-backed queue chunks + leases
 require "fileutils"
 require "json"
 require "securerandom"
@@ -299,3 +300,4 @@ module Polyrun
 end
 
 require_relative "file_store_pending"
+# rubocop:enable Polyrun/FileLength, Metrics/ClassLength

@@ -38,6 +38,7 @@ module Polyrun
         Array(profile_list).map(&:to_s).map(&:downcase)
       end
 
+      # rubocop:disable Metrics/AbcSize -- profile dimension slice
       def slice_profile(diff, dimensions)
         dims = enabled_dimensions(dimensions)
         return diff if dims.empty?
@@ -58,6 +59,7 @@ module Polyrun
         end
         out
       end
+      # rubocop:enable Metrics/AbcSize
 
       def read_proc_io
         path = "/proc/self/io"

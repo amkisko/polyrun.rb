@@ -29,6 +29,7 @@ module Polyrun
       end
 
       # @return [Hash] +:unique_lines+, +:line_churn+, +:max_line_churn+, +:lines+ (compact triples)
+      # rubocop:disable Metrics/AbcSize -- per-file coverage delta walk
       def diff(before_blob, after_blob)
         before_blob ||= {}
         after_blob ||= {}
@@ -67,6 +68,7 @@ module Polyrun
           lines: line_entries
         }
       end
+      # rubocop:enable Metrics/AbcSize
 
       def filter_lines(lines, root:, track_under:, ignore_paths: [])
         root = File.expand_path(root)

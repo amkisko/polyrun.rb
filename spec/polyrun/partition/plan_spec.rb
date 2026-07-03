@@ -1,3 +1,4 @@
+# rubocop:disable Polyrun/FileLength -- partition strategy matrix
 require "spec_helper"
 
 RSpec.describe Polyrun::Partition::Plan do
@@ -249,3 +250,4 @@ RSpec.describe Polyrun::Partition::Plan do
     end
   end
 end
+# rubocop:enable Polyrun/FileLength

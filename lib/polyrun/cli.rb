@@ -1,3 +1,4 @@
+# rubocop:disable Polyrun/FileLength -- CLI dispatch + require wiring
 require "optparse"
 
 require_relative "cli/helpers"
@@ -208,3 +209,4 @@ module Polyrun
     end
   end
 end
+# rubocop:enable Polyrun/FileLength

@@ -118,6 +118,7 @@ module Polyrun
       # ENV for a worker process: POLYRUN_SHARD_* plus per-shard database URLs from polyrun.yml or DATABASE_URL.
       # When +matrix_total+ > 1 with multiple local workers, sets +POLYRUN_SHARD_MATRIX_INDEX+ / +POLYRUN_SHARD_MATRIX_TOTAL+
       # so {Coverage::Collector} can name fragments uniquely across CI matrix jobs (NxM sharding).
+      # rubocop:disable Metrics/AbcSize -- shard ENV: matrix, DB URLs, fragment flags
       def shard_child_env(cfg:, workers:, shard:, matrix_index: nil, matrix_total: nil, failure_fragments: false, spec_quality_fragments: false)
         child_env = ENV.to_h.merge(
           Polyrun::Database::Shard.env_map(shard_index: shard, shard_total: workers)
@@ -141,6 +142,7 @@ module Polyrun
         end
         child_env
       end
+      # rubocop:enable Metrics/AbcSize
 
       def cmd_build_paths(config_path)
         cfg = Polyrun::Config.load(path: config_path || ENV["POLYRUN_CONFIG"])

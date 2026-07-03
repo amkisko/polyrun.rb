@@ -1,3 +1,4 @@
+# rubocop:disable Polyrun/FileLength -- per-example recorder API
 require "json"
 require "fileutils"
 
@@ -40,13 +41,9 @@ module Polyrun
         Config.enabled? && !Config.disabled?
       end
 
-      def config
-        @config
-      end
+      attr_reader :config
 
-      def output_path
-        @output_path
-      end
+      attr_reader :output_path
 
       def recording?
         started? && @current && @pause_depth.zero?
@@ -205,3 +202,4 @@ module Polyrun
     end
   end
 end
+# rubocop:enable Polyrun/FileLength

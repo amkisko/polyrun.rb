@@ -33,6 +33,7 @@ module Polyrun
         }
       end
 
+      # rubocop:disable Metrics/AbcSize -- imbalance summary lines
       def emit_imbalance!(plan, totals = nil)
         totals ||= plan.shard_weight_totals
         m = imbalance_metrics(totals)
@@ -75,13 +76,14 @@ module Polyrun
         end
 
         if m[:imbalance_ratio] > IMBALANCE_ATTENTION
-          lines << "  Attention required: slowest shard is #{format('%.2f', m[:imbalance_ratio])}x average"
+          lines << "  Attention required: slowest shard is #{format("%.2f", m[:imbalance_ratio])}x average"
         elsif m[:imbalance_ratio] > IMBALANCE_WARN
           lines << "  Warning: imbalance_ratio > #{IMBALANCE_WARN}"
         end
 
         lines.each { |ln| Polyrun::Log.warn ln }
       end
+      # rubocop:enable Metrics/AbcSize
 
       def dominant_candidates(plan, totals = nil)
         totals ||= plan.shard_weight_totals
@@ -100,7 +102,7 @@ module Polyrun
 
           mult = w / target
           reasons = []
-          reasons << "#{format('%.1f', mult)}x target shard time" if mult > 1.0
+          reasons << "#{format("%.1f", mult)}x target shard time" if mult > 1.0
           reasons << "split candidate" if slow_total.positive? && w > DOMINANT_SHARD_FRACTION * slow_total
           {path: path, seconds: w, target: target, multiple: mult, reasons: reasons}
         end.sort_by { |h| -h[:seconds] }

@@ -1,3 +1,4 @@
+# rubocop:disable Polyrun/FileLength -- run-shards boot phases A/B
 require "shellwords"
 
 module Polyrun
@@ -27,6 +28,7 @@ module Polyrun
         [:ok, o, cmd]
       end
 
+      # rubocop:disable Metrics/AbcSize -- items + costs + plan emit for run-shards
       def run_shards_plan_phase_b(o, cmd, cfg, pc, run_t0, config_path)
         items, paths_source, err = run_shards_resolve_items(o[:paths_file], pc)
         return [err, nil] if err
@@ -64,6 +66,7 @@ module Polyrun
 
         [nil, run_shards_plan_context_hash(o, cmd, cfg, plan, run_t0, parallel, config_path)]
       end
+      # rubocop:enable Metrics/AbcSize
 
       def run_shards_plan_boot(argv, config_path)
         run_t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -198,3 +201,4 @@ module Polyrun
     end
   end
 end
+# rubocop:enable Polyrun/FileLength

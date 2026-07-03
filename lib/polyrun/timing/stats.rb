@@ -25,6 +25,7 @@ module Polyrun
         end
       end
 
+      # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity -- timing hash key coercion
       def normalize_hash(h)
         out = {}
         sec = h["last_seconds"] || h[:last_seconds] || h["seconds"] || h[:seconds]
@@ -40,12 +41,14 @@ module Polyrun
         out["timeouts"] = Integer(h["timeouts"] || h[:timeouts] || 0)
         out
       end
+      # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
       def binpack_weight(entry)
         h = normalize_entry(entry)
         h["last_seconds"].positive? ? h["last_seconds"] : h["mean"]
       end
 
+      # rubocop:disable Metrics/AbcSize -- weighted mean merge
       def merge_entries(a, b)
         ha = normalize_entry(a)
         hb = normalize_entry(b)
@@ -67,6 +70,7 @@ module Polyrun
           "timeouts" => ha["timeouts"] + hb["timeouts"]
         }
       end
+      # rubocop:enable Metrics/AbcSize
     end
   end
 end
