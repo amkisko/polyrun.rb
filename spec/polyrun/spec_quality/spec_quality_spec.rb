@@ -24,7 +24,7 @@ RSpec.describe Polyrun::SpecQuality do
         File.write(rb, "def bump\n  1\nend\n")
 
         out = File.join(dir, "coverage", "frag.jsonl")
-        Coverage.start(lines: true)
+        Coverage.start(lines: true) unless Coverage.running?
         load rb
         described_class.start!(root: dir, output_path: out, sample: 1.0, track_under: %w[lib], profile: [])
 
