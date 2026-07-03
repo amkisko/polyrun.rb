@@ -11,11 +11,27 @@ module Polyrun
         pick_shard(path: path, total_shards: total_shards, seed: seed) { |p, j, salt| score(p, j, salt) }
       end
 
-      def weighted_shard_for(path:, total_shards:, seed: "", weight: 0.0)
+      # Per-shard weights (heterogeneous nodes). Uniform weights match +shard_for+.
+      def weighted_shard_for(path:, total_shards:, seed: "", shard_weights: nil)
+        weights = normalize_shard_weights(shard_weights, total_shards)
         pick_shard(path: path, total_shards: total_shards, seed: seed) do |p, j, salt|
-          base = score(p, j, salt)
-          weight.positive? ? (base.to_f / weight) : base
+          base = score(p, j, salt).to_f
+          w = weights[j]
+          w.positive? ? base / w : base
         end
+      end
+
+      def normalize_shard_weights(shard_weights, total_shards)
+        m = Integer(total_shards)
+        return Array.new(m, 1.0) if shard_weights.nil? || shard_weights.empty?
+
+        weights = shard_weights.map { |w| w.to_f }
+        if weights.size < m
+          weights += Array.new(m - weights.size, 1.0)
+        elsif weights.size > m
+          weights = weights[0, m]
+        end
+        weights
       end
 
       def pick_shard(path:, total_shards:, seed:)
@@ -37,8 +53,18 @@ module Polyrun
       end
 
       def score(path, shard_index, salt)
-        Digest::SHA256.digest("#{salt}\n#{path}\n#{shard_index}").unpack1("H*").hex
+        digest = Digest::SHA256.digest("#{salt}\n#{path}\n#{shard_index}")
+        if fast_score?
+          digest.unpack1("Q>")
+        else
+          digest.unpack1("H*").hex
+        end
       end
+
+      def fast_score?
+        %w[1 true yes].include?(ENV["POLYRUN_HRW_FAST_SCORE"]&.to_s&.downcase)
+      end
+      private_class_method :fast_score?
     end
   end
 end

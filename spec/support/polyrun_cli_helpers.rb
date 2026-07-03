@@ -55,7 +55,12 @@ module PolyrunCliHelpers
 
   # Tests need a stable cwd; Dir.chdir is process-wide (acceptable in isolated examples).
   def parse_polyrun_json(out)
-    line = out.lines.map(&:strip).find { |l| l.start_with?("{") }
+    text = out.to_s.dup
+    text = text.force_encoding(Encoding::UTF_8) unless text.encoding == Encoding::UTF_8
+    unless text.valid_encoding?
+      text = text.encode(Encoding::UTF_8, invalid: :replace, undef: :replace)
+    end
+    line = text.lines.map(&:strip).find { |l| l.start_with?("{") }
     raise "no JSON in polyrun output: #{out.inspect}" unless line
 
     JSON.parse(line)

@@ -1,4 +1,5 @@
 require "spec_helper"
+require "stringio"
 
 RSpec.describe Polyrun::Database::Shard do
   it "expands database name template" do
@@ -29,5 +30,18 @@ RSpec.describe Polyrun::Database::Shard do
   it "suffixes basename in sqlite3 URL" do
     u = "sqlite3:db/myapp_test.sqlite3"
     expect(described_class.database_url_with_shard(u, 2)).to eq("sqlite3:db/myapp_test_2.sqlite3")
+  end
+
+  it "warns and passes through URLs without a database segment" do
+    u = "postgres://u:p@host:5432"
+    err = StringIO.new
+    Polyrun::Log.stderr = err
+    begin
+      result = described_class.database_url_with_shard(u, 2)
+      expect(result).to eq(u)
+      expect(err.string).to include("no database segment")
+    ensure
+      Polyrun::Log.reset_io!
+    end
   end
 end

@@ -122,14 +122,18 @@ module Polyrun
       def run_queue_wait_workers(pids, store:, on_failure:)
         ok = 0
         fail = 0
-        pids.each do |entry|
-          _pid, st = Process.wait2(entry[:pid])
+        pid_to_worker = pids.each_with_object({}) { |entry, h| h[entry[:pid]] = entry[:worker_id] }
+        while pid_to_worker.any?
+          pid, st = Process.wait2(-1)
+          worker_id = pid_to_worker.delete(pid)
+          next unless worker_id
+
           if st.success?
             ok += 1
           else
             fail += 1
-            reclaimed = store.reclaim!(worker_id: entry[:worker_id])
-            Polyrun::Log.warn "polyrun run-queue: reclaimed #{reclaimed} path(s) from #{entry[:worker_id]}" if reclaimed.positive?
+            reclaimed = store.reclaim!(worker_id: worker_id)
+            Polyrun::Log.warn "polyrun run-queue: reclaimed #{reclaimed} path(s) from #{worker_id}" if reclaimed.positive?
           end
         end
         {ok: ok, fail: fail}

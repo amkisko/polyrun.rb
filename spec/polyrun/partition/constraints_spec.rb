@@ -28,5 +28,15 @@ RSpec.describe Polyrun::Partition::Constraints do
         expect(c.forced_shard_for("#{sys}:10")).to eq(0)
       end
     end
+
+    it "forces serial_glob paths to serial_shard" do
+      Dir.mktmpdir do |dir|
+        sys = File.join(dir, "spec", "system", "x_spec.rb")
+        FileUtils.mkdir_p(File.dirname(sys))
+        File.write(sys, "")
+        c = described_class.new(serial_globs: ["**/system/**"], root: dir)
+        expect(c.forced_shard_for("spec/system/x_spec.rb")).to eq(0)
+      end
+    end
   end
 end

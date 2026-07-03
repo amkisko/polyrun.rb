@@ -49,7 +49,8 @@ module Polyrun
           constraints: constraints,
           shard: ctx[:shard],
           timing_granularity: ctx[:timing_granularity],
-          stable_assignment: stable
+          stable_assignment: stable,
+          shard_weights: pc["shard_weights"] || pc[:shard_weights]
         )
         partition_emit_diagnostics!(
           plan: plan,
@@ -122,7 +123,7 @@ module Polyrun
         end.parse!(argv)
       end
 
-      def plan_command_build_manifest(items:, total:, strategy:, seed:, costs:, constraints:, shard:, timing_granularity: :file, stable_assignment: nil)
+      def plan_command_build_manifest(items:, total:, strategy:, seed:, costs:, constraints:, shard:, timing_granularity: :file, stable_assignment: nil, shard_weights: nil)
         plan = Polyrun::Debug.time("Partition::Plan.new (plan command)") do
           Polyrun::Partition::Plan.new(
             items: items,
@@ -133,7 +134,8 @@ module Polyrun
             constraints: constraints,
             root: Dir.pwd,
             timing_granularity: timing_granularity,
-            stable_assignment: stable_assignment
+            stable_assignment: stable_assignment,
+            shard_weights: shard_weights
           )
         end
         Polyrun::Debug.log_kv(

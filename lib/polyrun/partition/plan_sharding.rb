@@ -13,8 +13,12 @@ module Polyrun
               if @constraints && (fj = @constraints.forced_shard_for(path))
                 Integer(fj)
               elsif weighted
-                w = send(:weight_for_optional, path)
-                Hrw.weighted_shard_for(path: path, total_shards: total_shards, seed: salt, weight: w)
+                Hrw.weighted_shard_for(
+                  path: path,
+                  total_shards: total_shards,
+                  seed: salt,
+                  shard_weights: @shard_weights
+                )
               else
                 Hrw.shard_for(path: path, total_shards: total_shards, seed: salt)
               end

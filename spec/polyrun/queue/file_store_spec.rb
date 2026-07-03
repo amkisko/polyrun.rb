@@ -83,12 +83,67 @@ RSpec.describe Polyrun::Queue::FileStore do
     Dir.mktmpdir do |dir|
       s = described_class.new(dir)
       s.init!(%w[a b c])
-      r = s.claim!(worker_id: "w1", batch_size: 2)
+      s.claim!(worker_id: "w1", batch_size: 2)
       n = s.reclaim!(worker_id: "w1")
       expect(n).to eq(2)
       st = s.status
       expect(st["pending"]).to eq(3)
       expect(st["leases"]).to eq(0)
+    end
+  end
+
+  it "reclaim_lease! returns paths to pending and removes the lease" do
+    Dir.mktmpdir do |dir|
+      s = described_class.new(dir)
+      s.init!(%w[a b])
+      r = s.claim!(worker_id: "w1", batch_size: 1)
+      expect(s.reclaim_lease!(r["lease_id"])).to eq(1)
+      st = s.status
+      expect(st["pending"]).to eq(2)
+      expect(st["leases"]).to eq(0)
+    end
+  end
+
+  it "reclaim with older_than only reclaims stale leases across workers" do
+    Dir.mktmpdir do |dir|
+      s = described_class.new(dir)
+      s.init!(%w[a b c d])
+      fresh = s.claim!(worker_id: "w1", batch_size: 1)
+      stale_lease_id = fresh["lease_id"]
+      leases_path = File.join(dir, "leases.json")
+      leases = JSON.parse(File.read(leases_path))
+      leases[stale_lease_id]["claimed_at"] = (Time.now.utc - 3600).iso8601
+      File.write(leases_path, JSON.generate(leases))
+
+      s.claim!(worker_id: "w2", batch_size: 1)
+
+      n = s.reclaim!(older_than: 600)
+      expect(n).to eq(1)
+      st = s.status(detailed: true)
+      expect(st["leases"]).to eq(1)
+      expect(st["pending"]).to eq(3)
+    end
+  end
+
+  it "reclaim with worker and older-than only reclaims stale leases for that worker" do
+    Dir.mktmpdir do |dir|
+      s = described_class.new(dir)
+      s.init!(%w[a b c d])
+      fresh = s.claim!(worker_id: "w1", batch_size: 1)
+      stale_lease_id = fresh["lease_id"]
+      leases_path = File.join(dir, "leases.json")
+      leases = JSON.parse(File.read(leases_path))
+      leases[stale_lease_id]["claimed_at"] = (Time.now.utc - 3600).iso8601
+      File.write(leases_path, JSON.generate(leases))
+
+      s.claim!(worker_id: "w1", batch_size: 1)
+
+      n = s.reclaim!(worker_id: "w1", older_than: 600)
+      expect(n).to eq(1)
+      st = s.status(detailed: true)
+      expect(st["leases"]).to eq(1)
+      expect(st["lease_details"].first["worker_id"]).to eq("w1")
+      expect(st["pending"]).to eq(3)
     end
   end
 

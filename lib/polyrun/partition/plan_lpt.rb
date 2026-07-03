@@ -16,8 +16,9 @@ module Polyrun
 
         buckets = Array.new(@plan.total_shards) { [] }
         totals = Array.new(@plan.total_shards, 0.0)
-        lpt_fill_forced!(buckets, totals)
-        lpt_balance_free!(buckets, totals)
+        forced_pairs, free = partition_forced_and_free
+        lpt_apply_forced!(buckets, totals, forced_pairs)
+        lpt_balance_free!(buckets, totals, free)
         buckets
       end
 
@@ -50,11 +51,21 @@ module Polyrun
 
       private
 
-      def lpt_fill_forced!(buckets, totals)
+      def partition_forced_and_free
+        forced_pairs = []
+        free = []
         @plan.items.each do |item|
-          next unless @plan.constraints && (j = @plan.constraints.forced_shard_for(item))
+          if @plan.constraints && (j = @plan.constraints.forced_shard_for(item))
+            forced_pairs << [item, Integer(j)]
+          else
+            free << item
+          end
+        end
+        [forced_pairs, free]
+      end
 
-          j = Integer(j)
+      def lpt_apply_forced!(buckets, totals, forced_pairs)
+        forced_pairs.each do |item, j|
           raise Polyrun::Error, "constraint shard #{j} out of range" if j < 0 || j >= @plan.total_shards
 
           buckets[j] << item
@@ -62,8 +73,7 @@ module Polyrun
         end
       end
 
-      def lpt_balance_free!(buckets, totals)
-        free = @plan.items.reject { |item| @plan.constraints&.forced_shard_for(item) }
+      def lpt_balance_free!(buckets, totals, free)
         pairs = free.map { |p| [p, @plan.send(:weight_for, p)] }
         pairs.sort_by! { |(p, w)| [-w, p] }
 

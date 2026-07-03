@@ -1,3 +1,5 @@
+require "set"
+
 module Polyrun
   module Partition
     # Stale / missing timing coverage before cost-based partition.
@@ -14,11 +16,16 @@ module Polyrun
         cost_keys = costs&.keys || []
 
         if g == :example
-          item_file_keys = item_keys.map { |k| file_from_locator(k) }.uniq
-          cost_file_keys = cost_keys.map { |k| file_from_locator(k) }.uniq
-          known = item_file_keys.count { |k| cost_file_keys.include?(k) || item_keys.any? { |ik| cost_keys.include?(ik) } }
-          missing = item_keys.reject { |k| cost_keys.include?(k) }
-          stale = cost_keys.reject { |k| item_keys.include?(k) }
+          item_keys_set = item_keys.to_set
+          cost_keys_set = cost_keys.to_set
+          cost_file_keys_set = cost_keys.map { |k| file_from_locator(k) }.uniq.to_set
+          known = item_keys.count do |ik|
+            cost_keys_set.include?(ik) || cost_file_keys_set.include?(file_from_locator(ik))
+          end
+          missing = item_keys.reject do |ik|
+            cost_keys_set.include?(ik) || cost_file_keys_set.include?(file_from_locator(ik))
+          end
+          stale = cost_keys.reject { |k| item_keys_set.include?(k) }
           total = item_keys.size
         else
           known = item_keys.count { |k| costs&.key?(k) }

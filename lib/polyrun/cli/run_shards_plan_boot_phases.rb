@@ -44,7 +44,8 @@ module Polyrun
         constraints = load_partition_constraints(pc, o[:constraints_path])
         stable = load_stable_assignment(pc)
         plan = run_shards_make_plan(
-          items, o[:workers], strategy, o[:seed], costs, constraints, o[:timing_granularity], stable
+          items, o[:workers], strategy, o[:seed], costs, constraints, o[:timing_granularity], stable,
+          shard_weights: pc["shard_weights"] || pc[:shard_weights]
         )
 
         partition_emit_diagnostics!(

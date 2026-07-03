@@ -103,6 +103,70 @@ RSpec.describe Polyrun::Partition::Plan do
     expect(plan.shard(a)).to include("spec/a_spec.rb")
   end
 
+  it "hrw partitions all items across shards without overlap or gaps" do
+    items = (1..50).map { |i| format("spec/p_%03d_spec.rb", i) }
+    workers = 5
+    plan = described_class.new(items: items, total_shards: workers, strategy: "hrw")
+    partitioned = workers.times.flat_map { |j| plan.shard(j) }
+    expect(partitioned.size).to eq(items.size)
+    expect(partitioned.tally).to eq(items.tally)
+  end
+
+  it "weighted_hrw plan uses shard_weights" do
+    path = "spec/file_0_spec.rb"
+    uniform = described_class.new(items: [path], total_shards: 3, strategy: "hrw")
+    weighted = described_class.new(
+      items: [path],
+      total_shards: 3,
+      strategy: "weighted_hrw",
+      shard_weights: [10.0, 1.0, 1.0]
+    )
+    u_shard = (0...3).find { |j| uniform.shard(j).include?(path) }
+    w_shard = (0...3).find { |j| weighted.shard(j).include?(path) }
+    expect(w_shard).not_to eq(u_shard)
+  end
+
+  it "stable_cost_binpack keeps balanced stable assignment within imbalance threshold" do
+    root = Dir.pwd
+    costs = {"a" => 5.0, "b" => 5.0}
+    stable = {
+      File.expand_path("a", root) => 0,
+      File.expand_path("b", root) => 1
+    }
+    plan = described_class.new(
+      items: %w[a b],
+      total_shards: 2,
+      strategy: "stable_cost_binpack",
+      costs: costs,
+      stable_assignment: stable,
+      stable_imbalance_threshold: 1.30,
+      root: root
+    )
+    expect(plan.shard(0)).to eq(%w[a])
+    expect(plan.shard(1)).to eq(%w[b])
+  end
+
+  it "stable_cost_binpack falls back to LPT when stable assignment exceeds imbalance threshold" do
+    root = Dir.pwd
+    costs = {"a" => 10.0, "b" => 1.0, "c" => 1.0}
+    stable = {
+      File.expand_path("a", root) => 0,
+      File.expand_path("b", root) => 0,
+      File.expand_path("c", root) => 0
+    }
+    plan = described_class.new(
+      items: %w[a b c],
+      total_shards: 2,
+      strategy: "stable_cost_binpack",
+      costs: costs,
+      stable_assignment: stable,
+      stable_imbalance_threshold: 1.30,
+      root: root
+    )
+    expect(plan.shard(0)).to eq(%w[a])
+    expect(plan.shard(1)).to contain_exactly("b", "c")
+  end
+
   it "cost_binpack uses per-example weights when timing_granularity is example (experimental)" do
     Dir.mktmpdir do |dir|
       a = "a_spec.rb:1"
@@ -159,5 +223,29 @@ RSpec.describe Polyrun::Partition::Plan do
       root: Dir.pwd
     )
     expect(plan.shard(1)).to include("b")
+  end
+
+  it "serial_glob forces system specs onto serial_shard before LPT on free items" do
+    Dir.mktmpdir do |dir|
+      sys_rel = "spec/system/x_spec.rb"
+      FileUtils.mkdir_p(File.join(dir, "spec", "system"))
+      File.write(File.join(dir, sys_rel), "")
+      other_rel = "spec/other_spec.rb"
+      File.write(File.join(dir, other_rel), "")
+      c = Polyrun::Partition::Constraints.from_hash({"serial_glob" => ["**/system/**"]}, root: dir)
+      costs = {
+        File.expand_path(sys_rel, dir) => 1.0,
+        File.expand_path(other_rel, dir) => 10.0
+      }
+      plan = described_class.new(
+        items: [sys_rel, other_rel],
+        total_shards: 2,
+        strategy: "cost_binpack",
+        costs: costs,
+        constraints: c,
+        root: dir
+      )
+      expect(plan.shard(0)).to include(sys_rel)
+    end
   end
 end

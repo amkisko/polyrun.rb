@@ -79,7 +79,6 @@ module Polyrun
               merge_failures: ctx[:merge_failures]
             )
             exit_code = 1
-            exit_code = 1 if wait_hook_err != 0
             return exit_code
           end
 

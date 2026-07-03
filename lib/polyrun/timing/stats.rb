@@ -50,7 +50,12 @@ module Polyrun
         ha = normalize_entry(a)
         hb = normalize_entry(b)
         runs = ha["runs"] + hb["runs"]
-        mean = ((ha["mean"] * ha["runs"]) + (hb["mean"] * hb["runs"])) / runs.to_f
+        mean =
+          if runs.positive?
+            ((ha["mean"] * ha["runs"]) + (hb["mean"] * hb["runs"])) / runs.to_f
+          else
+            0.0
+          end
         {
           "last_seconds" => [ha["last_seconds"], hb["last_seconds"]].max,
           "min" => [ha["min"], hb["min"]].min,
