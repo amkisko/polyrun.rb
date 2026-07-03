@@ -119,6 +119,22 @@ module Polyrun
       def resolve_partition_timing_granularity(pc, cli_val)
         Polyrun::Config::Resolver.resolve_partition_timing_granularity(pc, cli_val)
       end
+
+      def load_stable_assignment(pc)
+        path = pc["stable_assignment_file"] || pc[:stable_assignment_file]
+        return nil unless path
+
+        abs = File.expand_path(path.to_s, Dir.pwd)
+        return nil unless File.file?(abs)
+
+        data = JSON.parse(File.read(abs))
+        return data if data.is_a?(Hash)
+
+        nil
+      rescue JSON::ParserError
+        Polyrun::Log.warn "polyrun: invalid stable_assignment_file JSON: #{abs}"
+        nil
+      end
     end
   end
 end

@@ -1,6 +1,7 @@
 require "optparse"
 
 require_relative "cli/helpers"
+require_relative "cli/partition_diagnostics"
 require_relative "cli/plan_command"
 require_relative "cli/prepare_command"
 require_relative "cli/coverage_commands"
@@ -8,6 +9,7 @@ require_relative "cli/report_commands"
 require_relative "cli/env_commands"
 require_relative "cli/database_commands"
 require_relative "cli/run_shards_command"
+require_relative "cli/run_queue_command"
 require_relative "cli/queue_command"
 require_relative "cli/timing_command"
 require_relative "cli/init_command"
@@ -30,7 +32,7 @@ module Polyrun
     DISPATCH_SUBCOMMAND_NAMES = %w[
       plan prepare merge-coverage merge-failures report-coverage report-junit report-timing
       env config merge-timing db:setup-template db:setup-shard db:clone-shards
-      run-shards parallel-rspec start build-paths init queue quick hook
+      run-shards parallel-rspec start build-paths init queue run-queue quick hook
     ].freeze
 
     # First argv token that is a normal subcommand (not a path); if argv[0] is not here but looks like paths, run implicit parallel.
@@ -39,6 +41,7 @@ module Polyrun
     ).freeze
 
     include Helpers
+    include PartitionDiagnostics
     include PlanCommand
     include PrepareCommand
     include CoverageCommands
@@ -46,6 +49,7 @@ module Polyrun
     include EnvCommands
     include DatabaseCommands
     include RunShardsCommand
+    include RunQueueCommand
     include QueueCommand
     include TimingCommand
     include InitCommand
@@ -179,6 +183,8 @@ module Polyrun
         cmd_init(argv, config_path)
       when "queue"
         cmd_queue(argv)
+      when "run-queue"
+        cmd_run_queue(argv, config_path)
       when "quick"
         cmd_quick(argv)
       when "hook"

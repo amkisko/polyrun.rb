@@ -130,6 +130,20 @@ RSpec.describe Polyrun::Partition::Plan do
     end
   end
 
+  it "lazy_robin assigns like round_robin but emits shard_seconds" do
+    costs = {"c" => 3.0, "a" => 1.0, "b" => 2.0}
+    plan = described_class.new(items: %w[c a b], total_shards: 2, strategy: "lazy_robin", costs: costs)
+    expect(plan.shard(0)).to eq(%w[a c])
+    expect(plan.shard(1)).to eq(%w[b])
+    expect(plan.manifest(0)["shard_seconds"]).to eq([4.0, 2.0])
+  end
+
+  it "preserve_order_round_robin keeps paths file order" do
+    plan = described_class.new(items: %w[c a b], total_shards: 2, strategy: "preserve_order_round_robin")
+    expect(plan.shard(0)).to eq(%w[c b])
+    expect(plan.shard(1)).to eq(%w[a])
+  end
+
   it "pins override LPT placement" do
     c = Polyrun::Partition::Constraints.new(
       pin_map: {"b" => 1},

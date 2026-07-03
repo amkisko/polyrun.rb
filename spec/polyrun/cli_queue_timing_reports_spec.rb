@@ -84,11 +84,11 @@ RSpec.describe Polyrun::CLI do
         File.write(timing, JSON.dump({"a.rb" => 3.0, "b.rb" => 1.0, "c.rb" => 1.0}))
         out_init, st_init = polyrun("queue", "init", "--paths-file", list, "--timing", timing, "--dir", ".polyrun-queue")
         expect(st_init.success?).to be true
-        expect(JSON.parse(out_init)["count"]).to eq(3)
+        expect(parse_polyrun_json(out_init)["count"]).to eq(3)
 
         out_claim, st_claim = polyrun("queue", "claim", "--dir", ".polyrun-queue", "--batch", "2")
         expect(st_claim.success?).to be true
-        claim = JSON.parse(out_claim)
+        claim = parse_polyrun_json(out_claim)
         expect(claim["paths"].size).to eq(2)
         lease = claim["lease_id"]
 
@@ -119,8 +119,8 @@ RSpec.describe Polyrun::CLI do
       _, status = polyrun("merge-timing", "-i", a, "-i", b, "-o", out)
       expect(status.success?).to be true
       m = JSON.parse(File.read(out))
-      expect(m["/a.rb"]).to eq(1.5)
-      expect(m["/b.rb"]).to eq(2.0)
+      expect(m["/a.rb"]["last_seconds"]).to eq(1.5)
+      expect(m["/b.rb"]["last_seconds"]).to eq(2.0)
     end
   end
 
@@ -164,7 +164,8 @@ RSpec.describe Polyrun::CLI do
       out_path = File.join(dir, "merged.json")
       out, status = polyrun("merge-timing", f, "-o", out_path)
       expect(status.success?).to be true
-      expect(JSON.parse(File.read(out_path))).to eq({"/a.rb" => 1.0})
+      parsed = JSON.parse(File.read(out_path))
+      expect(parsed["/a.rb"]["last_seconds"]).to eq(1.0)
       expect(out.strip).to eq(File.expand_path(out_path))
     end
   end

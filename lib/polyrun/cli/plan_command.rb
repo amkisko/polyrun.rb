@@ -38,8 +38,9 @@ module Polyrun
 
         items, costs, strategy = bundle
         constraints = load_partition_constraints(pc, ctx[:constraints_path])
+        stable = load_stable_assignment(pc)
 
-        manifest = plan_command_build_manifest(
+        manifest, plan = plan_command_build_manifest(
           items: items,
           total: ctx[:total],
           strategy: strategy,
@@ -47,7 +48,15 @@ module Polyrun
           costs: costs,
           constraints: constraints,
           shard: ctx[:shard],
-          timing_granularity: ctx[:timing_granularity]
+          timing_granularity: ctx[:timing_granularity],
+          stable_assignment: stable
+        )
+        partition_emit_diagnostics!(
+          plan: plan,
+          items: items,
+          costs: costs,
+          timing_path: timing_path,
+          granularity: ctx[:timing_granularity]
         )
         [manifest, 0]
       end
@@ -56,7 +65,12 @@ module Polyrun
         items = plan_plan_items(paths_file, argv)
         return nil if items.nil?
 
-        loaded = plan_load_costs_and_strategy(timing_path, ctx[:strategy], ctx[:timing_granularity])
+        loaded = plan_load_costs_and_strategy(
+          timing_path,
+          ctx[:strategy],
+          ctx[:timing_granularity],
+          strategy_explicit: ctx[:strategy_explicit]
+        )
         return nil if loaded.nil?
 
         costs, strategy = loaded
@@ -68,6 +82,7 @@ module Polyrun
           shard: resolve_shard_index(pc),
           total: resolve_shard_total(pc),
           strategy: (pc["strategy"] || pc[:strategy] || "round_robin").to_s,
+          strategy_explicit: !!(pc["strategy"] || pc[:strategy]),
           seed: pc["seed"] || pc[:seed],
           paths_file: nil,
           timing_path: nil,
@@ -80,10 +95,13 @@ module Polyrun
       def plan_command_register_partition_options!(opts, ctx)
         opts.on("--shard INDEX", Integer) { |v| ctx[:shard] = v }
         opts.on("--total N", Integer) { |v| ctx[:total] = v }
-        opts.on("--strategy NAME", String) { |v| ctx[:strategy] = v }
+        opts.on("--strategy NAME", String) do |v|
+          ctx[:strategy] = v
+          ctx[:strategy_explicit] = true
+        end
         opts.on("--seed VAL") { |v| ctx[:seed] = v }
         opts.on("--constraints PATH", "YAML: pin / serial_glob (see spec_queue.md)") { |v| ctx[:constraints_path] = v }
-        opts.on("--timing PATH", "path => seconds JSON; implies cost_binpack unless strategy is cost-based or hrw") do |v|
+        opts.on("--timing PATH", "path => seconds JSON; implies cost_binpack unless strategy is explicit or timing-aware") do |v|
           ctx[:timing_path] = v
         end
         opts.on("--timing-granularity VAL", "file (default) or example (experimental: path:line items)") do |v|
@@ -104,7 +122,7 @@ module Polyrun
         end.parse!(argv)
       end
 
-      def plan_command_build_manifest(items:, total:, strategy:, seed:, costs:, constraints:, shard:, timing_granularity: :file)
+      def plan_command_build_manifest(items:, total:, strategy:, seed:, costs:, constraints:, shard:, timing_granularity: :file, stable_assignment: nil)
         plan = Polyrun::Debug.time("Partition::Plan.new (plan command)") do
           Polyrun::Partition::Plan.new(
             items: items,
@@ -114,7 +132,8 @@ module Polyrun
             costs: costs,
             constraints: constraints,
             root: Dir.pwd,
-            timing_granularity: timing_granularity
+            timing_granularity: timing_granularity,
+            stable_assignment: stable_assignment
           )
         end
         Polyrun::Debug.log_kv(
@@ -124,16 +143,13 @@ module Polyrun
           strategy: strategy,
           path_count: items.size
         )
-        plan.manifest(shard)
+        [plan.manifest(shard), plan]
       end
 
-      def plan_resolve_timing_path(pc, timing_path, strategy)
+      def plan_resolve_timing_path(pc, timing_path, _strategy = nil)
         return timing_path if timing_path
 
-        tf = pc["timing_file"] || pc[:timing_file]
-        return tf if tf && (Polyrun::Partition::Plan.cost_strategy?(strategy) || Polyrun::Partition::Plan.hrw_strategy?(strategy))
-
-        nil
+        pc["timing_file"] || pc[:timing_file]
       end
 
       def plan_plan_items(paths_file, argv)
@@ -147,8 +163,13 @@ module Polyrun
         end
       end
 
-      def plan_load_costs_and_strategy(timing_path, strategy, timing_granularity)
+      def plan_load_costs_and_strategy(timing_path, strategy, timing_granularity, strategy_explicit: false)
+        strategy = strategy.to_s
         if timing_path
+          if strategy_explicit && strategy == "round_robin"
+            return [nil, strategy]
+          end
+
           costs = Polyrun::Partition::Plan.load_timing_costs(
             File.expand_path(timing_path.to_s, Dir.pwd),
             granularity: timing_granularity
@@ -157,12 +178,16 @@ module Polyrun
             Polyrun::Log.warn "polyrun plan: timing file missing or has no entries: #{timing_path}"
             return nil
           end
-          unless Polyrun::Partition::Plan.cost_strategy?(strategy) || Polyrun::Partition::Plan.hrw_strategy?(strategy)
-            Polyrun::Log.warn "polyrun plan: using cost_binpack (timing data present)" if @verbose
-            strategy = "cost_binpack"
+          if Polyrun::Partition::Plan.timing_load_strategy?(strategy)
+            return [costs, strategy]
           end
-          [costs, strategy]
-        elsif Polyrun::Partition::Plan.cost_strategy?(strategy)
+          unless strategy_explicit
+            Polyrun::Log.warn "polyrun plan: using cost_binpack (timing data present)" if @verbose
+            return [costs, "cost_binpack"]
+          end
+
+          [nil, strategy]
+        elsif Polyrun::Partition::Plan.cost_strategy?(strategy) || Polyrun::Partition::Plan.lazy_robin_strategy?(strategy)
           Polyrun::Log.warn "polyrun plan: --timing or partition.timing_file required for strategy #{strategy}"
           nil
         else

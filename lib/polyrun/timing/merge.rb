@@ -1,12 +1,11 @@
 require "json"
 
 require_relative "../debug"
+require_relative "stats"
+require_relative "variance_report"
 
 module Polyrun
   module Timing
-    # Merges per-shard timing JSON files (spec2 §2.4): path => wall seconds (float), or (experimental)
-    # +absolute_path:line+ => seconds for per-example timing.
-    # Disjoint suites: values merged by taking the maximum per path when duplicates appear.
     module Merge
       module_function
 
@@ -18,8 +17,8 @@ module Polyrun
 
           data.each do |file, sec|
             f = file.to_s
-            t = sec.to_f
-            merged[f] = merged.key?(f) ? [merged[f], t].max : t
+            entry = sec
+            merged[f] = merged.key?(f) ? Stats.merge_entries(merged[f], entry) : Stats.normalize_entry(entry)
           end
         end
         merged
@@ -29,6 +28,7 @@ module Polyrun
         Polyrun::Debug.log_kv(merge_timing: "merge_and_write", input_count: paths.size, output_path: output_path)
         merged = Polyrun::Debug.time("Timing::Merge.merge_files") { merge_files(paths) }
         Polyrun::Debug.time("Timing::Merge.write JSON") { File.write(output_path, JSON.pretty_generate(merged)) }
+        Timing::VarianceReport.emit_warnings!(merged)
         merged
       end
     end
