@@ -1,5 +1,6 @@
 require "shellwords"
 require "rbconfig"
+require "json"
 
 require_relative "run_shards_planning"
 require_relative "run_shards_worker_interrupt"
@@ -29,6 +30,8 @@ module Polyrun
         exit_code = 1
         merged_failures_path = nil
         merge_failures_errored = false
+        merge_spec_quality_errored = false
+        spec_quality_strict_failed = false
 
         begin
           env_suite = ENV.to_h.merge(
@@ -64,6 +67,20 @@ module Polyrun
             Polyrun::Log.warn "polyrun run-shards: finished #{pids.size} worker(s)" + (failed.any? ? " (some failed)" : " (exit 0)")
           end
 
+          if ctx[:merge_spec_quality]
+            begin
+              merged_sq_path = merge_spec_quality_after_shards(ctx)
+              if merged_sq_path && ctx[:report_spec_quality]
+                cfg = load_spec_quality_config(nil)
+                merged = JSON.parse(File.read(merged_sq_path))
+                spec_quality_strict_failed = cfg["strict"] && Polyrun::SpecQuality::Report.gate_violations(merged, cfg).any?
+              end
+            rescue Polyrun::Error, JSON::ParserError => e
+              Polyrun::Log.warn e.message.to_s
+              merge_spec_quality_errored = true
+            end
+          end
+
           if ctx[:merge_failures]
             begin
               merged_failures_path = merge_failures_after_shards(ctx)
@@ -84,7 +101,8 @@ module Polyrun
 
           exit_code = run_shards_merge_or_hint_coverage(ctx)
           exit_code = 1 if wait_hook_err != 0 && exit_code == 0
-          exit_code = 1 if merge_failures_errored && exit_code == 0
+          exit_code = 1 if merge_spec_quality_errored && exit_code == 0
+          exit_code = 1 if spec_quality_strict_failed && exit_code == 0
           exit_code
         ensure
           if suite_started

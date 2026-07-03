@@ -6,16 +6,29 @@ module Polyrun
       class << self
         def reset!
           @counts = Hash.new(0)
+          @example_counts = Hash.new(0)
+        end
+
+        def reset_example!
+          @example_counts = Hash.new(0)
         end
 
         def record(factory_name)
           @counts ||= Hash.new(0)
-          @counts[factory_name.to_s] += 1
+          @example_counts ||= Hash.new(0)
+          name = factory_name.to_s
+          @counts[name] += 1
+          @example_counts[name] += 1
         end
 
         def counts
           @counts ||= Hash.new(0)
           @counts.dup
+        end
+
+        def example_counts
+          @example_counts ||= Hash.new(0)
+          @example_counts.dup
         end
 
         def summary_lines(top: 20)

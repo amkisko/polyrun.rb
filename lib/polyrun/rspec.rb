@@ -47,6 +47,14 @@ module Polyrun
 
     # Writes {WorkerPing} after suite start, before/after each example (+location+ is file:line from metadata).
     # Keeps +--worker-idle-timeout+ sensitive to example progress (not only a background thread).
+    def install_spec_quality!(only_if: nil, root: nil, output_path: nil)
+      pred = only_if || -> { Polyrun::SpecQuality.enabled? }
+      return unless pred.call
+
+      require_relative "spec_quality/rspec_hook"
+      Polyrun::SpecQuality::RspecHook.install!(only_if: pred, root: root, output_path: output_path)
+    end
+
     def install_worker_ping!
       require "rspec/core"
       require_relative "worker_ping"

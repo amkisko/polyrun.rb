@@ -1,0 +1,10 @@
+# Opt-in per-example spec quality for the simple_demo (see docs/SPEC_QUALITY.md).
+track_under:
+  - app
+  - lib
+min_line_churn: 50
+hot_line_example_overlap: 10
+sample: 1.0
+profile:
+  - cpu
+  - mem

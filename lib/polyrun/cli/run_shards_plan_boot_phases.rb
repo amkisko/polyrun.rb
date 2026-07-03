@@ -86,11 +86,32 @@ module Polyrun
           strategy: strategy,
           merge_coverage: o[:merge_coverage],
           merge_failures: run_shards_merge_failures_flag(o, cfg),
+          merge_spec_quality: run_shards_merge_spec_quality_flag(o, cfg),
           command: cmd,
           timing_path: o[:timing_path],
           paths_source: paths_source,
           item_count: item_count
         )
+      end
+
+      def run_shards_merge_spec_quality_flag(o, cfg)
+        return true if o[:merge_spec_quality]
+        return true if %w[1 true yes].include?(ENV["POLYRUN_MERGE_SPEC_QUALITY"].to_s.downcase)
+
+        rep = cfg.reporting
+        v = rep["merge_spec_quality"] || rep[:merge_spec_quality]
+        v == true || %w[1 true yes].include?(v.to_s.downcase)
+      end
+
+      def run_shards_merge_spec_quality_output_opt(o, cfg)
+        x = o[:merge_spec_quality_output]
+        return x if x && !x.to_s.strip.empty?
+
+        x = ENV["POLYRUN_MERGED_SPEC_QUALITY_OUT"]
+        return x if x && !x.to_s.strip.empty?
+
+        rep = cfg.reporting
+        rep["merge_spec_quality_output"] || rep[:merge_spec_quality_output]
       end
 
       def run_shards_merge_failures_flag(o, cfg)
@@ -138,6 +159,9 @@ module Polyrun
           merge_failures: run_shards_merge_failures_flag(o, cfg),
           merge_failures_output: run_shards_merge_failures_output_opt(o, cfg),
           merge_failures_format: run_shards_merge_failures_format_opt(o, cfg),
+          merge_spec_quality: run_shards_merge_spec_quality_flag(o, cfg),
+          merge_spec_quality_output: run_shards_merge_spec_quality_output_opt(o, cfg),
+          report_spec_quality: o[:report_spec_quality] != false,
           config_path: config_path,
           worker_timeout_sec: run_shards_resolved_worker_timeout_sec(o),
           worker_idle_timeout_sec: run_shards_resolved_worker_idle_timeout_sec(o)

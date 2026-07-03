@@ -2,6 +2,32 @@
 
 ## Unreleased
 
+## 2.1.0 (2026-07-03)
+
+- Add experimental per-example spec quality (`Polyrun::SpecQuality`): `POLYRUN_SPEC_QUALITY=1`, worker JSONL fragments, `merge-spec-quality`, `report-spec-quality`, and `run-shards --merge-spec-quality`.
+- Add `Polyrun::RSpec.install_spec_quality!`, `Polyrun::Minitest.install_spec_quality!`, and Quick example hooks; `polyrun init --profile spec-quality`.
+- Add `Polyrun::Coverage::ExampleDiff` for per-example line hit deltas from `Coverage.peek_result`; record per-example factory counts via `Data::FactoryCounts`.
+- Report zero-hit examples, line churn, hot lines, shard attribution, optional partition hints (`report-spec-quality --plan`), optional CPU/GC/IO profiling (stdlib), and CI gate thresholds in `config/polyrun_spec_quality.yml`.
+- Document spec quality in `docs/SPEC_QUALITY.md`.
+
+## 2.0.0 (2026-07-03)
+
+- Add `polyrun run-queue` to init a file-backed queue and run N workers that claim batches until drained; `--on-failure exit|requeue` reclaims open leases when a worker exits before ack.
+- Add `polyrun queue reclaim` with `--older-than DURATION` (`10m`, `1h`, …) and optional `--worker ID`; add `Queue::FileStore#reclaim!` and `#reclaim_lease!`.
+- Add partition imbalance and dominant-file reports after `plan` and `run-shards` (`Partition::Reports`); warn on stale or missing timing coverage before cost-based partition (`Partition::TimingDiagnostics`).
+- Add partition strategies `lazy_robin` (sorted round-robin with timing diagnostics), `preserve_order_round_robin` (paths-file order), `stable_cost_binpack` (stable assignment with LPT fallback), and `weighted_hrw` (rendezvous with `shard_weights`).
+- Add `partition.stable_assignment_file` and `partition.shard_weights` for stable binpack and weighted HRW; wire into `plan` and `run-shards`.
+- Add `Polyrun::Timing::Stats` for rich timing entries (`last_seconds`, `mean`, `p95`, `runs`, `failures`, `timeouts`); `merge-timing` merges via `Stats.merge_entries` and emits `Timing::VarianceReport` warnings.
+- Add `POLYRUN_HRW_FAST_SCORE` for faster deterministic HRW scoring.
+- Auto-select `cost_binpack` when `partition.timing_file` or `--timing` is set and strategy is not explicit; load timing for `lazy_robin` and diagnostics even when strategy stays round-robin.
+- Fix `paths_build` glob stages to match against the remaining pool (`File.fnmatch?`) instead of re-globbing the cwd.
+- Warn when a database URL has no database segment (shard suffix skipped); name `shard_index` in `CloneShards` errors.
+- Refactor LPT forced-item handling into a single pass before free-item balance.
+- Add Makefile, Prayfile, and root `polyrun.yml`; run repo specs via polyrun in CI.
+- BREAKING: `partition.timing_file` without an explicit `strategy` now implies `cost_binpack` instead of `round_robin`.
+- BREAKING: `merge-timing` output entries are objects with timing stats, not bare scalar seconds; tools that read merged JSON must accept objects or use `Stats.binpack_weight`.
+- BREAKING: `paths_build` glob stages filter the staged pool only; membership and order can differ from prior re-glob behavior.
+
 ## 1.5.0 (2026-05-04)
 
 - Add `run-shards --worker-timeout SEC` and `POLYRUN_WORKER_TIMEOUT_SEC` (wall time per worker since spawn); stop stuck workers; record exit 124 for that shard.

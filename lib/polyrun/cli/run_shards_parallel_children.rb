@@ -46,7 +46,8 @@ module Polyrun
             shard: shard,
             matrix_index: mx,
             matrix_total: mt,
-            failure_fragments: ctx[:merge_failures]
+            failure_fragments: ctx[:merge_failures],
+            spec_quality_fragments: ctx[:merge_spec_quality]
           )
           child_env = child_env.merge("POLYRUN_HOOK_ORCHESTRATOR" => "0")
           child_env = hook_cfg.merge_worker_ruby_env(child_env)
