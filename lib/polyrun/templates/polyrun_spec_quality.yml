@@ -1,0 +1,20 @@
+# Opt-in per-example spec quality (coverage deltas, resource use). See docs/SPEC_QUALITY.md.
+track_under:
+  - lib
+  - app
+min_line_churn: 50
+min_query_count: 20
+hot_line_example_overlap: 10
+strict: false
+sample: 1.0
+ignore_examples: []
+ignore_paths: []
+ignore_query_patterns: []
+profile:
+  - cpu
+  - mem
+sql_counter: false
+# CI gates (used with POLYRUN_SPEC_QUALITY_STRICT=1 or strict: true):
+# minimum_unique_lines_per_example: 1
+# max_zero_hit_examples: 0
+# max_hot_line_overlap: 100

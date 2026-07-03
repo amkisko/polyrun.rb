@@ -26,6 +26,7 @@ The demo includes **`spec/support/polyrun_parallel_data.rb`** and **`Polyrun::RS
 | Feature | Where |
 |--------|--------|
 | Coverage fragments | `spec/spec_helper.rb` → `Polyrun::Coverage::Rails.start!`, optional `config/polyrun_coverage.yml` |
+| Spec quality (opt-in) | `POLYRUN_SPEC_QUALITY=1`, `Polyrun::RSpec.install_spec_quality!`, `config/polyrun_spec_quality.yml`, `run-shards --merge-spec-quality` |
 | Shard index → fragment name | `POLYRUN_SHARD_INDEX` → `coverage/polyrun-fragment-<shard>.json` |
 | Partition + parallel | `polyrun.yml` → `partition.paths_file`, `partition.suite` if needed, `run-shards` (default strategy: **`round_robin`**; see **[../partition_strategies/README.md](../partition_strategies/README.md)** for others) |
 | DB naming for shards | `polyrun.yml` → `databases` (PostgreSQL template + pattern) |

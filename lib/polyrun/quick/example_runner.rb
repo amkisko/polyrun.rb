@@ -25,6 +25,7 @@ module Polyrun
         extend_capybara_if_enabled!
         qloc = quick_example_location(block)
         Polyrun::WorkerPing.ping!(location: qloc)
+        Polyrun::SpecQuality.start_example!(location: qloc) if Polyrun::SpecQuality.started?
         begin
           run_before_hooks_from_chain(ancestor_chain)
           instance_eval(&block)
@@ -34,6 +35,7 @@ module Polyrun
         rescue => e
           @reporter.error(group_name, description, e)
         ensure
+          Polyrun::SpecQuality.finish_example!(location: qloc) if Polyrun::SpecQuality.started?
           run_after_hooks_from_chain(ancestor_chain)
           reset_capybara_if_enabled!
           @_let_cache = {}

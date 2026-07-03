@@ -1,3 +1,3 @@
 module Polyrun
-  VERSION = "1.5.0"
+  VERSION = "2.1.0"
 end

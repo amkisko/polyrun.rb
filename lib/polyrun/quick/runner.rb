@@ -49,6 +49,14 @@ module Polyrun
         @capybara_enabled = false
       end
 
+      def install_spec_quality!(root: nil, output_path: nil)
+        require_relative "../spec_quality"
+        return unless Polyrun::SpecQuality.enabled?
+
+        r = root || File.expand_path(Dir.pwd)
+        Polyrun::SpecQuality.start!(root: r, output_path: output_path)
+      end
+
       def describe(name, &block)
         group = ExampleGroup.new(name)
         group.instance_eval(&block) if block
@@ -102,6 +110,7 @@ module Polyrun
         end
 
         quick_start_coverage_if_configured!
+        quick_start_spec_quality_if_configured!
 
         collector = load_quick_files!(files)
         return 1 unless collector
@@ -146,6 +155,16 @@ module Polyrun
             )
           end
         end
+      end
+
+      def quick_start_spec_quality_if_configured!
+        return unless Polyrun::SpecQuality.spec_quality_requested_for_quick?(Dir.pwd)
+        return if Polyrun::SpecQuality.started?
+
+        require_relative "../spec_quality"
+        Polyrun::SpecQuality.start!(
+          root: File.expand_path(Dir.pwd)
+        )
       end
 
       def quick_start_coverage_if_configured!

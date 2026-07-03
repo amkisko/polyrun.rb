@@ -16,3 +16,7 @@ partition:
   paths_build:
     all_glob: spec/**/*_spec.rb
     stages: []
+
+# Optional reporting (see docs/SPEC_QUALITY.md):
+# reporting:
+#   merge_spec_quality: true

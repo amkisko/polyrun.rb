@@ -17,6 +17,11 @@ prepare:
   rails_root: .
   command: bundle exec ruby bin/test_prepare.rb
 
+# Optional reporting (see docs/SPEC_QUALITY.md):
+# reporting:
+#   merge_spec_quality: true
+#   merge_spec_quality_output: coverage/polyrun-spec-quality.json
+
 # Uncomment and edit when using Postgres template + per-shard DB names from polyrun env:
 # databases:
 #   template_db: my_app_template

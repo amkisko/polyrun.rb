@@ -47,5 +47,13 @@ module Polyrun
       ::Minitest::Test.send(:prepend, WorkerPingTestHook)
       Polyrun::WorkerPing.ensure_interval_ping_thread!
     end
+    # Per-test spec quality when +POLYRUN_SPEC_QUALITY=1+ (requires stdlib +Coverage+ for line deltas).
+    def install_spec_quality!(only_if: nil, root: nil, output_path: nil)
+      pred = only_if || -> { Polyrun::SpecQuality.enabled? }
+      return unless pred.call
+
+      require_relative "spec_quality/minitest_hook"
+      Polyrun::SpecQuality::MinitestHook.install!(only_if: pred, root: root, output_path: output_path)
+    end
   end
 end

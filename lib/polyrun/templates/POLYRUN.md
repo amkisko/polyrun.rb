@@ -40,6 +40,12 @@ Do not combine Model A and Model B in one workflow without a documented reason (
 - `spec/spec_helper.rb`: `require "polyrun"` and collector or Rails helper as appropriate.
 - Fragments: `coverage/polyrun-fragment-<shard>.json` → `polyrun merge-coverage` → `polyrun report-coverage` / `report-junit` for CI.
 
+## Spec quality (optional)
+
+- `POLYRUN_SPEC_QUALITY=1` and `Polyrun::RSpec.install_spec_quality!` in `spec_helper` (requires coverage enabled for line deltas).
+- `config/polyrun_spec_quality.yml` — thresholds and CI gates (`polyrun init --profile spec-quality`).
+- Parallel: `run-shards --merge-spec-quality` → `coverage/polyrun-spec-quality.json` → `report-spec-quality`.
+
 ## Further reading
 
 - Polyrun README: partition, prepare, databases, merge-coverage, `Polyrun::Env::Ci`

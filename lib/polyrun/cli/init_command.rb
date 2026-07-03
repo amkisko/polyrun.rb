@@ -1,4 +1,5 @@
 require "optparse"
+require "fileutils"
 
 module Polyrun
   class CLI
@@ -7,6 +8,7 @@ module Polyrun
         "gem" => "minimal_gem.polyrun.yml",
         "rails" => "rails_prepare.polyrun.yml",
         "ci-matrix" => "ci_matrix.polyrun.yml",
+        "spec-quality" => "polyrun_spec_quality.yml",
         "doc" => "POLYRUN.md"
       }.freeze
 
@@ -34,6 +36,7 @@ module Polyrun
         path = File.expand_path(dest)
         return init_refuses_overwrite(path) if File.file?(path) && !force
 
+        FileUtils.mkdir_p(File.dirname(path))
         File.write(path, body)
         Polyrun::Log.warn "polyrun init: wrote #{path}"
         0
@@ -92,7 +95,11 @@ module Polyrun
       end
 
       def default_init_output(profile)
-        (profile == "doc") ? "POLYRUN.md" : "polyrun.yml"
+        case profile
+        when "doc" then "POLYRUN.md"
+        when "spec-quality" then "config/polyrun_spec_quality.yml"
+        else "polyrun.yml"
+        end
       end
     end
   end
