@@ -34,6 +34,7 @@ module Polyrun
         0
       end
 
+      # rubocop:disable Metrics/AbcSize -- report argv + gate output
       def cmd_report_spec_quality(argv)
         input = nil
         out_file = nil
@@ -67,10 +68,10 @@ module Polyrun
         strict = true if cfg["strict"] || strict
         plan_shards = Polyrun::SpecQuality::PlanLoader.load_shards(plan_paths)
 
-        if json_out
-          text = JSON.pretty_generate(Polyrun::SpecQuality::Report.analyze(merged, cfg, plan_shards: plan_shards))
+        text = if json_out
+          JSON.pretty_generate(Polyrun::SpecQuality::Report.analyze(merged, cfg, plan_shards: plan_shards))
         else
-          text = Polyrun::SpecQuality::Report.format_report(
+          Polyrun::SpecQuality::Report.format_report(
             merged, cfg: cfg, top: top, profile: profile, plan_shards: plan_shards
           )
         end
@@ -90,6 +91,7 @@ module Polyrun
 
         0
       end
+      # rubocop:enable Metrics/AbcSize
 
       def merge_spec_quality_after_shards(ctx)
         files = merge_spec_quality_fragment_files
@@ -130,7 +132,7 @@ module Polyrun
           path = File.expand_path(path, root)
         end
         Polyrun::SpecQuality::Config.load(root: root, config_path: path)
-      rescue StandardError
+      rescue
         Polyrun::SpecQuality::Config::DEFAULTS.dup
       end
     end

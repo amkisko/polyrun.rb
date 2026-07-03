@@ -57,7 +57,7 @@ module Polyrun
             end
 
             plan.each { |row| create_one_shard!(row, replace, force_drop, dry_run) }
-          rescue StandardError => e
+          rescue => e
             raise Polyrun::Error, "CloneShards shard_index=#{shard_index}: #{e.message}"
           end
         end

@@ -23,7 +23,7 @@ module Polyrun
         run_shards_workers_and_merge(ctx)
       end
 
-      # rubocop:disable Metrics/AbcSize -- orchestration: hooks, merge, worker failures
+      # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity -- orchestration: hooks, merge, worker failures
       def run_shards_workers_and_merge(ctx)
         hook_cfg = Polyrun::Hooks.from_config(ctx[:cfg])
         suite_started = false
@@ -120,7 +120,7 @@ module Polyrun
           end
         end
       end
-      # rubocop:enable Metrics/AbcSize
+      # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
       def run_shards_warn_interleaved(parallel, pid_count)
         return unless parallel && pid_count > 1

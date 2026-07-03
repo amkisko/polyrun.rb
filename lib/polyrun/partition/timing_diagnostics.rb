@@ -4,11 +4,12 @@ module Polyrun
   module Partition
     # Stale / missing timing coverage before cost-based partition.
     module TimingDiagnostics
-      SUSPICIOUS_BASENAME = /system|feature|integration|playwright|capybara/i.freeze
+      SUSPICIOUS_BASENAME = /system|feature|integration|playwright|capybara/i
 
       module_function
 
       # @return [Hash] analysis result with :missing_files, :stale_entries, :coverage, etc.
+      # rubocop:disable Metrics/AbcSize -- timing coverage scan
       def analyze(items:, costs:, timing_path:, root:, granularity: :file)
         root = File.expand_path(root || Dir.pwd)
         g = TimingKeys.normalize_granularity(granularity)
@@ -26,13 +27,12 @@ module Polyrun
             cost_keys_set.include?(ik) || cost_file_keys_set.include?(file_from_locator(ik))
           end
           stale = cost_keys.reject { |k| item_keys_set.include?(k) }
-          total = item_keys.size
         else
           known = item_keys.count { |k| costs&.key?(k) }
           missing = item_keys.reject { |k| costs&.key?(k) }
           stale = cost_keys.reject { |k| item_keys.include?(k) }
-          total = item_keys.size
         end
+        total = item_keys.size
 
         coverage = total.zero? ? 1.0 : known.to_f / total
         default_weight = default_weight_for(costs)
@@ -49,7 +49,9 @@ module Polyrun
           suspicious_missing: suspicious
         }
       end
+      # rubocop:enable Metrics/AbcSize
 
+      # rubocop:disable Metrics/AbcSize -- stale/missing timing warnings
       def emit_warnings!(analysis)
         cov = analysis[:coverage]
         if cov < 0.50
@@ -59,7 +61,7 @@ module Polyrun
         end
 
         dw = analysis[:default_weight]
-        Polyrun::Log.warn "polyrun: default weight for missing files: #{format('%.4f', dw)}s (mean of known costs)"
+        Polyrun::Log.warn "polyrun: default weight for missing files: #{format("%.4f", dw)}s (mean of known costs)"
 
         if analysis[:timing_file_age]
           Polyrun::Log.warn "polyrun: timing file age: #{analysis[:timing_file_age]}"
@@ -85,6 +87,7 @@ module Polyrun
         Polyrun::Log.warn "polyrun: suspicious missing timing (#{suspicious.size} slow-path pattern(s)):"
         suspicious.first(5).each { |p| Polyrun::Log.warn "  suspicious: #{p}" }
       end
+      # rubocop:enable Metrics/AbcSize
 
       def lookup_key(path, root, granularity)
         TimingKeys.normalize_locator(path.to_s, root, granularity)

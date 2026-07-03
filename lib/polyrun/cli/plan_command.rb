@@ -1,3 +1,4 @@
+# rubocop:disable Polyrun/FileLength -- plan argv + partition emit
 require "json"
 require "optparse"
 
@@ -199,3 +200,4 @@ module Polyrun
     end
   end
 end
+# rubocop:enable Polyrun/FileLength

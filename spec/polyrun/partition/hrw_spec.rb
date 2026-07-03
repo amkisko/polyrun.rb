@@ -24,9 +24,8 @@ RSpec.describe Polyrun::Partition::Hrw do
     ENV["POLYRUN_HRW_FAST_SCORE"] = "1"
     fast_score = described_class.send(:score, path, 0, salt)
     expect(fast_score).not_to eq(default_score)
-    expect(described_class.shard_for(path: path, total_shards: 5, seed: salt)).to eq(
-      described_class.shard_for(path: path, total_shards: 5, seed: salt)
-    )
+    shard = described_class.shard_for(path: path, total_shards: 5, seed: salt)
+    expect(described_class.shard_for(path: path, total_shards: 5, seed: salt)).to eq(shard)
   ensure
     ENV.delete("POLYRUN_HRW_FAST_SCORE")
   end

@@ -1,3 +1,4 @@
+# rubocop:disable Polyrun/FileLength, Metrics/ClassLength -- partition strategies + constraints
 require_relative "timing_keys"
 require_relative "constraints"
 require_relative "hrw"
@@ -14,8 +15,8 @@ module Polyrun
     #   optional {Constraints} for pins / serial globs before LPT on the rest.
     #   Default +timing_granularity+ is +file+ (one weight per spec file). Experimental +:example+
     #   uses +path:line+ locators and per-example weights in the timing JSON.
-     # - +hrw+ (+rendezvous+) — rendezvous hashing for minimal remapping when m changes; optional constraints.
-     # - +weighted_hrw+ — rendezvous with per-shard weights (+shard_weights+); use +stable_cost_binpack+ for path costs.
+    # - +hrw+ (+rendezvous+) — rendezvous hashing for minimal remapping when m changes; optional constraints.
+    # - +weighted_hrw+ — rendezvous with per-shard weights (+shard_weights+); use +stable_cost_binpack+ for path costs.
     # - +lazy_robin+ — sorted round-robin assignment with timing loaded for diagnostics and +shard_seconds+.
     # - +preserve_order_round_robin+ — round-robin in paths-file order (no sort); membership from +paths_build+ only.
     class Plan
@@ -101,7 +102,7 @@ module Polyrun
       end
 
       def file_weight(path)
-        lazy_robin_strategy? || cost_strategy? ? weight_for(path) : weight_for_optional(path)
+        (lazy_robin_strategy? || cost_strategy?) ? weight_for(path) : weight_for_optional(path)
       end
 
       def shard_file_weights(shard_index)
@@ -121,9 +122,7 @@ module Polyrun
         strategy == "stable_cost_binpack"
       end
 
-      def stable_imbalance_threshold
-        @stable_imbalance_threshold
-      end
+      attr_reader :stable_imbalance_threshold
 
       def stable_assignment_map
         @stable_assignment
@@ -266,3 +265,4 @@ require_relative "plan_sharding"
 require_relative "plan_lpt"
 require_relative "timing_diagnostics"
 require_relative "reports"
+# rubocop:enable Polyrun/FileLength, Metrics/ClassLength

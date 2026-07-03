@@ -83,6 +83,7 @@ module Polyrun
         1.0
       end
 
+      # rubocop:disable Metrics/AbcSize -- config key normalization
       def normalize_config!(cfg)
         cfg["track_under"] = Array(cfg["track_under"]).map(&:to_s).reject(&:empty?)
         cfg["track_under"] = %w[lib] if cfg["track_under"].empty?
@@ -94,6 +95,7 @@ module Polyrun
           cfg[k] = Integer(cfg[k]) if cfg[k]
         end
       end
+      # rubocop:enable Metrics/AbcSize
 
       def ignored_example?(location, ignore_examples)
         loc = location.to_s

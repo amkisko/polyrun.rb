@@ -1,3 +1,4 @@
+# rubocop:disable Polyrun/FileLength -- quick runner + spec quality wiring
 require "pathname"
 
 require_relative "assertions"
@@ -206,3 +207,4 @@ module Polyrun
     end
   end
 end
+# rubocop:enable Polyrun/FileLength

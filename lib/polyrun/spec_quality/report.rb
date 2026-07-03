@@ -1,9 +1,11 @@
+# rubocop:disable Polyrun/FileLength, Metrics/ModuleLength -- report analysis + text formatting
 module Polyrun
   module SpecQuality
     # Human-readable spec quality report from merged JSON.
     module Report
       module_function
 
+      # rubocop:disable Metrics/AbcSize -- merged example analysis
       def analyze(merged, cfg = {}, plan_shards: nil)
         cfg = default_cfg(cfg)
         examples = merged["examples"] || {}
@@ -12,9 +14,9 @@ module Polyrun
 
         zero_hit = examples.select { |_loc, row| row["unique_lines"].to_i.zero? }
         churn = examples.select { |_loc, row| row["line_churn"].to_i >= cfg["min_line_churn"] }
-                         .sort_by { |_loc, row| -row["line_churn"].to_i }
+          .sort_by { |_loc, row| -row["line_churn"].to_i }
         hot = hot_lines.select { |_line, h| h["example_count"].to_i >= cfg["hot_line_example_overlap"] }
-                       .sort_by { |_line, h| [-h["example_count"].to_i, -h["total_hits"].to_i] }
+          .sort_by { |_line, h| [-h["example_count"].to_i, -h["total_hits"].to_i] }
 
         outliers = build_outliers(examples, cfg)
         partition_hints = partition_hints_for(hot, examples, plan_shards) if plan_shards && !plan_shards.empty?
@@ -29,6 +31,7 @@ module Polyrun
           config: cfg
         }
       end
+      # rubocop:enable Metrics/AbcSize
 
       def format_report(merged, cfg: {}, top: 30, profile: nil, plan_shards: nil)
         analysis = analyze(merged, cfg, plan_shards: plan_shards)
@@ -174,6 +177,7 @@ module Polyrun
         lines
       end
 
+      # rubocop:disable Metrics/AbcSize -- outlier row filter
       def build_outliers(examples, cfg)
         examples.filter_map do |loc, row|
           prof = row["profile"] || {}
@@ -215,7 +219,9 @@ module Polyrun
           {location: loc, score: score, reasons: reasons, row: row}
         end.sort_by { |h| -h[:score] }
       end
+      # rubocop:enable Metrics/AbcSize
 
+      # rubocop:disable Metrics/AbcSize -- outlier text formatting
       def format_outliers_section(outliers, top, profile)
         lines = ["Correlated outliers (slow / empty / heavy):"]
         if outliers.empty?
@@ -233,9 +239,9 @@ module Polyrun
           else
             prof_bits = dims.filter_map do |d|
               case d
-              when "wall" then "wall=#{format('%.2f', prof['wall'])}" if prof["wall"]
-              when "cpu" then "cpu=#{format('%.2f', prof['cpu_user'].to_f + prof['cpu_system'].to_f)}"
-              when "mem" then "alloc=#{prof['gc_allocated']}" if prof["gc_allocated"]
+              when "wall" then "wall=#{format("%.2f", prof["wall"])}" if prof["wall"]
+              when "cpu" then "cpu=#{format("%.2f", prof["cpu_user"].to_f + prof["cpu_system"].to_f)}"
+              when "mem" then "alloc=#{prof["gc_allocated"]}" if prof["gc_allocated"]
               when "io"
                 r = prof["io_read_bytes"]
                 w = prof["io_write_bytes"]
@@ -248,6 +254,8 @@ module Polyrun
         lines << "  …" if outliers.size > top
         lines
       end
+      # rubocop:enable Metrics/AbcSize
     end
   end
 end
+# rubocop:enable Polyrun/FileLength, Metrics/ModuleLength

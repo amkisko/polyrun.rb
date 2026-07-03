@@ -9,6 +9,7 @@ module Polyrun
     module RunQueueCommand
       private
 
+      # rubocop:disable Metrics/AbcSize -- queue worker argv + spawn loop
       def cmd_run_queue(argv, config_path)
         dir = ".polyrun-queue"
         batch = 5
@@ -75,6 +76,7 @@ module Polyrun
 
         results[:fail].positive? ? 1 : 0
       end
+      # rubocop:enable Metrics/AbcSize
 
       def run_queue_spawn_workers(store:, workers:, batch:, cmd:, on_failure:)
         pids = []

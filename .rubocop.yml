@@ -162,3 +162,5 @@ ThreadSafety/ClassInstanceVariable:
   Exclude:
     - lib/polyrun/coverage/collector.rb
     - lib/polyrun/data/factory_counts.rb
+    - lib/polyrun/spec_quality.rb
+    - lib/polyrun/spec_quality/sql_counter.rb

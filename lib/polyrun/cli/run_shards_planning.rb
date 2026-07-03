@@ -90,7 +90,7 @@ module Polyrun
             return [costs, "cost_binpack", nil]
           end
 
-          return [nil, strategy, nil]
+          [nil, strategy, nil]
         elsif Polyrun::Partition::Plan.cost_strategy?(strategy) || Polyrun::Partition::Plan.lazy_robin_strategy?(strategy)
           Polyrun::Log.warn "polyrun run-shards: --timing or partition.timing_file required for strategy #{strategy}"
           [nil, nil, 2]

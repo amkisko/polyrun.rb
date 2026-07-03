@@ -1,3 +1,4 @@
+# rubocop:disable Polyrun/FileLength -- merge format matrix
 require "spec_helper"
 require "json"
 require "tmpdir"
@@ -218,3 +219,4 @@ RSpec.describe Polyrun::Coverage::Merge do
     end
   end
 end
+# rubocop:enable Polyrun/FileLength

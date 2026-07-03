@@ -4,6 +4,7 @@ module Polyrun
     module VarianceReport
       module_function
 
+      # rubocop:disable Metrics/AbcSize -- variance flag scan
       def analyze(merged_stats)
         flags = []
         merged_stats.each do |path, entry|
@@ -12,7 +13,7 @@ module Polyrun
 
           median = h["mean"]
           if median.positive? && (h["p95"] / median) > 2.0
-            flags << {path: path, kind: "high_variance", detail: "p95/mean=#{format('%.2f', h["p95"] / median)}"}
+            flags << {path: path, kind: "high_variance", detail: "p95/mean=#{format("%.2f", h["p95"] / median)}"}
           end
 
           if h["runs"] >= 3 && (h["failures"].to_f / h["runs"]) > 0.3
@@ -29,6 +30,7 @@ module Polyrun
         end
         flags
       end
+      # rubocop:enable Metrics/AbcSize
 
       def emit_warnings!(merged_stats)
         analyze(merged_stats).each do |f|
