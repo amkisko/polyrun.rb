@@ -20,7 +20,7 @@ root_q = Shellwords.escape(root_dir)
 execute_command("cd #{root_q} && bundle")
 execute_command("cd #{root_q} && bundle exec appraisal generate")
 execute_command("cd #{root_q} && bundle exec rubocop -a 2>&1 | tee tmp/rubocop.log")
-execute_command("cd #{root_q} && bundle exec rspec 2>&1 | tee tmp/rspec.log")
+execute_command("cd #{root_q} && POLYRUN_COVERAGE=1 bundle exec polyrun parallel-rspec --workers 5 --merge-failures 2>&1 | tee tmp/polyrun-rspec.log")
 
 puts "Tests passed. Checking git status..."
 

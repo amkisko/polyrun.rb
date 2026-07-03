@@ -1,0 +1,15 @@
+prayfile_lock = "1"
+spec = "0.1"
+generated_by = "pray 0.1.0"
+manifest_hash = "sha256:6af238e6878bbb28e34d6d67416a544cc8dd7a927b3f7c57ca0292da35946f55"
+package = []
+managed_span = []
+
+[[source]]
+name = "amkisko"
+kind = "git"
+url = "git+https://github.com/amkisko/prayers.git"
+
+[[target]]
+name = "agents"
+outputs = ["AGENTS.md"]
