@@ -18,6 +18,7 @@ module Polyrun
           workers: env_int("POLYRUN_WORKERS", Polyrun::Config::DEFAULT_PARALLEL_WORKERS),
           paths_file: nil,
           strategy: (pc["strategy"] || pc[:strategy] || "round_robin").to_s,
+          strategy_explicit: !!(pc["strategy"] || pc[:strategy]),
           seed: pc["seed"] || pc[:seed],
           timing_path: nil,
           constraints_path: nil,
@@ -45,7 +46,10 @@ module Polyrun
         opts.on("--workers N", Integer) { |v| st[:workers] = v }
         opts.on("--worker-timeout SEC", Float, "Max seconds per worker since spawn (also POLYRUN_WORKER_TIMEOUT_SEC); kills stuck workers (exit 124)") { |v| st[:worker_timeout_sec] = v }
         opts.on("--worker-idle-timeout SEC", Float, "Max seconds since last valid WorkerPing timestamp in POLYRUN_WORKER_PING_FILE (needs prior ping); RSpec/Minitest: install_worker_ping!; Quick: automatic; exit 125") { |v| st[:worker_idle_timeout_sec] = v }
-        opts.on("--strategy NAME", String) { |v| st[:strategy] = v }
+        opts.on("--strategy NAME", String) do |v|
+          st[:strategy] = v
+          st[:strategy_explicit] = true
+        end
         opts.on("--seed VAL") { |v| st[:seed] = v }
         opts.on("--paths-file PATH", String) { |v| st[:paths_file] = v }
         opts.on("--constraints PATH", String) { |v| st[:constraints_path] = v }

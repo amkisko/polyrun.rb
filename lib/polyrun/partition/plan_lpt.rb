@@ -9,11 +9,43 @@ module Polyrun
       end
 
       def build
+        if @plan.stable_strategy? && @plan.stable_assignment_map&.any?
+          stable = build_from_stable_map
+          return stable if imbalance_ratio(stable) <= @plan.stable_imbalance_threshold
+        end
+
         buckets = Array.new(@plan.total_shards) { [] }
         totals = Array.new(@plan.total_shards, 0.0)
         lpt_fill_forced!(buckets, totals)
         lpt_balance_free!(buckets, totals)
         buckets
+      end
+
+      def build_from_stable_map
+        buckets = Array.new(@plan.total_shards) { [] }
+        map = @plan.stable_assignment_map
+        @plan.items.each do |item|
+          key = @plan.send(:cost_lookup_key, item)
+          j = map[key]
+          j = Integer(j) if j
+          j = fallback_shard_for(item) unless j && j >= 0 && j < @plan.total_shards
+          buckets[j] << item
+        end
+        buckets
+      end
+
+      def fallback_shard_for(item)
+        Hrw.shard_for(path: item, total_shards: @plan.total_shards, seed: @plan.send(:hrw_salt))
+      end
+
+      def imbalance_ratio(buckets)
+        totals = buckets.map { |paths| paths.sum { |p| @plan.send(:weight_for, p) } }
+        return 1.0 if totals.empty?
+
+        avg = totals.sum / totals.size.to_f
+        return 1.0 unless avg.positive?
+
+        totals.max / avg
       end
 
       private

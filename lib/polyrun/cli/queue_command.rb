@@ -34,8 +34,10 @@ module Polyrun
           queue_cmd_ack(argv, dir, lease_id, worker)
         when "status"
           queue_cmd_status(argv, dir)
+        when "reclaim"
+          queue_cmd_reclaim(argv, dir)
         else
-          Polyrun::Log.warn "usage: polyrun queue {init|claim|ack|status} [options]"
+          Polyrun::Log.warn "usage: polyrun queue {init|claim|ack|status|reclaim} [options]"
           2
         end
       end
@@ -126,11 +128,32 @@ module Polyrun
       end
 
       def queue_cmd_status(argv, dir)
+        json_detail = false
         OptionParser.new do |opts|
+          opts.banner = "usage: polyrun queue status [--dir DIR] [--json]"
           opts.on("--dir PATH") { |v| dir = v }
+          opts.on("--json", "Include lease details") { json_detail = true }
         end.parse!(argv)
-        s = Polyrun::Queue::FileStore.new(dir).status
+        s = Polyrun::Queue::FileStore.new(dir).status(detailed: json_detail)
         Polyrun::Log.puts JSON.generate(s)
+        0
+      end
+
+      def queue_cmd_reclaim(argv, dir)
+        older_than = nil
+        worker = nil
+        OptionParser.new do |opts|
+          opts.banner = "usage: polyrun queue reclaim [--dir DIR] [--older-than DURATION] [--worker ID]"
+          opts.on("--dir PATH") { |v| dir = v }
+          opts.on("--older-than DUR", "e.g. 10m, 1h, 600s") { |v| older_than = Polyrun::Queue::Duration.parse_seconds(v) }
+          opts.on("--worker ID") { |v| worker = v }
+        end.parse!(argv)
+        unless older_than || worker
+          Polyrun::Log.warn "queue reclaim: need --older-than or --worker"
+          return 2
+        end
+        n = Polyrun::Queue::FileStore.new(dir).reclaim!(older_than: older_than, worker_id: worker)
+        Polyrun::Log.puts JSON.generate({"reclaimed_paths" => n})
         0
       end
     end
