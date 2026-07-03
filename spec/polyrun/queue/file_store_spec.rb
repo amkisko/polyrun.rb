@@ -78,4 +78,28 @@ RSpec.describe Polyrun::Queue::FileStore do
       expect(st["pending"]).to eq(2)
     end
   end
+
+  it "reclaim returns paths to pending" do
+    Dir.mktmpdir do |dir|
+      s = described_class.new(dir)
+      s.init!(%w[a b c])
+      r = s.claim!(worker_id: "w1", batch_size: 2)
+      n = s.reclaim!(worker_id: "w1")
+      expect(n).to eq(2)
+      st = s.status
+      expect(st["pending"]).to eq(3)
+      expect(st["leases"]).to eq(0)
+    end
+  end
+
+  it "status detailed includes lease_details" do
+    Dir.mktmpdir do |dir|
+      s = described_class.new(dir)
+      s.init!(%w[a])
+      s.claim!(worker_id: "w1", batch_size: 1)
+      st = s.status(detailed: true)
+      expect(st["lease_details"].size).to eq(1)
+      expect(st["lease_details"].first["worker_id"]).to eq("w1")
+    end
+  end
 end

@@ -1,6 +1,7 @@
 require "json"
 
 require_relative "../log"
+require_relative "../timing/stats"
 
 module Polyrun
   module Partition
@@ -70,7 +71,7 @@ module Polyrun
         out = {}
         data.each do |k, v|
           key = normalize_locator(k.to_s, root, g)
-          fv = v.to_f
+          fv = Polyrun::Timing::Stats.binpack_weight(v)
           if out.key?(key) && out[key] != fv
             Polyrun::Log.warn(
               "polyrun: timing JSON duplicate key #{key.inspect} after normalize (#{out[key]} vs #{fv}); using #{fv}"
