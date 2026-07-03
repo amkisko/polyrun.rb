@@ -52,3 +52,6 @@ RSpec.configure do |config|
   config.warnings = true
   config.order = :random
 end
+
+require "polyrun/rspec"
+Polyrun::RSpec.install_failure_fragments!

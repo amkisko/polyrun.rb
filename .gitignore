@@ -22,3 +22,5 @@ Gemfile.lock
 
 # Appraisal
 /gemfiles/*.lock
+
+.pray/cache

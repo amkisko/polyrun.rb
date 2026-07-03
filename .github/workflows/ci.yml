@@ -27,7 +27,7 @@ jobs:
           bundler-cache: true
 
       - name: RSpec
-        run: bundle exec rspec
+        run: bundle exec polyrun parallel-rspec --workers 5 --merge-failures
 
       - name: RuboCop
         run: bundle exec rubocop
@@ -59,4 +59,4 @@ jobs:
           cache-version: appraisal-${{ matrix.appraisal }}
 
       - name: RSpec (Appraisal)
-        run: bundle exec rspec
+        run: bundle exec polyrun parallel-rspec --workers 5 --merge-failures
