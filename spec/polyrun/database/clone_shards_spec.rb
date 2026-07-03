@@ -46,4 +46,26 @@ RSpec.describe Polyrun::Database::CloneShards do
     expect(Polyrun::Database::Provision).to have_received(:prepare_template!).once
     expect(Polyrun::Database::Provision).to have_received(:create_database_from_template!).exactly(4).times
   end
+
+  it "includes shard_index in parallel provision errors" do
+    allow(Polyrun::Database::Provision).to receive(:prepare_template!).and_return(true)
+    allow(Polyrun::Database::Provision).to receive(:drop_database_if_exists!).and_return(true)
+    allow(Polyrun::Database::Provision).to receive(:create_database_from_template!) do |**kwargs|
+      raise Polyrun::Error, "create failed for #{kwargs[:new_db]}" if kwargs[:new_db] == "wh_test_1"
+
+      true
+    end
+
+    expect do
+      described_class.provision!(
+        dh,
+        workers: 2,
+        rails_root: "/tmp",
+        migrate: true,
+        replace: true,
+        dry_run: false,
+        silent: true
+      )
+    end.to raise_error(Polyrun::Error, /CloneShards shard_index=1: create failed for wh_test_1/)
+  end
 end

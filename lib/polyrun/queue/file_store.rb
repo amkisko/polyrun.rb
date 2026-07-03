@@ -92,7 +92,7 @@ module Polyrun
         end
       end
 
-      # Reclaim leases older than +older_than+ seconds, or all leases for +worker_id+ when set.
+      # Reclaim leases older than +older_than+ seconds and/or matching +worker_id+ when set.
       # @return [Integer] number of paths returned to pending
       def reclaim!(older_than: nil, worker_id: nil)
         reclaimed_paths = 0
@@ -142,13 +142,14 @@ module Polyrun
       private
 
       def reclaim_lease?(lease, older_than:, worker_id:)
-        if worker_id
-          return lease["worker_id"].to_s == worker_id.to_s
+        if worker_id && lease["worker_id"].to_s != worker_id.to_s
+          return false
         end
-        return false unless older_than
-
-        claimed = Time.parse(lease["claimed_at"].to_s)
-        (Time.now - claimed) >= older_than
+        if older_than
+          claimed = Time.parse(lease["claimed_at"].to_s)
+          return (Time.now - claimed) >= older_than
+        end
+        !!worker_id
       rescue ArgumentError
         true
       end

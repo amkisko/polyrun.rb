@@ -99,7 +99,7 @@ module Polyrun
         end
       end
 
-      def run_shards_make_plan(items, workers, strategy, seed, costs, constraints, timing_granularity, stable_assignment = nil)
+      def run_shards_make_plan(items, workers, strategy, seed, costs, constraints, timing_granularity, stable_assignment = nil, shard_weights: nil)
         Polyrun::Debug.time("Partition::Plan.new (partition #{items.size} paths → #{workers} shards)") do
           Polyrun::Partition::Plan.new(
             items: items,
@@ -110,7 +110,8 @@ module Polyrun
             constraints: constraints,
             root: Dir.pwd,
             timing_granularity: timing_granularity,
-            stable_assignment: stable_assignment
+            stable_assignment: stable_assignment,
+            shard_weights: shard_weights
           )
         end
       end

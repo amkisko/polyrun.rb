@@ -14,7 +14,8 @@ module Polyrun
     #   optional {Constraints} for pins / serial globs before LPT on the rest.
     #   Default +timing_granularity+ is +file+ (one weight per spec file). Experimental +:example+
     #   uses +path:line+ locators and per-example weights in the timing JSON.
-    # - +hrw+ (+rendezvous+) — rendezvous hashing for minimal remapping when m changes; optional constraints.
+     # - +hrw+ (+rendezvous+) — rendezvous hashing for minimal remapping when m changes; optional constraints.
+     # - +weighted_hrw+ — rendezvous with per-shard weights (+shard_weights+); use +stable_cost_binpack+ for path costs.
     # - +lazy_robin+ — sorted round-robin assignment with timing loaded for diagnostics and +shard_seconds+.
     # - +preserve_order_round_robin+ — round-robin in paths-file order (no sort); membership from +paths_build+ only.
     class Plan
@@ -25,7 +26,7 @@ module Polyrun
 
       attr_reader :items, :total_shards, :strategy, :seed, :constraints, :timing_granularity, :root
 
-      def initialize(items:, total_shards:, strategy: "round_robin", seed: nil, costs: nil, constraints: nil, root: nil, timing_granularity: :file, stable_assignment: nil, stable_imbalance_threshold: 1.30)
+      def initialize(items:, total_shards:, strategy: "round_robin", seed: nil, costs: nil, constraints: nil, root: nil, timing_granularity: :file, stable_assignment: nil, stable_imbalance_threshold: 1.30, shard_weights: nil)
         @timing_granularity = TimingKeys.normalize_granularity(timing_granularity)
         @root = root ? File.expand_path(root) : Dir.pwd
         @stable_assignment = normalize_stable_assignment(stable_assignment)
@@ -44,6 +45,7 @@ module Polyrun
         @seed = seed
         @constraints = normalize_constraints(constraints)
         @costs = normalize_costs(costs)
+        @shard_weights = shard_weights
 
         validate_constraints_strategy_combo!
         if cost_strategy? && (@costs.nil? || @costs.empty?)

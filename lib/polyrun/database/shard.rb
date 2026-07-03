@@ -44,11 +44,12 @@ module Polyrun
 
         return u unless u.match?(%r{\A[a-z][a-z0-9+.-]*://}i)
 
-        if (m = u.match(%r{/([^/?]+)(\?|$)}))
+        if (m = u.match(%r{\A[a-z][a-z0-9+.-]*://[^/?#]+/([^/?]+)(\?|$)}i))
           base = m[1]
           suffixed = "#{base}_#{Integer(shard_index)}"
           u.sub(%r{/#{Regexp.escape(base)}(\?|$)}, "/#{suffixed}\\1")
         else
+          Polyrun::Log.warn "polyrun database: URL has no database segment; shard suffix skipped: #{u}"
           u
         end
       end

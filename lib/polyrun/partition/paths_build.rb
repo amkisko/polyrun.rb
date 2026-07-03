@@ -53,7 +53,7 @@ module Polyrun
           st = stringify_keys(raw)
           taken =
             if st["glob"]
-              take_glob_paths(st, remaining, cwd)
+              take_glob_paths(st, remaining)
             elsif st["regex"]
               take_regex_paths(st, remaining)
             else
@@ -66,8 +66,9 @@ module Polyrun
         out
       end
 
-      def take_glob_paths(st, remaining, cwd)
-        taken = glob_under_cwd(st["glob"].to_s, cwd).select { |p| remaining.include?(p) }
+      def take_glob_paths(st, remaining)
+        pattern = st["glob"].to_s
+        taken = remaining.to_a.select { |p| path_matches_glob?(p, pattern) }
         if st["sort_by_substring_order"]
           subs = Array(st["sort_by_substring_order"]).map(&:to_s)
           def_prio = int_or(st["default_priority"], int_or(st["default_sort_key"], 99))
@@ -90,6 +91,10 @@ module Polyrun
       def glob_under_cwd(pattern, cwd)
         root = File.expand_path(cwd)
         Dir.glob(File.join(root, pattern)).map { |p| normalize_rel(p, cwd) }
+      end
+
+      def path_matches_glob?(rel_path, pattern)
+        File.fnmatch?(pattern, rel_path, File::FNM_PATHNAME | File::FNM_EXTGLOB)
       end
 
       def normalize_rel(path, cwd)

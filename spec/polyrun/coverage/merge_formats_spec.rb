@@ -2,6 +2,7 @@ require "spec_helper"
 require "json"
 require "tmpdir"
 require "fileutils"
+require "stringio"
 
 RSpec.describe Polyrun::Coverage::Merge do
   describe ".emit_cobertura" do
@@ -56,6 +57,34 @@ RSpec.describe Polyrun::Coverage::Merge do
         expect(r[:blob][lib_a]["lines"]).to eq([nil, 1, 0])
         expect(r[:blob][lib_b]["lines"]).to eq([nil, 1])
         expect(r[:groups]["Lib"]["lines"]["covered_percent"]).to eq(66.67)
+      end
+    end
+
+    it "warns and uses first polyrun_coverage_root when fragments disagree" do
+      Dir.mktmpdir do |root|
+        root_a = File.join(root, "a")
+        root_b = File.join(root, "b")
+        lib = File.join(root_a, "lib", "x.rb")
+        f1 = File.join(root, "s0.json")
+        f2 = File.join(root, "s1.json")
+        File.write(f1, JSON.dump({
+          "meta" => {"polyrun_coverage_root" => root_a},
+          "coverage" => {lib => {"lines" => [nil, 1]}}
+        }))
+        File.write(f2, JSON.dump({
+          "meta" => {"polyrun_coverage_root" => root_b},
+          "coverage" => {lib => {"lines" => [nil, 2]}}
+        }))
+        err = StringIO.new
+        Polyrun::Log.stderr = err
+        begin
+          r = described_class.merge_fragments([f1, f2])
+          expect(err.string).to include("polyrun_coverage_root differs")
+          expect(r[:meta]["polyrun_coverage_root"]).to eq(root_a)
+          expect(r[:blob][lib]["lines"]).to eq([nil, 3])
+        ensure
+          Polyrun::Log.reset_io!
+        end
       end
     end
 

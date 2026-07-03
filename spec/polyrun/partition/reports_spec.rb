@@ -45,4 +45,22 @@ RSpec.describe Polyrun::Partition::TimingDiagnostics do
     expect(analysis[:coverage]).to eq(0.5)
     expect(analysis[:missing_files].size).to eq(1)
   end
+
+  it "reports example-level coverage using path:line keys" do
+    root = Dir.pwd
+    a1 = File.expand_path("a.rb", root) + ":1"
+    a2 = File.expand_path("a.rb", root) + ":2"
+    b1 = File.expand_path("b.rb", root) + ":1"
+    costs = {a1 => 1.0}
+    analysis = described_class.analyze(
+      items: [a1, a2, b1],
+      costs: costs,
+      timing_path: nil,
+      root: root,
+      granularity: :example
+    )
+    expect(analysis[:known_files]).to eq(2)
+    expect(analysis[:total_files]).to eq(3)
+    expect(analysis[:missing_files]).to eq([b1])
+  end
 end
