@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 2.1.1 (2026-07-05)
+
+- Fix HTML coverage report `Encoding::CompatibilityError` when source files contain UTF-8; read templates, assets, and source lines as UTF-8 in `formatters_html.rb`.
+
 ## 2.1.0 (2026-07-03)
 
 - Add experimental per-example spec quality (`Polyrun::SpecQuality`): `POLYRUN_SPEC_QUALITY=1`, worker JSONL fragments, `merge-spec-quality`, `report-spec-quality`, and `run-shards --merge-spec-quality`.

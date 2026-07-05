@@ -23,14 +23,14 @@ module Polyrun
         )
         file_list_html = render_html_partial("file_list", file_rows_html: files.map { |file| html_file_list_row(file) }.join("\n"))
         file_sections_html = files.map { |file| render_html_partial("file_section", file: file) }.join("\n")
-        ERB.new(File.read(html_template_path), trim_mode: "-").result_with_hash(
+        ERB.new(File.read(html_template_path, encoding: Encoding::UTF_8), trim_mode: "-").result_with_hash(
           title: CGI.escapeHTML(title.to_s),
           generated_label: html_generated_label(generated_at),
           overview_html: overview_html,
           file_list_html: file_list_html,
           file_sections_html: file_sections_html,
-          stylesheet: File.read(html_stylesheet_path),
-          javascript: File.read(html_javascript_path)
+          stylesheet: File.read(html_stylesheet_path, encoding: Encoding::UTF_8),
+          javascript: File.read(html_javascript_path, encoding: Encoding::UTF_8)
         )
       end
       # rubocop:enable Metrics/AbcSize
@@ -56,7 +56,7 @@ module Polyrun
       end
 
       def render_html_partial(name, locals = {})
-        ERB.new(File.read(html_partial_path(name)), trim_mode: "-").result_with_hash(locals)
+        ERB.new(File.read(html_partial_path(name), encoding: Encoding::UTF_8), trim_mode: "-").result_with_hash(locals)
       end
 
       def html_file_payload(path, file, root)
@@ -152,7 +152,7 @@ module Polyrun
       def html_source_lines(path, fallback_length)
         return Array.new(fallback_length, "") unless File.file?(path.to_s)
 
-        File.readlines(path.to_s, chomp: true)
+        File.readlines(path.to_s, chomp: true, encoding: Encoding::UTF_8)
       rescue Errno::ENOENT, Errno::EACCES, ArgumentError
         Array.new(fallback_length, "")
       end
