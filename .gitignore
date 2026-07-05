@@ -4,7 +4,8 @@
 # run-shards worker ping timestamps: tmp/polyrun/worker-ping-*.txt
 /tmp/
 *.gem
-Gemfile.lock
+
+/examples/**/Gemfile.lock
 
 # Example apps (Rails + npm)
 /examples/**/log/

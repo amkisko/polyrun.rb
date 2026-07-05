@@ -127,7 +127,7 @@ RSpec.describe Polyrun::CLI do
   it "merge-timing exits 2 without inputs" do
     out, status = polyrun("merge-timing")
     expect(status.exitstatus).to eq(2)
-    expect(out).to match(/need -i FILE/)
+    expect(out).to include("need -i FILE")
   end
 
   it "report-junit writes junit.xml next to RSpec JSON input" do

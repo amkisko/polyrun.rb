@@ -39,9 +39,9 @@ RSpec.describe Polyrun::Reporting::Junit do
         out = File.join(dir, "junit.xml")
         described_class.write_from_json_file(inp, output_path: out)
         xml = File.read(out)
-        expect(xml).to match(/tests="3"/)
-        expect(xml).to match(/failures="1"/)
-        expect(xml).to match(/skipped="1"/)
+        expect(xml).to include('tests="3"')
+        expect(xml).to include('failures="1"')
+        expect(xml).to include('skipped="1"')
         expect(xml).to include("<failure message=")
         expect(xml).to include("<skipped/>")
       end

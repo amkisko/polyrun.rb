@@ -24,7 +24,7 @@ RSpec.describe Polyrun::CLI do
   it "fails merge-coverage without inputs" do
     out, status = polyrun("merge-coverage")
     expect(status.success?).to be false
-    expect(out).to match(/need at least one existing -i FILE/)
+    expect(out).to include("need at least one existing -i FILE")
   end
 
   it "merge-coverage expands globs for -i" do

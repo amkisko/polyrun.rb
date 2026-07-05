@@ -7,13 +7,13 @@ RSpec.describe "Polyrun::CLI ci-shard-run" do
   it "exits 2 when -- is missing" do
     out, status = polyrun("ci-shard-run", "bundle", "exec", "rspec")
     expect(status.exitstatus).to eq(2)
-    expect(out).to match(/need --/)
+    expect(out).to include("need --")
   end
 
   it "exits 2 when command after -- is empty" do
     out, status = polyrun("ci-shard-run", "--")
     expect(status.exitstatus).to eq(2)
-    expect(out).to match(/empty command/)
+    expect(out).to include("empty command")
   end
 
   it "exits 2 when --shard-processes is not an integer" do
@@ -30,7 +30,7 @@ RSpec.describe "Polyrun::CLI ci-shard-run" do
         YAML
         out, status = polyrun("-c", cfg, "ci-shard-run", "--shard-processes", "x", "--", "true")
         expect(status.exitstatus).to eq(2)
-        expect(out).to match(/must be an integer/)
+        expect(out).to include("must be an integer")
       end
     end
   end
@@ -49,7 +49,7 @@ RSpec.describe "Polyrun::CLI ci-shard-run" do
         YAML
         out, status = polyrun("-c", cfg, "ci-shard-run", "--shard-processes", "--", "true")
         expect(status.exitstatus).to eq(2)
-        expect(out).to match(/missing value for --shard-processes/)
+        expect(out).to include("missing value for --shard-processes")
       end
     end
   end

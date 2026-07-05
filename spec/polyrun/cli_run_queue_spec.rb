@@ -16,7 +16,7 @@ RSpec.describe Polyrun::CLI do
             in_process: false
           )
           expect(st.exitstatus).to eq(0)
-          expect(out).to match(/done pending=0/)
+          expect(out).to include("done pending=0")
         end
       end
     end
@@ -34,7 +34,7 @@ RSpec.describe Polyrun::CLI do
             in_process: false
           )
           expect(st.exitstatus).to eq(1)
-          expect(out).to match(/reclaimed 1 path/)
+          expect(out).to include("reclaimed 1 path")
           store = Polyrun::Queue::FileStore.new(".rq")
           stat = store.status
           expect(stat["done"]).to eq(1)

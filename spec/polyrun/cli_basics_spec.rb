@@ -54,7 +54,7 @@ RSpec.describe Polyrun::CLI do
   it "fails unknown command" do
     out, status = polyrun("nope")
     expect(status.exitstatus).to eq(2)
-    expect(out).to match(/unknown command/)
+    expect(out).to include("unknown command")
   end
 
   it "prints help with -h" do

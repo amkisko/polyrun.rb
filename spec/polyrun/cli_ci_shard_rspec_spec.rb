@@ -16,7 +16,7 @@ RSpec.describe "Polyrun::CLI ci-shard-rspec" do
         YAML
         out, status = polyrun("-c", cfg, "ci-shard-rspec", "--shard", "1", "--total", "2")
         expect(status.exitstatus).to eq(2)
-        expect(out).to match(/no paths/)
+        expect(out).to include("no paths")
       end
     end
   end
@@ -57,7 +57,7 @@ RSpec.describe "Polyrun::CLI ci-shard-rspec" do
         YAML
         out, status = polyrun("-c", cfg, "ci-shard-rspec", "--shard-processes", "bad")
         expect(status.exitstatus).to eq(2)
-        expect(out).to match(/must be an integer/)
+        expect(out).to include("must be an integer")
       end
     end
   end
