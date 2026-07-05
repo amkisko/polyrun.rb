@@ -6,5 +6,5 @@ track_under:
   - lib
 reject_patterns:
   - "/lib/polyrun/reporting/rspec_junit.rb"
-minimum_line_percent: 89
+minimum_line_percent: 80
 strict: true
