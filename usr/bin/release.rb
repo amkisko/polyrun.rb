@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require "fileutils"
-require "shellwords"
 
 def execute_command(command)
   green = "\033[0;32m"
@@ -9,46 +8,52 @@ def execute_command(command)
   nc = "\033[0m"
 
   puts "#{green}#{command}#{nc}"
-  unless system(command)
+  shell_command = command.include?("|") ? "set -o pipefail; #{command}" : command
+  unless system("bash", "-c", shell_command)
     puts "#{red}Command failed: #{command}#{nc}"
     exit 1
   end
 end
 
-root_dir = File.expand_path(File.join(File.dirname(__FILE__), "../.."))
-root_q = Shellwords.escape(root_dir)
-FileUtils.mkdir_p(File.join(root_dir, "tmp"))
+root_dir = File.expand_path("../..", __dir__)
 
-execute_command("cd #{root_q} && bundle")
-execute_command("cd #{root_q} && bundle exec appraisal generate")
-execute_command("cd #{root_q} && bundle exec rubocop -a 2>&1 | tee tmp/rubocop.log")
-execute_command("cd #{root_q} && POLYRUN_COVERAGE=1 bundle exec polyrun parallel-rspec --workers 5 --merge-failures 2>&1 | tee tmp/polyrun-rspec.log")
+# rubocop:disable ThreadSafety/DirChdir -- release script must run from repo root regardless of caller cwd
+Dir.chdir(root_dir) do
+  FileUtils.mkdir_p("tmp")
 
-puts "Tests passed. Checking git status..."
+  execute_command("bundle")
+  execute_command("bundle exec appraisal generate")
+  execute_command("bundle exec rubocop -a 2>&1 | tee tmp/rubocop.log")
+  execute_command("bundle exec rbs -I sig validate")
+  execute_command("POLYRUN_COVERAGE=1 bundle exec appraisal ruby40 -- bundle exec polyrun parallel-rspec --workers 5 --merge-failures 2>&1 | tee tmp/polyrun-rspec.log")
 
-git_status = `git diff --shortstat 2>/dev/null`.strip
-unless git_status.empty?
-  puts "\033[1;31mgit working directory not clean, please commit your changes first \033[0m"
-  puts "\033[1;33mNote: rubocop -a may have modified files. Review and commit changes before releasing.\033[0m"
-  exit 1
+  puts "Tests passed. Checking git status..."
+
+  git_status = `git diff --shortstat 2>/dev/null`.strip
+  unless git_status.empty?
+    puts "\033[1;31mgit working directory not clean, please commit your changes first \033[0m"
+    puts "\033[1;33mNote: rubocop -a may have modified files. Review and commit changes before releasing.\033[0m"
+    exit 1
+  end
+
+  gem_name = "polyrun"
+  version_file = "lib/polyrun/version.rb"
+  version_content = File.read(version_file)
+  version = version_content.match(/VERSION\s*=\s*"([0-9.]+)"/)[1]
+  gem_file = "#{gem_name}-#{version}.gem"
+
+  execute_command("gem build #{gem_name}.gemspec")
+
+  puts "Ready to release #{gem_file} #{version}"
+  print "Continue? [Y/n] "
+  answer = $stdin.gets.chomp
+  unless answer == "Y" || answer.empty?
+    puts "Exiting"
+    exit 1
+  end
+
+  execute_command("gem push #{gem_file}")
+  execute_command("git tag #{version} && git push --tags")
+  execute_command("gh release create #{version} --generate-notes")
 end
-
-gem_name = "polyrun"
-version_file = File.join(root_dir, "lib/polyrun/version.rb")
-version_content = File.read(version_file)
-version = version_content.match(/VERSION\s*=\s*"([0-9.]+)"/)[1]
-gem_file = "#{gem_name}-#{version}.gem"
-
-execute_command("cd #{root_q} && gem build #{gem_name}.gemspec")
-
-puts "Ready to release #{gem_file} #{version}"
-print "Continue? [Y/n] "
-answer = $stdin.gets.chomp
-unless answer == "Y" || answer.empty?
-  puts "Exiting"
-  exit 1
-end
-
-execute_command("cd #{root_q} && gem push #{gem_file}")
-execute_command("cd #{root_q} && git tag #{version} && git push --tags")
-execute_command("cd #{root_q} && gh release create #{version} --generate-notes")
+# rubocop:enable ThreadSafety/DirChdir

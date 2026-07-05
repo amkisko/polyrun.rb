@@ -7,10 +7,14 @@ require "rbconfig"
 
 RSpec.describe Polyrun::CLI do
   it "emits plan manifest" do
-    out, status = polyrun("plan", "--total", "2", "--shard", "0", "a.rb", "b.rb", "c.rb")
-    expect(status.success?).to be true
-    j = parse_polyrun_json(out)
-    expect(j["paths"]).to eq(%w[a.rb c.rb])
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        out, status = polyrun("plan", "--total", "2", "--shard", "0", "a.rb", "b.rb", "c.rb")
+        expect(status.success?).to be true
+        j = parse_polyrun_json(out)
+        expect(j["paths"]).to eq(%w[a.rb c.rb])
+      end
+    end
   end
 
   it "plan with --timing-granularity example uses path:line costs and emits timing_granularity" do
@@ -61,18 +65,20 @@ RSpec.describe Polyrun::CLI do
 
   it "plan uses partition.paths_file from config" do
     Dir.mktmpdir do |dir|
-      list = File.join(dir, "specs.txt")
-      File.write(list, "a.rb\nb.rb\nc.rb\n")
-      cfg = File.join(dir, "polyrun.yml")
-      File.write(cfg, <<~YAML)
-        partition:
-          paths_file: #{list}
-          shard_total: 2
-          shard_index: 0
-      YAML
-      out, status = polyrun("-c", cfg, "plan", "--shard", "0", "--total", "2")
-      expect(status.success?).to be true
-      expect(parse_polyrun_json(out)["paths"]).to eq(%w[a.rb c.rb])
+      with_chdir(dir) do
+        list = File.join(dir, "specs.txt")
+        File.write(list, "a.rb\nb.rb\nc.rb\n")
+        cfg = File.join(dir, "polyrun.yml")
+        File.write(cfg, <<~YAML)
+          partition:
+            paths_file: #{list}
+            shard_total: 2
+            shard_index: 0
+        YAML
+        out, status = polyrun("-c", cfg, "plan", "--shard", "0", "--total", "2")
+        expect(status.success?).to be true
+        expect(parse_polyrun_json(out)["paths"]).to eq(%w[a.rb c.rb])
+      end
     end
   end
 
@@ -112,9 +118,13 @@ RSpec.describe Polyrun::CLI do
     old = ENV["POLYRUN_TIMING_GRANULARITY"]
     ENV["POLYRUN_TIMING_GRANULARITY"] = "example"
     begin
-      out, status = polyrun("plan", "--total", "1", "--shard", "0", "--timing-granularity", "file", "a.rb")
-      expect(status.success?).to be true
-      expect(parse_polyrun_json(out)).not_to have_key("timing_granularity")
+      Dir.mktmpdir do |dir|
+        with_chdir(dir) do
+          out, status = polyrun("plan", "--total", "1", "--shard", "0", "--timing-granularity", "file", "a.rb")
+          expect(status.success?).to be true
+          expect(parse_polyrun_json(out)).not_to have_key("timing_granularity")
+        end
+      end
     ensure
       if old.nil?
         ENV.delete("POLYRUN_TIMING_GRANULARITY")

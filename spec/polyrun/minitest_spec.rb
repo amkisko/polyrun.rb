@@ -31,4 +31,74 @@ RSpec.describe "polyrun/minitest" do
     Polyrun::Minitest.install_parallel_provisioning!
     expect(called).to be true
   end
+
+  it "install_worker_ping! prepends when Minitest::Test is defined" do
+    require "polyrun/minitest"
+    stub_minitest = Module.new { const_set(:Test, Class.new) }
+    stub_const("Minitest", stub_minitest)
+
+    Polyrun::Minitest.install_worker_ping!
+    expect(Minitest::Test.ancestors).to include(Polyrun::Minitest::WorkerPingTestHook)
+  end
+
+  it "install_spec_quality! delegates to MinitestHook" do
+    require "polyrun/minitest"
+    stub_minitest = Module.new { const_set(:Test, Class.new) }
+    stub_const("Minitest", stub_minitest)
+    ENV["POLYRUN_SPEC_QUALITY"] = "1"
+
+    Polyrun::Minitest.install_spec_quality!(only_if: -> { true }, root: Dir.mktmpdir)
+    expect(Minitest::Test.ancestors).to include(Polyrun::SpecQuality::MinitestHook::SpecQualityTestHook)
+  end
+
+  it "install_spec_quality! no-ops when predicate is false" do
+    require "polyrun/minitest"
+    stub_minitest = Module.new { const_set(:Test, Class.new) }
+    stub_const("Minitest", stub_minitest)
+
+    Polyrun::Minitest.install_spec_quality!(only_if: -> { false })
+    expect(Minitest::Test.ancestors).not_to include(Polyrun::SpecQuality::MinitestHook::SpecQualityTestHook)
+  end
+
+  it "install_worker_ping! warns when Minitest::Test is not defined" do
+    require "polyrun/minitest"
+    hide_const("Minitest") if defined?(Minitest)
+
+    expect(Polyrun::Log).to receive(:warn).with(/skipped/)
+    Polyrun::Minitest.install_worker_ping!
+  end
+
+  it "WorkerPingTestHook pings around setup and teardown" do
+    require "polyrun/minitest"
+    require "polyrun/worker_ping"
+
+    base = Class.new do
+      def setup
+      end
+
+      def teardown
+      end
+    end
+    test_class = Class.new(base) do
+      prepend Polyrun::Minitest::WorkerPingTestHook
+
+      def name
+        "test_ping"
+      end
+
+      def method(_name)
+        self
+      end
+
+      def source_location
+        [__FILE__, __LINE__]
+      end
+    end
+
+    instance = test_class.new
+    allow(Polyrun::WorkerPing).to receive(:ping!)
+    instance.setup
+    instance.teardown
+    expect(Polyrun::WorkerPing).to have_received(:ping!).with(location: kind_of(String)).twice
+  end
 end

@@ -84,4 +84,54 @@ RSpec.describe Polyrun::CLI do
       end
     end
   end
+
+  it "prepare shell exits 1 when a command fails" do
+    Dir.mktmpdir do |dir|
+      cfg = File.join(dir, "polyrun.yml")
+      File.write(cfg, <<~YAML)
+        prepare:
+          recipe: shell
+          rails_root: #{dir}
+          command: exit 1
+      YAML
+      with_chdir(dir) do
+        _out, status = polyrun("-c", cfg, "prepare")
+        expect(status.exitstatus).to eq(1)
+      end
+    end
+  end
+
+  it "prepare shell exits 1 when recipe has no commands" do
+    Dir.mktmpdir do |dir|
+      cfg = File.join(dir, "polyrun.yml")
+      File.write(cfg, <<~YAML)
+        prepare:
+          recipe: shell
+          rails_root: #{dir}
+      YAML
+      with_chdir(dir) do
+        out, status = polyrun("-c", cfg, "prepare")
+        expect(status.exitstatus).to eq(1)
+        expect(out).to include("requires prepare.command")
+      end
+    end
+  end
+
+  it "prepare shell runs a custom command" do
+    Dir.mktmpdir do |dir|
+      cfg = File.join(dir, "polyrun.yml")
+      File.write(cfg, <<~YAML)
+        prepare:
+          recipe: shell
+          rails_root: #{dir}
+          command: printf ok > prepared.txt
+      YAML
+      with_chdir(dir) do
+        out, status = polyrun("-c", cfg, "prepare")
+        expect(status.success?).to be true
+        expect(JSON.parse(out)["executed"]).to be true
+        expect(File.read("prepared.txt")).to eq("ok")
+      end
+    end
+  end
 end

@@ -1,4 +1,6 @@
 spec/polyrun/cli_basics_spec.rb
+spec/polyrun/cli_ci_shard_hooks_spec.rb
+spec/polyrun/cli_ci_shard_in_process_spec.rb
 spec/polyrun/cli_ci_shard_rspec_spec.rb
 spec/polyrun/cli_ci_shard_run_spec.rb
 spec/polyrun/cli_config_spec.rb
@@ -9,10 +11,14 @@ spec/polyrun/cli_hooks_spec.rb
 spec/polyrun/cli_merge_coverage_spec.rb
 spec/polyrun/cli_parallel_rspec_start_spec.rb
 spec/polyrun/cli_plan_spec.rb
+spec/polyrun/cli_prepare_extra_spec.rb
 spec/polyrun/cli_prepare_spec.rb
+spec/polyrun/cli_queue_errors_spec.rb
 spec/polyrun/cli_queue_timing_reports_spec.rb
 spec/polyrun/cli_quick_spec.rb
+spec/polyrun/cli_report_commands_spec.rb
 spec/polyrun/cli_run_queue_spec.rb
+spec/polyrun/cli_run_queue_validation_spec.rb
 spec/polyrun/cli_run_shards_coverage_workers_spec.rb
 spec/polyrun/cli_run_shards_worker_timeouts_spec.rb
 spec/polyrun/cli_spec_quality_spec.rb
@@ -23,6 +29,7 @@ spec/polyrun/config/effective_spec.rb
 spec/polyrun/config/resolver_spec.rb
 spec/polyrun/config_spec.rb
 spec/polyrun/coverage/cobertura_zero_lines_spec.rb
+spec/polyrun/coverage/collector_finish_spec.rb
 spec/polyrun/coverage/collector_fragments_spec.rb
 spec/polyrun/coverage/collector_gate_spec.rb
 spec/polyrun/coverage/collector_spec.rb
@@ -49,6 +56,7 @@ spec/polyrun/debug_spec.rb
 spec/polyrun/env/ci_spec.rb
 spec/polyrun/examples_cli_spec.rb
 spec/polyrun/gemspec_spec.rb
+spec/polyrun/hooks/worker_shell_spec.rb
 spec/polyrun/hooks_dsl_spec.rb
 spec/polyrun/hooks_spec.rb
 spec/polyrun/hooks_worker_runner_spec.rb
@@ -58,6 +66,7 @@ spec/polyrun/minitest_spec.rb
 spec/polyrun/partition/constraints_spec.rb
 spec/polyrun/partition/hrw_spec.rb
 spec/polyrun/partition/min_heap_spec.rb
+spec/polyrun/partition/paths_build_extra_spec.rb
 spec/polyrun/partition/paths_build_spec.rb
 spec/polyrun/partition/paths_spec.rb
 spec/polyrun/partition/plan_spec.rb
@@ -68,6 +77,8 @@ spec/polyrun/prepare/assets_spec.rb
 spec/polyrun/process_stdio_spec.rb
 spec/polyrun/queue/duration_spec.rb
 spec/polyrun/queue/file_store_spec.rb
+spec/polyrun/queue/worker_loop_spec.rb
+spec/polyrun/quick/matchers_spec.rb
 spec/polyrun/quick_features_spec.rb
 spec/polyrun/quick_runner_spec.rb
 spec/polyrun/railtie_spec.rb
@@ -77,10 +88,16 @@ spec/polyrun/reporting/rspec_junit_spec.rb
 spec/polyrun/require_surface_spec.rb
 spec/polyrun/rspec_spec.rb
 spec/polyrun/spec_quality/config_spec.rb
+spec/polyrun/spec_quality/fragment_spec.rb
 spec/polyrun/spec_quality/merge_spec.rb
+spec/polyrun/spec_quality/minitest_hook_spec.rb
 spec/polyrun/spec_quality/plan_loader_spec.rb
+spec/polyrun/spec_quality/profile_spec.rb
+spec/polyrun/spec_quality/report_more_spec.rb
 spec/polyrun/spec_quality/report_spec.rb
+spec/polyrun/spec_quality/rspec_hook_spec.rb
 spec/polyrun/spec_quality/spec_quality_spec.rb
+spec/polyrun/spec_quality/sql_counter_spec.rb
 spec/polyrun/timing/merge_spec.rb
 spec/polyrun/timing/rspec_example_formatter_spec.rb
 spec/polyrun/timing/stats_spec.rb

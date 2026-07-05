@@ -12,8 +12,7 @@ RSpec.describe Polyrun::CLI do
           out, st = polyrun(
             "run-queue", "--workers", "1", "--batch", "1",
             "--dir", ".rq", "--paths-file", list,
-            "--", "ruby", "-e", "exit 0",
-            in_process: false
+            "--", "ruby", "-e", "exit 0"
           )
           expect(st.exitstatus).to eq(0)
           expect(out).to include("done pending=0")
@@ -30,8 +29,7 @@ RSpec.describe Polyrun::CLI do
           out, st = polyrun(
             "run-queue", "--workers", "1", "--batch", "1",
             "--dir", ".rq", "--paths-file", list,
-            "--", "ruby", "-e", script,
-            in_process: false
+            "--", "ruby", "-e", script
           )
           expect(st.exitstatus).to eq(1)
           expect(out).to include("reclaimed 1 path")
@@ -39,6 +37,40 @@ RSpec.describe Polyrun::CLI do
           stat = store.status
           expect(stat["done"]).to eq(1)
           expect(stat["pending"]).to eq(1)
+        end
+      end
+    end
+
+    it "runs with multiple workers" do
+      Dir.mktmpdir do |dir|
+        with_chdir(dir) do
+          list = File.join(dir, "paths.txt")
+          File.write(list, "a.rb\nb.rb\nc.rb\n")
+          out, st = polyrun(
+            "run-queue", "--workers", "2", "--batch", "1",
+            "--dir", ".rq2", "--paths-file", list,
+            "--", "ruby", "-e", "exit 0"
+          )
+          expect(st.exitstatus).to eq(0)
+          expect(out).to include("done pending=0")
+        end
+      end
+    end
+
+    it "requeues leased paths when --on-failure requeue and a batch fails" do
+      Dir.mktmpdir do |dir|
+        with_chdir(dir) do
+          list = File.join(dir, "paths.txt")
+          File.write(list, "fail.rb\n")
+          out, st = polyrun(
+            "run-queue", "--workers", "1", "--batch", "1", "--on-failure", "requeue",
+            "--dir", ".rq3", "--paths-file", list,
+            "--", "ruby", "-e", "exit 1"
+          )
+          expect(st.exitstatus).to eq(1)
+          store = Polyrun::Queue::FileStore.new(".rq3")
+          expect(store.status["pending"]).to eq(1)
+          expect(store.status["leases"]).to eq(0)
         end
       end
     end

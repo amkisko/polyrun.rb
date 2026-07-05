@@ -110,4 +110,73 @@ RSpec.describe "polyrun hook" do
       end
     end
   end
+
+  it "prints hook help" do
+    out, status = polyrun("hook", "help")
+    expect(status.success?).to be true
+    expect(out).to include("polyrun hook run")
+  end
+
+  it "warns on unknown hook subcommand" do
+    out, status = polyrun("hook", "nope")
+    expect(status.exitstatus).to eq(2)
+    expect(out).to include("unknown subcommand")
+  end
+
+  it "hook run rejects unexpected arguments" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        File.write("polyrun.yml", "hooks: {}\n")
+        out, status = polyrun("hook", "run", "before_suite", "--extra")
+        expect(status.exitstatus).to eq(2)
+        expect(out).to include("unexpected arguments")
+      end
+    end
+  end
+
+  it "hook run exits 2 when --shard has no value" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        File.write("polyrun.yml", "hooks: {}\n")
+        out, status = polyrun("hook", "run", "before_suite", "--shard")
+        expect(status.exitstatus).to eq(2)
+        expect(out).to include("--shard needs a value")
+      end
+    end
+  end
+
+  it "hook run executes after_shard phase" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        File.write("polyrun.yml", <<~YAML)
+          hooks:
+            after_shard: 'printf ok > after_shard.txt'
+        YAML
+        _out, status = polyrun("hook", "run", "after_shard", "--shard", "0", "--total", "2")
+        expect(status.success?).to be true
+        expect(File.read("after_shard.txt")).to eq("ok")
+      end
+    end
+  end
+
+  it "hook run help exits 2" do
+    _out, status = polyrun("hook", "run", "--help")
+    expect(status.exitstatus).to eq(2)
+  end
+
+  it "hook run without phase exits 2" do
+    _out, status = polyrun("hook", "run")
+    expect(status.exitstatus).to eq(2)
+  end
+
+  it "hook run exits 2 when --total has no value" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        File.write("polyrun.yml", "hooks: {}\n")
+        out, status = polyrun("hook", "run", "before_suite", "--total")
+        expect(status.exitstatus).to eq(2)
+        expect(out).to include("--total needs a value")
+      end
+    end
+  end
 end

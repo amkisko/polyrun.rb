@@ -88,19 +88,52 @@ RSpec.describe Polyrun::Partition::PathsBuild do
   describe ".apply!" do
     it "writes paths_file from config" do
       Dir.mktmpdir do |dir|
-        FileUtils.mkdir_p(File.join(dir, "spec"))
-        File.write(File.join(dir, "spec", "x_spec.rb"), "")
-        File.write(File.join(dir, "polyrun.yml"), <<~YAML)
-          partition:
-            paths_file: spec/spec_paths.txt
-            paths_build:
-              all_glob: spec/**/*_spec.rb
-              stages: []
-        YAML
-        cfg = Polyrun::Config.load(path: File.join(dir, "polyrun.yml"))
-        expect(described_class.apply!(partition: cfg.partition, cwd: dir)).to eq(0)
-        lines = File.read(File.join(dir, "spec", "spec_paths.txt")).split("\n").reject(&:empty?)
-        expect(lines).to eq(%w[spec/x_spec.rb])
+        old = ENV.delete("POLYRUN_SKIP_PATHS_BUILD")
+        begin
+          FileUtils.mkdir_p(File.join(dir, "spec"))
+          File.write(File.join(dir, "spec", "x_spec.rb"), "")
+          File.write(File.join(dir, "polyrun.yml"), <<~YAML)
+            partition:
+              paths_file: spec/spec_paths.txt
+              paths_build:
+                all_glob: spec/**/*_spec.rb
+                stages: []
+          YAML
+          cfg = Polyrun::Config.load(path: File.join(dir, "polyrun.yml"))
+          expect(described_class.apply!(partition: cfg.partition, cwd: dir)).to eq(0)
+          lines = File.read(File.join(dir, "spec", "spec_paths.txt")).split("\n").reject(&:empty?)
+          expect(lines).to eq(%w[spec/x_spec.rb])
+        ensure
+          ENV["POLYRUN_SKIP_PATHS_BUILD"] = "1" if old.nil?
+        end
+      end
+    end
+  end
+
+  describe "build-paths CLI" do
+    it "writes paths_file from polyrun.yml paths_build" do
+      Dir.mktmpdir do |dir|
+        with_chdir(dir) do
+          FileUtils.mkdir_p("spec")
+          File.write("spec/only_spec.rb", "")
+          File.write("polyrun.yml", <<~YAML)
+            partition:
+              paths_file: spec/spec_paths.txt
+              paths_build:
+                all_glob: spec/**/*_spec.rb
+                stages: []
+          YAML
+          old = ENV.delete("POLYRUN_SKIP_PATHS_BUILD")
+          begin
+            out, status = polyrun("build-paths", "-c", "polyrun.yml")
+            expect(status.success?).to be true
+            expect(out).to include("spec/spec_paths.txt")
+            lines = File.read("spec/spec_paths.txt").split("\n").reject(&:empty?)
+            expect(lines).to eq(%w[spec/only_spec.rb])
+          ensure
+            ENV["POLYRUN_SKIP_PATHS_BUILD"] = "1" if old.nil?
+          end
+        end
       end
     end
   end

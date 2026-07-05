@@ -62,6 +62,13 @@ RSpec.describe Polyrun::Coverage::Merge do
       expect(m1["/x.rb"]["branches"]).to eq(m2["/x.rb"]["branches"])
       expect(m1["/x.rb"]["branches"].map { |br| br["type"] }).to eq(%w[else then])
     end
+
+    it "merges when one side has no branches" do
+      a = {"/x.rb" => {"lines" => [1], "branches" => [{"type" => "then", "start_line" => 1, "end_line" => 1, "coverage" => 1}]}}
+      b = {"/x.rb" => {"lines" => [1]}}
+      m = described_class.merge_two(a, b)
+      expect(m["/x.rb"]["branches"].first["coverage"]).to eq(1)
+    end
   end
 
   describe ".extract_coverage_blob" do

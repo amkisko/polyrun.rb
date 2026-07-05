@@ -26,15 +26,17 @@ RSpec.describe Polyrun::WorkerPing do
     expect { described_class.ensure_interval_ping_thread! }.not_to raise_error
   end
 
-  it "ping! writes timestamp and optional location on second line" do
+  it "ensure_interval_ping_thread! starts periodic ping when thread env is set" do
+    described_class.instance_variable_set(:@interval_ping_started, nil)
+    described_class.instance_variable_set(:@interval_ping_mx, nil)
     Dir.mktmpdir do |dir|
       path = File.join(dir, "p.txt")
       ENV["POLYRUN_WORKER_PING_FILE"] = path
-      described_class.ping!(location: "spec/a_spec.rb:12")
-      raw = File.binread(path)
-      time_line, loc_line = raw.split("\n", 2)
-      expect(time_line.to_f).to be > 0
-      expect(loc_line).to eq "spec/a_spec.rb:12"
+      ENV["POLYRUN_WORKER_PING_THREAD"] = "1"
+      ENV["POLYRUN_WORKER_PING_INTERVAL_SEC"] = "0.01"
+      described_class.ensure_interval_ping_thread!
+      sleep 0.05
+      expect(File.binread(path)).not_to be_empty
     end
   end
 end

@@ -7,6 +7,20 @@ module PolyrunCliHelpers
       ok
     end
   end
+  # Commands that call Kernel.exec when hooks are empty; in-process polyrun would replace the RSpec worker.
+  POLYRUN_EXEC_CLI_SUBCOMMANDS = %w[ci-shard-run ci-shard-rspec].freeze
+
+  def polyrun_cli_subcommand(*args)
+    argv = args.map(&:to_s)
+    return argv.first if argv.empty?
+
+    if argv.first == "-c" && argv.size >= 3
+      argv[2]
+    else
+      argv.first
+    end
+  end
+
   # When POLYRUN_COVERAGE=1, run the CLI in-process so stdlib Coverage attributes
   # hits to lib/polyrun/cli/*.rb (subprocess tests do not). Set POLYRUN_CLI_SUBPROCESS=1
   # to force bin/polyrun (e.g. debugging).
@@ -14,10 +28,13 @@ module PolyrunCliHelpers
     root = File.expand_path("../..", __dir__)
     bin = File.join(root, "bin", "polyrun")
     merged = {"RUBYOPT" => nil}.merge(env || {})
+    subcommand = polyrun_cli_subcommand(*args)
     use_ip = if !in_process.nil?
       in_process
     else
-      ENV["POLYRUN_COVERAGE"] == "1" && ENV["POLYRUN_CLI_SUBPROCESS"] != "1"
+      ENV["POLYRUN_COVERAGE"] == "1" &&
+        ENV["POLYRUN_CLI_SUBPROCESS"] != "1" &&
+        !POLYRUN_EXEC_CLI_SUBCOMMANDS.include?(subcommand)
     end
 
     if use_ip

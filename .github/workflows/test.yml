@@ -1,4 +1,4 @@
-name: CI
+name: test
 
 on:
   workflow_dispatch:
@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: ["3.2", "3.3", "3.4"]
+        ruby: ["3.2", "3.3", "3.4", "4.0"]
 
     steps:
       - uses: actions/checkout@v7
@@ -45,6 +45,8 @@ jobs:
             ruby: "3.2"
           - appraisal: ruby34
             ruby: "3.4"
+          - appraisal: ruby40
+            ruby: "4.0"
 
     env:
       BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.appraisal }}.gemfile

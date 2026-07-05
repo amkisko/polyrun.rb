@@ -18,6 +18,9 @@ if polyrun_cov_measure
   Polyrun::Coverage::Rails.start!(root: File.expand_path("..", __dir__))
 end
 
+# spec/spec_paths.txt is maintained in git; avoid rewriting it from plan/run-shards during examples.
+ENV["POLYRUN_SKIP_PATHS_BUILD"] = "1"
+
 require "polyrun"
 require_relative "support/polyrun_cli_helpers"
 

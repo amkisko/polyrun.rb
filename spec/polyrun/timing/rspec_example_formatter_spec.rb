@@ -90,8 +90,12 @@ RSpec.describe "Polyrun example timing" do
             end
           end
         RUBY
-        _out, status = Open3.capture2e({"RUBYOPT" => "-I#{lib}"}, Gem.ruby, "-S", "rspec", spec, "--format", "progress")
-        expect(status.success?).to be true
+        out, status = Open3.capture2e(
+          {"RUBYOPT" => "-I#{lib}"},
+          Gem.ruby, "-S", "rspec", spec, "--format", "progress",
+          chdir: dir
+        )
+        expect(status.exitstatus).to eq(0), out
         data = JSON.parse(File.read(timing_out))
         expect(data.values.first).to be_a(Float)
         expect(data.keys.first).to match(/:\d+\z/)

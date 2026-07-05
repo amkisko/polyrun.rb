@@ -53,4 +53,38 @@ RSpec.describe Polyrun::SpecQuality do
       end
     end
   end
+
+  describe ".record_sql! and helpers" do
+    it "records sql when an example is active" do
+      Dir.mktmpdir do |dir|
+        described_class.start!(root: dir, output_path: File.join(dir, "q.jsonl"), profile: [], sql_counter: false)
+        described_class.start_example!(location: "spec/a_spec.rb:1")
+        described_class.record_sql!("SELECT 1")
+        expect(described_class.instance_variable_get(:@current)[:sql_count]).to eq(1)
+      end
+    end
+
+    it "spec_quality_requested_for_quick? reads env and config" do
+      ENV["POLYRUN_SPEC_QUALITY"] = "1"
+      expect(described_class.spec_quality_requested_for_quick?).to be true
+    end
+
+    it "skips ignored examples" do
+      Dir.mktmpdir do |dir|
+        out = File.join(dir, "q.jsonl")
+        described_class.start!(root: dir, output_path: out, profile: [], sample: 1.0, ignore_examples: ["skip_me"])
+        described_class.start_example!(location: "spec/skip_me_spec.rb:1")
+        expect(described_class.finish_example!(location: "spec/skip_me_spec.rb:1")).to be_nil
+      end
+    end
+
+    it "finish_example! returns nil for pending examples" do
+      Dir.mktmpdir do |dir|
+        out = File.join(dir, "q.jsonl")
+        described_class.start!(root: dir, output_path: out, profile: [], sample: 1.0)
+        described_class.start_example!(location: "spec/pending_spec.rb:1")
+        expect(described_class.finish_example!(location: "spec/pending_spec.rb:1", pending: true)).to be_nil
+      end
+    end
+  end
 end

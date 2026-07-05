@@ -22,5 +22,11 @@ RSpec.describe Polyrun::SpecQuality::Config do
   it "matches ignore_examples patterns" do
     expect(described_class.ignored_example?("spec/foo_spec.rb:10", ["foo_spec"])).to be true
     expect(described_class.ignored_example?("spec/bar_spec.rb:1", ["foo_spec"])).to be false
+    expect(described_class.ignored_example?("spec/bar_spec.rb:1", ["/bar_spec/"])).to be true
+  end
+
+  it "is disabled when POLYRUN_SPEC_QUALITY_DISABLE=1" do
+    expect(described_class.disabled?({"POLYRUN_SPEC_QUALITY_DISABLE" => "1"})).to be true
+    expect(described_class.enabled?({"POLYRUN_SPEC_QUALITY_DISABLE" => "1"})).to be false
   end
 end

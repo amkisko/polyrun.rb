@@ -275,6 +275,9 @@ RSpec.describe "Polyrun::CLI ci-shard-run" do
         %w[a.rb c.rb].each { |f| File.write(File.join(dir, f), "") }
         cfg = File.join(dir, "polyrun.yml")
         File.write(cfg, <<~YAML)
+          hooks:
+            before_suite: 'printf suite > suite.txt'
+            after_suite: 'printf after >> suite.txt'
           partition:
             paths_file: #{list}
             shard_total: 2
@@ -293,6 +296,7 @@ RSpec.describe "Polyrun::CLI ci-shard-run" do
         expect(status.success?).to be true
         expect(out).to include("NxM")
         expect(out).to include("pid=")
+        expect(File.read(File.join(dir, "suite.txt"))).to eq("suiteafter")
       end
     end
   end
