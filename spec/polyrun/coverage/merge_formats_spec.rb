@@ -207,6 +207,23 @@ RSpec.describe Polyrun::Coverage::Merge do
         )
       end
     end
+
+    it "embeds UTF-8 source lines without encoding errors" do
+      Dir.mktmpdir do |root|
+        file = File.join(root, "lib", "tasks_helper.rb")
+        FileUtils.mkdir_p(File.dirname(file))
+        File.write(file, "# ⚠️ warning\n# ✅ done\n", encoding: Encoding::UTF_8)
+
+        html = described_class.emit_html(
+          {file => {"lines" => [1, 0]}},
+          title: "UTF-8",
+          root: root
+        )
+
+        expect(html.encoding).to eq(Encoding::UTF_8)
+        expect(html).to include("⚠️", "✅")
+      end
+    end
   end
 
   describe ".emit_lcov" do
