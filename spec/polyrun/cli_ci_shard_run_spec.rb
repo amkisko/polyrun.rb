@@ -95,7 +95,7 @@ RSpec.describe "Polyrun::CLI ci-shard-run" do
             shard_index: 0
         YAML
         stub = File.join(dir, "_child.rb")
-        File.write(stub, <<~'RUBY')
+        File.write(stub, <<~RUBY)
           require "json"
           File.write("argv.json", JSON.generate(ARGV))
           exit 0
@@ -143,7 +143,7 @@ RSpec.describe "Polyrun::CLI ci-shard-run" do
             shard_index: 0
         YAML
         stub = File.join(dir, "_argv.rb")
-        File.write(stub, <<~'RUBY')
+        File.write(stub, <<~RUBY)
           require "json"
           File.write("argv.json", JSON.generate(ARGV))
           exit 0
@@ -343,7 +343,7 @@ RSpec.describe "Polyrun::CLI ci-shard-run" do
             shard_index: 0
         YAML
         stub = File.join(dir, "_child.rb")
-        File.write(stub, <<~'RUBY')
+        File.write(stub, <<~RUBY)
           keys = %w[POLYRUN_SHARD_MATRIX_INDEX POLYRUN_SHARD_MATRIX_TOTAL]
           File.write("matrix.txt", keys.map { |k| ENV.key?(k) ? "yes" : "no" }.join(","))
           exit 0
@@ -369,7 +369,7 @@ RSpec.describe "Polyrun::CLI ci-shard-run" do
             shard_index: 0
         YAML
         stub = File.join(dir, "_child.rb")
-        File.write(stub, <<~'RUBY')
+        File.write(stub, <<~RUBY)
           keys = %w[POLYRUN_SHARD_MATRIX_INDEX POLYRUN_SHARD_MATRIX_TOTAL]
           File.write("matrix.txt", keys.map { |k| ENV.key?(k) ? "yes" : "no" }.join(","))
           exit 0

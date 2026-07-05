@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+require "fileutils"
 require "shellwords"
 
 def execute_command(command)
@@ -16,6 +17,7 @@ end
 
 root_dir = File.expand_path(File.join(File.dirname(__FILE__), "../.."))
 root_q = Shellwords.escape(root_dir)
+FileUtils.mkdir_p(File.join(root_dir, "tmp"))
 
 execute_command("cd #{root_q} && bundle")
 execute_command("cd #{root_q} && bundle exec appraisal generate")

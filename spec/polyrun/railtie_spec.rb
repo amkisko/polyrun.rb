@@ -8,7 +8,7 @@ RSpec.describe "Polyrun::Railtie" do
 
   it "registers the polyrun railtie name when Rails::Railtie is defined" do
     lib = File.expand_path("../../lib", __dir__)
-    script = <<~'RUBY'
+    script = <<~RUBY
       $LOAD_PATH.unshift(ARGV[0])
       unless defined?(Rails::Railtie)
         module Rails
@@ -33,7 +33,7 @@ RSpec.describe "Polyrun::Railtie" do
       require "polyrun/railtie"
       exit(Polyrun::Railtie.railtie_name == :polyrun ? 0 : 1)
     RUBY
-    _err, status = Open3.capture2e(Gem.ruby, "-e", script, lib)
-    expect(status.exitstatus).to eq(0), -> { _err }
+    err, status = Open3.capture2e(Gem.ruby, "-e", script, lib)
+    expect(status.exitstatus).to eq(0), -> { err }
   end
 end

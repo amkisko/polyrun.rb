@@ -1,3 +1,4 @@
+# rubocop:disable Polyrun/FileLength -- start prepare and worker bootstrap integration cases
 require "spec_helper"
 require "fileutils"
 require "open3"
@@ -256,3 +257,4 @@ RSpec.describe Polyrun::CLI do
     end
   end
 end
+# rubocop:enable Polyrun/FileLength
