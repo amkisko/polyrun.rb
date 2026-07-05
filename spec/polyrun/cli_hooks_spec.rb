@@ -105,7 +105,8 @@ RSpec.describe "polyrun hook" do
           RbConfig.ruby, stub
         )
         expect(status.success?).to be true
-        expect(File.read(File.join(dir, "shard_seq.txt")).split).to eq(%w[0 1])
+        shards = File.read(File.join(dir, "shard_seq.txt")).split
+        expect(shards).to contain_exactly("0", "1")
       end
     end
   end

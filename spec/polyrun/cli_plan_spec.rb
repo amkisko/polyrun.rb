@@ -4,7 +4,6 @@ require "open3"
 require "json"
 require "tmpdir"
 require "rbconfig"
-require "stringio"
 
 RSpec.describe Polyrun::CLI do
   it "emits plan manifest" do
@@ -86,7 +85,46 @@ RSpec.describe Polyrun::CLI do
     end
   end
 
-  it "cmd_plan JSON matches JSON.generate(plan_command_compute_manifest) for the same argv (guards drift)" do
+  it "plan uses partition.timing_granularity from config when CLI omits flag" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        ra = File.join(dir, "a.rb")
+        list = File.join(dir, "spec_paths.txt")
+        File.write(list, "#{ra}:1\n")
+        timing = File.join(dir, "t.json")
+        File.write(timing, JSON.dump({"#{ra}:1" => 1.0}))
+        cfg = File.join(dir, "polyrun.yml")
+        File.write(cfg, <<~YAML)
+          partition:
+            paths_file: #{list}
+            timing_granularity: example
+            shard_total: 1
+            shard_index: 0
+        YAML
+        out, status = polyrun("-c", cfg, "plan", "--shard", "0", "--total", "1", "--timing", timing)
+        expect(status.success?).to be true
+        expect(parse_polyrun_json(out)["timing_granularity"]).to eq("example")
+      end
+    end
+  end
+
+  it "plan prefers --timing-granularity over POLYRUN_TIMING_GRANULARITY" do
+    old = ENV["POLYRUN_TIMING_GRANULARITY"]
+    ENV["POLYRUN_TIMING_GRANULARITY"] = "example"
+    begin
+      out, status = polyrun("plan", "--total", "1", "--shard", "0", "--timing-granularity", "file", "a.rb")
+      expect(status.success?).to be true
+      expect(parse_polyrun_json(out)).not_to have_key("timing_granularity")
+    ensure
+      if old.nil?
+        ENV.delete("POLYRUN_TIMING_GRANULARITY")
+      else
+        ENV["POLYRUN_TIMING_GRANULARITY"] = old
+      end
+    end
+  end
+
+  it "plan emits identical JSON for repeated invocations with the same argv" do
     Dir.mktmpdir do |dir|
       with_chdir(dir) do
         list = File.join(dir, "specs.txt")
@@ -98,23 +136,12 @@ RSpec.describe Polyrun::CLI do
             shard_total: 2
             shard_index: 0
         YAML
-        argv = ["--shard", "0", "--total", "2"]
-        out = StringIO.new
-        begin
-          Polyrun::Log.stdout = out
-          cli = Polyrun::CLI.new
-          code = cli.send(:cmd_plan, argv.dup, cfg)
-          expect(code).to eq(0)
-          from_cmd_plan = out.string.chomp
-
-          manifest, c2 = cli.send(:plan_command_compute_manifest, argv.dup, cfg)
-          expect(c2).to eq(0)
-          from_compute = JSON.generate(manifest)
-
-          expect(from_cmd_plan).to eq(from_compute)
-        ensure
-          Polyrun::Log.reset_io!
-        end
+        out1, status1 = polyrun("-c", cfg, "plan", "--shard", "0", "--total", "2")
+        out2, status2 = polyrun("-c", cfg, "plan", "--shard", "0", "--total", "2")
+        expect(status1.success?).to be true
+        expect(status2.success?).to be true
+        expect(out1).to eq(out2)
+        expect(parse_polyrun_json(out1)["paths"]).to eq(%w[a.rb c.rb])
       end
     end
   end

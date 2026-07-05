@@ -162,7 +162,7 @@ module Polyrun
           Polyrun::Log.warn "polyrun run-shards: shard #{s} re-run (same spec list, no interleave): #{rerun}"
         end
         unless merge_failures
-          Polyrun::Log.warn "polyrun run-shards: one merged failure report — use run-shards --merge-failures with Polyrun::RSpec.install_failure_fragments!; POLYRUN_MERGED_FAILURES_PATH is set on after_suite when merge runs."
+          Polyrun::Log.warn "polyrun run-shards: for one combined failure report, add --merge-failures (requires failure fragments enabled in your test setup)"
         end
       end
     end

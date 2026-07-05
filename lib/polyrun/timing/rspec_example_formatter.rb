@@ -1,6 +1,6 @@
 require "json"
 
-require "rspec/core/formatters/base_formatter"
+require "rspec/core/formatters"
 
 module Polyrun
   module Timing
@@ -13,23 +13,23 @@ module Polyrun
     # Or {Polyrun::RSpec.install_example_timing!} (+output_path:+ avoids touching +ENV+).
     #
     # Default output path: +ENV["POLYRUN_EXAMPLE_TIMING_OUT"]+ if set, else +polyrun_timing_examples.json+.
-    class RSpecExampleFormatter < RSpec::Core::Formatters::BaseFormatter
-      RSpec::Core::Formatters.register self, :example_finished, :close
+    class RSpecExampleFormatter
+      ::RSpec::Core::Formatters.register self, :example_finished, :close
 
       def initialize(output)
-        super
+        @output = output
         @times = {}
       end
 
       def example_finished(notification)
         ex = notification.example
-        result = ex.execution_result
-        return if result.pending?
+        return if ex.pending?
 
+        result = ex.execution_result
         t = result.run_time
         return unless t
 
-        path = ex.metadata[:absolute_path]
+        path = example_absolute_path(ex)
         return unless path
 
         line = ex.metadata[:line_number]
@@ -47,6 +47,13 @@ module Polyrun
       # Override in a subclass from {Polyrun::RSpec.install_example_timing!(output_path: ...)}.
       def timing_output_path
         ENV["POLYRUN_EXAMPLE_TIMING_OUT"] || "polyrun_timing_examples.json"
+      end
+
+      private
+
+      def example_absolute_path(example)
+        metadata = example.metadata
+        metadata[:absolute_file_path] || metadata[:file_path] || metadata[:absolute_path]
       end
     end
   end

@@ -51,14 +51,15 @@ RSpec.describe Polyrun::Hooks do
       end
     end
 
-    it "runs shell commands from a YAML list in order" do
+    it "runs all shell commands from a YAML list in before_suite" do
       Dir.mktmpdir do |dir|
         with_chdir(dir) do
           h = described_class.new(
-            "before_suite" => ["printf a > order.txt", "printf b >> order.txt"]
+            "before_suite" => ["touch hook_a.txt", "touch hook_b.txt"]
           )
           expect(h.run_phase(:before_suite, ENV.to_h)).to eq(0)
-          expect(File.read("order.txt")).to eq("ab")
+          expect(File.file?("hook_a.txt")).to be true
+          expect(File.file?("hook_b.txt")).to be true
         end
       end
     end

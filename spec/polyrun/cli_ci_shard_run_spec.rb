@@ -35,6 +35,53 @@ RSpec.describe "Polyrun::CLI ci-shard-run" do
     end
   end
 
+  it "exits 2 when --shard-processes has no value" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        list = File.join(dir, "spec_paths.txt")
+        File.write(list, "a.rb\n")
+        cfg = File.join(dir, "polyrun.yml")
+        File.write(cfg, <<~YAML)
+          partition:
+            paths_file: #{list}
+            shard_total: 1
+            shard_index: 0
+        YAML
+        out, status = polyrun("-c", cfg, "ci-shard-run", "--shard-processes", "--", "true")
+        expect(status.exitstatus).to eq(2)
+        expect(out).to match(/missing value for --shard-processes/)
+      end
+    end
+  end
+
+  it "caps --shard-processes at MAX_PARALLEL_WORKERS" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        list = File.join(dir, "spec_paths.txt")
+        File.write(list, "a.rb\n")
+        File.write(File.join(dir, "a.rb"), "")
+        cfg = File.join(dir, "polyrun.yml")
+        File.write(cfg, <<~YAML)
+          partition:
+            paths_file: #{list}
+            shard_total: 1
+            shard_index: 0
+        YAML
+        stub = File.join(dir, "_child.rb")
+        File.write(stub, "exit 0\n")
+        over = Polyrun::Config::MAX_PARALLEL_WORKERS + 5
+        out, status = polyrun(
+          "-c", cfg,
+          "ci-shard-run", "--shard-processes", over.to_s, "--",
+          RbConfig.ruby, stub
+        )
+        expect(status.success?).to be true
+        expect(out).to include("capping")
+        expect(out).to include(Polyrun::Config::MAX_PARALLEL_WORKERS.to_s)
+      end
+    end
+  end
+
   it "execs user command with planned paths appended" do
     Dir.mktmpdir do |dir|
       with_chdir(dir) do
@@ -47,15 +94,20 @@ RSpec.describe "Polyrun::CLI ci-shard-run" do
             shard_total: 2
             shard_index: 0
         YAML
-        cli = Polyrun::CLI.new
-        expect(cli).to receive(:exec).with(
-          "bundle", "exec", "polyrun", "quick", "--format", "documentation", "a.rb", "c.rb"
+        stub = File.join(dir, "_child.rb")
+        File.write(stub, <<~'RUBY')
+          require "json"
+          File.write("argv.json", JSON.generate(ARGV))
+          exit 0
+        RUBY
+        _, status = polyrun(
+          "-c", cfg,
+          "ci-shard-run", "--shard", "0", "--total", "2", "--",
+          RbConfig.ruby, stub, "--format", "documentation"
         )
-        cli.send(
-          :cmd_ci_shard_run,
-          ["--shard", "0", "--total", "2", "--", "bundle", "exec", "polyrun", "quick", "--format", "documentation"],
-          cfg
-        )
+        expect(status.success?).to be true
+        argv = JSON.parse(File.read(File.join(dir, "argv.json")))
+        expect(argv).to eq(["--format", "documentation", "a.rb", "c.rb"])
       end
     end
   end
@@ -72,10 +124,8 @@ RSpec.describe "Polyrun::CLI ci-shard-run" do
             shard_total: 1
             shard_index: 0
         YAML
-        cli = Polyrun::CLI.new
-        allow(cli).to receive(:exec).with("missing-binary-ci-shard", "a.rb").and_raise(Errno::ENOENT.new("nope"))
-        expect { cli.send(:cmd_ci_shard_run, ["--", "missing-binary-ci-shard"], cfg) }.to raise_error(Errno::ENOENT)
-        expect(cli).to have_received(:exec).with("missing-binary-ci-shard", "a.rb")
+        _out, status = polyrun("-c", cfg, "ci-shard-run", "--", "missing-binary-ci-shard")
+        expect(status.success?).to be false
       end
     end
   end
@@ -92,9 +142,16 @@ RSpec.describe "Polyrun::CLI ci-shard-run" do
             shard_total: 1
             shard_index: 0
         YAML
-        cli = Polyrun::CLI.new
-        expect(cli).to receive(:exec).with("bundle", "exec", "ruby", "-Itest", "x.rb")
-        cli.send(:cmd_ci_shard_run, ["--", "bundle exec ruby -Itest"], cfg)
+        stub = File.join(dir, "_argv.rb")
+        File.write(stub, <<~'RUBY')
+          require "json"
+          File.write("argv.json", JSON.generate(ARGV))
+          exit 0
+        RUBY
+        _, status = polyrun("-c", cfg, "ci-shard-run", "--", "#{RbConfig.ruby} #{stub}")
+        expect(status.success?).to be true
+        argv = JSON.parse(File.read(File.join(dir, "argv.json")))
+        expect(argv).to eq(["x.rb"])
       end
     end
   end
@@ -268,6 +325,62 @@ RSpec.describe "Polyrun::CLI ci-shard-run" do
         expect(status.success?).to be true
         expect(File.read(File.join(dir, "seen-0.txt")).strip).to eq("1,2")
         expect(File.read(File.join(dir, "seen-1.txt")).strip).to eq("1,2")
+      end
+    end
+  end
+
+  it "omits POLYRUN_SHARD_MATRIX_* when only one local process runs" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        list = File.join(dir, "spec_paths.txt")
+        File.write(list, "a.rb\nb.rb\n")
+        %w[a.rb b.rb].each { |f| File.write(File.join(dir, f), "") }
+        cfg = File.join(dir, "polyrun.yml")
+        File.write(cfg, <<~YAML)
+          partition:
+            paths_file: #{list}
+            shard_total: 2
+            shard_index: 0
+        YAML
+        stub = File.join(dir, "_child.rb")
+        File.write(stub, <<~'RUBY')
+          keys = %w[POLYRUN_SHARD_MATRIX_INDEX POLYRUN_SHARD_MATRIX_TOTAL]
+          File.write("matrix.txt", keys.map { |k| ENV.key?(k) ? "yes" : "no" }.join(","))
+          exit 0
+        RUBY
+        _, status = polyrun("-c", cfg, "ci-shard-run", "--", RbConfig.ruby, stub)
+        expect(status.success?).to be true
+        expect(File.read(File.join(dir, "matrix.txt")).strip).to eq("no,no")
+      end
+    end
+  end
+
+  it "omits POLYRUN_SHARD_MATRIX_* when matrix has a single job" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        list = File.join(dir, "spec_paths.txt")
+        File.write(list, "a.rb\n")
+        File.write(File.join(dir, "a.rb"), "")
+        cfg = File.join(dir, "polyrun.yml")
+        File.write(cfg, <<~YAML)
+          partition:
+            paths_file: #{list}
+            shard_total: 1
+            shard_index: 0
+        YAML
+        stub = File.join(dir, "_child.rb")
+        File.write(stub, <<~'RUBY')
+          keys = %w[POLYRUN_SHARD_MATRIX_INDEX POLYRUN_SHARD_MATRIX_TOTAL]
+          File.write("matrix.txt", keys.map { |k| ENV.key?(k) ? "yes" : "no" }.join(","))
+          exit 0
+        RUBY
+        _, status = polyrun(
+          "-c", cfg,
+          "ci-shard-run", "--shard-processes", "2", "--",
+          RbConfig.ruby, stub
+        )
+        expect(status.success?).to be true
+        expect(File.read(File.join(dir, "matrix.txt")).strip).to eq("no,no")
       end
     end
   end

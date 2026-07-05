@@ -1,4 +1,6 @@
 require "spec_helper"
+require "open3"
+require "rbconfig"
 
 RSpec.describe "polyrun/minitest" do
   it "loads without LoadError" do
@@ -6,10 +8,16 @@ RSpec.describe "polyrun/minitest" do
     expect(Polyrun::Minitest).to be_a(Module)
   end
 
-  it "does not require minitest in source (opt-in integration only)" do
-    path = File.expand_path("../../lib/polyrun/minitest.rb", __dir__)
-    src = File.read(path)
-    expect(src).not_to match(/require\s+["']minitest/)
+  it "does not load the minitest gem when only polyrun/minitest is required" do
+    root = File.expand_path("../..", __dir__)
+    lib = File.join(root, "lib")
+    script = <<~'RUBY'
+      require "polyrun/minitest"
+      puts defined?(::Minitest::Test) ? "loaded" : "not_loaded"
+    RUBY
+    out, status = Open3.capture2e({"RUBYOPT" => nil}, RbConfig.ruby, "-I", lib, "-e", script, chdir: root)
+    expect(status.success?).to be true
+    expect(out.strip).to eq("not_loaded")
   end
 
   it "delegates install_parallel_provisioning! to ParallelProvisioning" do

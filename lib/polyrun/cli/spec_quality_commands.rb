@@ -96,7 +96,7 @@ module Polyrun
       def merge_spec_quality_after_shards(ctx)
         files = merge_spec_quality_fragment_files
         if files.empty?
-          Polyrun::Log.warn "polyrun run-shards: --merge-spec-quality: no coverage/polyrun-spec-quality-fragment-*.jsonl found (enable POLYRUN_SPEC_QUALITY in spec_helper?)"
+          Polyrun::Log.warn "polyrun run-shards: --merge-spec-quality: no spec-quality fragments found under coverage (enable spec-quality collection in your test setup)"
           return nil
         end
 

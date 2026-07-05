@@ -92,7 +92,7 @@ module Polyrun
       def merge_coverage_after_shards(output:, format_list:, config_path:)
         files = merge_coverage_fragment_json_files
         if files.empty?
-          Polyrun::Log.warn "polyrun run-shards: --merge-coverage: no coverage/polyrun-fragment-*.json found (enable Polyrun coverage in spec_helper?)"
+          Polyrun::Log.warn "polyrun run-shards: --merge-coverage: no coverage fragments found under coverage (enable coverage collection in your test setup)"
           return 0
         end
 
