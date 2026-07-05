@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 2.1.2 (2026-07-05)
+
+- Fix per-example timing JSON when RSpec supplies `absolute_file_path` metadata; fix formatter registration when `install_example_timing!` uses a custom output path.
+
 ## 2.1.1 (2026-07-05)
 
 - Fix HTML coverage report `Encoding::CompatibilityError` when source files contain UTF-8; read templates, assets, and source lines as UTF-8 in `formatters_html.rb`.
