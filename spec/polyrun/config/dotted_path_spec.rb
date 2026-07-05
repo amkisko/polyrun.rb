@@ -6,7 +6,7 @@ RSpec.describe Polyrun::Config::DottedPath do
       {
         "partition" => {
           "paths_file" => "spec/spec_paths.txt",
-          shard_index: 1
+          :shard_index => 1
         },
         "workers" => 4
       }

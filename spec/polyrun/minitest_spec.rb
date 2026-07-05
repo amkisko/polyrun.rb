@@ -11,7 +11,7 @@ RSpec.describe "polyrun/minitest" do
   it "does not load the minitest gem when only polyrun/minitest is required" do
     root = File.expand_path("../..", __dir__)
     lib = File.join(root, "lib")
-    script = <<~'RUBY'
+    script = <<~RUBY
       require "polyrun/minitest"
       puts defined?(::Minitest::Test) ? "loaded" : "not_loaded"
     RUBY
