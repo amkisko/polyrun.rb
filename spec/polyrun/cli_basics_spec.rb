@@ -79,5 +79,7 @@ RSpec.describe Polyrun::CLI do
     expect(out).to include("POLYRUN_MERGE_SLOW_WARN_SECONDS")
     expect(out).to include("POLYRUN_COVERAGE_BRANCHES")
     expect(out).to include("init")
+    expect(out).not_to include("install_")
+    expect(out).not_to include("Polyrun::")
   end
 end

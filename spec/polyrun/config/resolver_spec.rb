@@ -54,4 +54,30 @@ RSpec.describe Polyrun::Config::Resolver do
       expect(described_class.resolve_shard_processes({}, {})).to eq(1)
     end
   end
+
+  describe ".resolve_partition_timing_granularity" do
+    it "defaults to file" do
+      expect(described_class.resolve_partition_timing_granularity({}, nil, {})).to eq(:file)
+    end
+
+    it "reads POLYRUN_TIMING_GRANULARITY when config and CLI omit" do
+      env = {"POLYRUN_TIMING_GRANULARITY" => "example"}
+      expect(described_class.resolve_partition_timing_granularity({}, nil, env)).to eq(:example)
+    end
+
+    it "uses partition.timing_granularity from YAML when CLI is nil" do
+      pc = {"timing_granularity" => "example"}
+      expect(described_class.resolve_partition_timing_granularity(pc, nil, {})).to eq(:example)
+    end
+
+    it "prefers explicit CLI value over YAML partition" do
+      pc = {"timing_granularity" => "example"}
+      expect(described_class.resolve_partition_timing_granularity(pc, "file", {})).to eq(:file)
+    end
+
+    it "prefers explicit CLI value over POLYRUN_TIMING_GRANULARITY" do
+      env = {"POLYRUN_TIMING_GRANULARITY" => "example"}
+      expect(described_class.resolve_partition_timing_granularity({}, "file", env)).to eq(:file)
+    end
+  end
 end

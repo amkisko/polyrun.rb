@@ -13,21 +13,19 @@ module Polyrun
             -h, --help
 
           Trace timing (stderr): DEBUG=1 or POLYRUN_DEBUG=1
-          Branch coverage in JSON fragments: POLYRUN_COVERAGE_BRANCHES=1 (stdlib Coverage; merge-coverage merges branches)
-          polyrun quick coverage: POLYRUN_COVERAGE=1 or (config/polyrun_coverage.yml + POLYRUN_QUICK_COVERAGE=1); POLYRUN_COVERAGE_DISABLE=1 skips
-          Merge wall time (stderr): POLYRUN_PROFILE_MERGE=1 (or verbose / DEBUG)
+          Coverage: POLYRUN_COVERAGE=1 (or config/polyrun_coverage.yml + POLYRUN_QUICK_COVERAGE=1); POLYRUN_COVERAGE_DISABLE=1 skips; POLYRUN_COVERAGE_BRANCHES=1 for branch data in fragments
+          Merge profiling (stderr): POLYRUN_PROFILE_MERGE=1 (or verbose / DEBUG)
           Post-merge formats (run-shards): POLYRUN_MERGE_FORMATS (default: json,lcov,cobertura,console,html)
-          Skip optional script/build_spec_paths.rb before start: POLYRUN_SKIP_BUILD_SPEC_PATHS=1
-          Skip start auto-prepare / auto DB provision: POLYRUN_START_SKIP_PREPARE=1, POLYRUN_START_SKIP_DATABASES=1
-          Skip writing paths_file from partition.paths_build: POLYRUN_SKIP_PATHS_BUILD=1
-          Warn if merge-coverage wall time exceeds N seconds (default 10): POLYRUN_MERGE_SLOW_WARN_SECONDS (0 disables)
-          Failure fragments (run-shards --merge-failures): POLYRUN_MERGE_FAILURES=1; parent sets POLYRUN_FAILURE_FRAGMENTS=1 in workers; POLYRUN_FAILURE_FRAGMENT_DIR, POLYRUN_MERGED_FAILURES_OUT, POLYRUN_MERGED_FAILURES_FORMAT; after_suite sets POLYRUN_MERGED_FAILURES_PATH when merge ran
-          Parallel RSpec workers: POLYRUN_WORKERS default 5, max 10 (run-shards / parallel-rspec / start); distinct from POLYRUN_SHARD_PROCESSES / ci-shard --shard-processes (local processes per CI matrix job)
-          Per-worker wall timeout: run-shards --worker-timeout SEC or POLYRUN_WORKER_TIMEOUT_SEC (max time since each worker spawn). Parent polls all live workers together. Exit 124; remaining workers stopped.
-          Per-worker idle timeout: --worker-idle-timeout SEC or POLYRUN_WORKER_IDLE_TIMEOUT_SEC counts only after a successful ping timestamp (positive float in POLYRUN_WORKER_PING_FILE); empty or unreadable pings do not satisfy idle enforcement—use wall timeout until the first ping. RSpec/Minitest/Quick installers call Polyrun::WorkerPing.ping! per example/suite. Ping files live under tmp/polyrun/ (gitignored via tmp/); parent unlinks each after its worker exits. Exit 125. Optional outer cap: --worker-timeout (exit 124). Optional periodic pings: POLYRUN_WORKER_PING_THREAD=1 (POLYRUN_WORKER_PING_INTERVAL_SEC); WorkerPing.ensure_interval_ping_thread! (installers invoke it—call yourself if wiring workers without install_worker_ping!).
-          If Polyrun::Log.stderr is null or redirected away, set POLYRUN_ORCHESTRATION_STDERR=1 to also print timeout/SIGINT summary lines to process stderr.
-          Spec quality (opt-in): POLYRUN_SPEC_QUALITY=1; per-example JSONL fragments; POLYRUN_SPEC_QUALITY_SAMPLE=0.0-1.0 (default 1.0); POLYRUN_SPEC_QUALITY_STRICT=1; run-shards --merge-spec-quality sets POLYRUN_SPEC_QUALITY_FRAGMENTS=1 in workers; merge-spec-quality / report-spec-quality
-          Partition timing granularity (default file): POLYRUN_TIMING_GRANULARITY=file|example (experimental per-example; see partition.timing_granularity)
+          Start skips: POLYRUN_SKIP_BUILD_SPEC_PATHS=1, POLYRUN_START_SKIP_PREPARE=1, POLYRUN_START_SKIP_DATABASES=1
+          Paths build skip: POLYRUN_SKIP_PATHS_BUILD=1
+          Slow merge warning (seconds, default 10; 0 disables): POLYRUN_MERGE_SLOW_WARN_SECONDS
+          Failure merge: run-shards --merge-failures (enable failure fragments in test setup); POLYRUN_MERGE_FAILURES=1, POLYRUN_FAILURE_FRAGMENT_DIR, POLYRUN_MERGED_FAILURES_OUT
+          Parallel workers: POLYRUN_WORKERS default 5, max 10 (run-shards / parallel-rspec / start). CI local processes per job: POLYRUN_SHARD_PROCESSES or ci-shard --shard-processes (not POLYRUN_WORKERS)
+          Per-worker wall timeout: --worker-timeout SEC or POLYRUN_WORKER_TIMEOUT_SEC. Exit 124; parent stops remaining workers.
+          Per-worker idle timeout: --worker-idle-timeout SEC or POLYRUN_WORKER_IDLE_TIMEOUT_SEC after a progress ping (POLYRUN_WORKER_PING_FILE). Enable pings in test setup. Exit 125. Optional periodic pings: POLYRUN_WORKER_PING_THREAD=1 (POLYRUN_WORKER_PING_INTERVAL_SEC).
+          Orchestration warnings on process stderr: POLYRUN_ORCHESTRATION_STDERR=1
+          Spec quality (opt-in): POLYRUN_SPEC_QUALITY=1; run-shards --merge-spec-quality; merge-spec-quality / report-spec-quality
+          Partition timing granularity (default file): POLYRUN_TIMING_GRANULARITY=file|example (experimental; see partition.timing_granularity)
           Partition strategies: round_robin (default, sorted), preserve_order_round_robin (paths-file order), lazy_robin (sorted RR + timing diagnostics), cost_binpack (LPT), hrw. partition.timing_file without strategy implies cost_binpack.
 
           commands:
@@ -45,7 +43,7 @@ module Polyrun
             init                 write a starter polyrun.yml or POLYRUN.md from built-in templates (see docs/SETUP_PROFILE.md)
             queue                file-backed batch queue: init (optional --shard/--total etc. as plan, then claim/ack/reclaim/status --json)
             run-queue            init queue and run N workers that claim batches until drained
-            quick                run Polyrun::Quick (describe/it, before/after, let, expect…to, assert_*; optional capybara!)
+            quick                quick test runner (describe/it, before/after, let, expect…to, assert_*; optional capybara!)
             hook run <phase>     run one shell hook from polyrun.yml hooks: (e.g. before_suite); optional --shard/--total
             report-coverage      write all coverage formats from one JSON file
             report-junit         RSpec JSON or Polyrun testcase JSON → JUnit XML (CI)
@@ -53,7 +51,7 @@ module Polyrun
             merge-timing         merge polyrun_timing_*.json shards
             merge-spec-quality   merge polyrun-spec-quality-fragment-*.jsonl shards
             report-spec-quality  spec quality report from merged JSON (zero-hit, hot lines, churn)
-            config               print effective config by dotted path (see Polyrun::Config::Effective; same tree as YAML plus merged prepare.env, resolved partition shard fields, workers)
+            config               print effective config by dotted path (loaded YAML plus merged prepare.env, resolved partition shard fields, workers)
             env                  print shard + database env (see polyrun.yml databases)
             db:setup-template    migrate template DB (PostgreSQL)
             db:setup-shard       CREATE DATABASE shard FROM template (one POLYRUN_SHARD_INDEX)

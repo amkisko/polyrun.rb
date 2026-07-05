@@ -21,6 +21,8 @@ module Polyrun
         if output_path
           op = output_path
           Class.new(Polyrun::Timing::RSpecExampleFormatter) do
+            ::RSpec::Core::Formatters.register self, :example_finished, :close
+
             define_method(:timing_output_path) { op }
           end
         else

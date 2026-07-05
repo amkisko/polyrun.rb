@@ -90,6 +90,24 @@ RSpec.describe Polyrun::CLI do
     end
   end
 
+  it "run-shards warns when --merge-failures finds no fragments" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        FileUtils.mkdir_p("spec")
+        File.write("spec/a_spec.rb", "")
+        stub = File.join(dir, "_shard.rb")
+        File.write(stub, "exit 1\n")
+        out, status = polyrun(
+          "run-shards", "--workers", "1", "--merge-failures", "--",
+          RbConfig.ruby, stub
+        )
+        expect(status.success?).to be false
+        expect(out).to include("no failure fragments found")
+        expect(out).not_to include("install_failure_fragments")
+      end
+    end
+  end
+
   it "run-shards --merge-failures merges fragments after shard failure" do
     Dir.mktmpdir do |dir|
       with_chdir(dir) do

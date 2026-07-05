@@ -1,7 +1,4 @@
-spec/examples_readme_spec.rb
-spec/polyrun/cli/start_bootstrap_spec.rb
 spec/polyrun/cli_basics_spec.rb
-spec/polyrun/cli_ci_shard_command_unit_spec.rb
 spec/polyrun/cli_ci_shard_rspec_spec.rb
 spec/polyrun/cli_ci_shard_run_spec.rb
 spec/polyrun/cli_config_spec.rb
@@ -11,7 +8,6 @@ spec/polyrun/cli_env_spec.rb
 spec/polyrun/cli_hooks_spec.rb
 spec/polyrun/cli_merge_coverage_spec.rb
 spec/polyrun/cli_parallel_rspec_start_spec.rb
-spec/polyrun/cli_partition_granularity_spec.rb
 spec/polyrun/cli_plan_spec.rb
 spec/polyrun/cli_prepare_spec.rb
 spec/polyrun/cli_queue_timing_reports_spec.rb
@@ -19,10 +15,10 @@ spec/polyrun/cli_quick_spec.rb
 spec/polyrun/cli_run_queue_spec.rb
 spec/polyrun/cli_run_shards_coverage_workers_spec.rb
 spec/polyrun/cli_run_shards_worker_timeouts_spec.rb
-spec/polyrun/cli_shard_child_env_spec.rb
 spec/polyrun/cli_spec_quality_spec.rb
 spec/polyrun/cli_start_prepare_spec.rb
 spec/polyrun/cli_subcommand_registry_spec.rb
+spec/polyrun/config/dotted_path_spec.rb
 spec/polyrun/config/effective_spec.rb
 spec/polyrun/config/resolver_spec.rb
 spec/polyrun/config_spec.rb
@@ -51,6 +47,7 @@ spec/polyrun/database/shard_spec.rb
 spec/polyrun/database/url_builder_spec.rb
 spec/polyrun/debug_spec.rb
 spec/polyrun/env/ci_spec.rb
+spec/polyrun/examples_cli_spec.rb
 spec/polyrun/gemspec_spec.rb
 spec/polyrun/hooks_dsl_spec.rb
 spec/polyrun/hooks_spec.rb
@@ -73,6 +70,7 @@ spec/polyrun/queue/duration_spec.rb
 spec/polyrun/queue/file_store_spec.rb
 spec/polyrun/quick_features_spec.rb
 spec/polyrun/quick_runner_spec.rb
+spec/polyrun/railtie_spec.rb
 spec/polyrun/reporting/failure_merge_spec.rb
 spec/polyrun/reporting/junit_spec.rb
 spec/polyrun/reporting/rspec_junit_spec.rb
@@ -84,6 +82,8 @@ spec/polyrun/spec_quality/plan_loader_spec.rb
 spec/polyrun/spec_quality/report_spec.rb
 spec/polyrun/spec_quality/spec_quality_spec.rb
 spec/polyrun/timing/merge_spec.rb
+spec/polyrun/timing/rspec_example_formatter_spec.rb
 spec/polyrun/timing/stats_spec.rb
 spec/polyrun/timing/summary_spec.rb
+spec/polyrun/timing/variance_report_spec.rb
 spec/polyrun/worker_ping_spec.rb

@@ -2,6 +2,10 @@
 module Polyrun
   class CLI
     # Wait, wall/idle timeout, and +after_shard+ hooks for parallel workers (+run-shards+ / +ci-shard-*+).
+    #
+    # Per-worker wait states: running → normal_exit | wall_timeout (124) | idle_timeout (125).
+    # When wall or idle caps are set, the multiplex loop polls every live PID each tick so timeouts
+    # apply fairly across shards (not only the worker currently in Process.wait).
     module RunShardsParallelWait
       WORKER_TIMEOUT_EXIT_STATUS = 124
       WORKER_IDLE_TIMEOUT_EXIT_STATUS = 125
@@ -215,7 +219,7 @@ module Polyrun
         ping_suffix = (loc && !loc.to_s.strip.empty?) ? "; last ping #{loc.to_s.strip}" : ""
         Polyrun::Log.orchestration_warn "polyrun run-shards: WORKER IDLE TIMEOUT after #{idle_sec}s since last per-example progress ping — shard #{h[:shard]} pid #{h[:pid]}#{ping_suffix}."
         Polyrun::Log.warn "polyrun run-shards: idle shard file sample: #{sample}#{suffix}"
-        Polyrun::Log.warn "polyrun run-shards: use Polyrun::RSpec.install_worker_ping! / Polyrun::Minitest.install_worker_ping! (Polyrun Quick calls ping! each example); exit #{WORKER_IDLE_TIMEOUT_EXIT_STATUS}."
+        Polyrun::Log.warn "polyrun run-shards: enable per-example worker progress pings in your test setup so idle timeouts reflect real work; exit #{WORKER_IDLE_TIMEOUT_EXIT_STATUS}."
       end
 
       def run_shards_wait_or_force_stop_status(pid)

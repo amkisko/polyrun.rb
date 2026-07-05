@@ -6,6 +6,13 @@ require "time"
 module Polyrun
   module Queue
     # File-backed queue (spec_queue.md): +queue.json+, +pending/*.json+ chunks, +done.jsonl+, +leases.json+ (OS flock).
+    #
+    # Path lifecycle (lease transitions):
+    #   init!           → paths in pending chunks only
+    #   claim!          → pending −batch → active lease in leases.json
+    #   ack!            → lease removed; paths appended to done.jsonl
+    #   reclaim!        → stale or matching lease → paths returned to pending
+    #   reclaim_lease!  → one lease by id → paths returned to pending
     class FileStore
       CHUNK_SIZE = 500
 

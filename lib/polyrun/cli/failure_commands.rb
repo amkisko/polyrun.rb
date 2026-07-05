@@ -57,7 +57,7 @@ module Polyrun
         pattern = Polyrun::Reporting::FailureMerge.default_fragment_glob
         files = Dir.glob(pattern).sort
         if files.empty?
-          Polyrun::Log.warn "polyrun run-shards: --merge-failures: no #{Polyrun::Reporting::FailureMerge::FRAGMENT_GLOB} under fragment dir (enable Polyrun::RSpec.install_failure_fragments! in spec_helper?)"
+          Polyrun::Log.warn "polyrun run-shards: --merge-failures: no failure fragments found under tmp/polyrun_failures (enable failure fragments in your test setup)"
           return nil
         end
 

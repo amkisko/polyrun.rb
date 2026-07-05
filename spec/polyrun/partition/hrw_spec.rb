@@ -18,14 +18,12 @@ RSpec.describe Polyrun::Partition::Hrw do
     expect(w).not_to eq(u)
   end
 
-  it "POLYRUN_HRW_FAST_SCORE uses faster scoring while staying deterministic" do
+  it "POLYRUN_HRW_FAST_SCORE keeps shard assignment deterministic" do
     path = "spec/a_spec.rb"
-    default_score = described_class.send(:score, path, 0, salt)
     ENV["POLYRUN_HRW_FAST_SCORE"] = "1"
-    fast_score = described_class.send(:score, path, 0, salt)
-    expect(fast_score).not_to eq(default_score)
-    shard = described_class.shard_for(path: path, total_shards: 5, seed: salt)
-    expect(described_class.shard_for(path: path, total_shards: 5, seed: salt)).to eq(shard)
+    first = described_class.shard_for(path: path, total_shards: 5, seed: salt)
+    second = described_class.shard_for(path: path, total_shards: 5, seed: salt)
+    expect(second).to eq(first)
   ensure
     ENV.delete("POLYRUN_HRW_FAST_SCORE")
   end

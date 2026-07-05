@@ -46,6 +46,7 @@ RSpec.describe Polyrun::CLI do
         )
         expect(status.success?).to be false
         expect(out).to include("WORKER IDLE TIMEOUT").and include("exit 125").and include("fake_spec.rb:42")
+        expect(out).not_to include("install_worker_ping")
       end
     end
   end
