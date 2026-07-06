@@ -10,6 +10,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -49,7 +52,8 @@ jobs:
             ruby: "4.0"
 
     env:
-      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.appraisal }}.gemfile
+      BUNDLE_GEMFILE: >-
+        ${{ github.workspace }}/gemfiles/${{ matrix.appraisal }}.gemfile
 
     steps:
       - uses: actions/checkout@v7

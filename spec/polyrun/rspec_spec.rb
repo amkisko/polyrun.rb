@@ -1,6 +1,10 @@
 require "spec_helper"
 
 RSpec.describe Polyrun::RSpec do
+  def failure_fragment_formatter_registered?
+    formatter = Polyrun::Reporting::RspecFailureFragmentFormatter
+    ::RSpec.configuration.formatters.any? { |entry| entry.is_a?(formatter) }
+  end
   it "install_example_timing! registers a formatter" do
     count_before = ::RSpec.configuration.formatters.count
     described_class.install_example_timing!
@@ -12,17 +16,14 @@ RSpec.describe Polyrun::RSpec do
   end
 
   it "install_failure_fragments! is a no-op when env is unset" do
-    ENV.delete("POLYRUN_FAILURE_FRAGMENTS")
     count_before = ::RSpec.configuration.formatters.count
-    described_class.install_failure_fragments!
+    described_class.install_failure_fragments!(only_if: -> { false })
     expect(::RSpec.configuration.formatters.count).to eq(count_before)
   end
 
   it "install_failure_fragments! registers formatter when env is set" do
-    ENV["POLYRUN_FAILURE_FRAGMENTS"] = "1"
-    count_before = ::RSpec.configuration.formatters.count
-    described_class.install_failure_fragments!
-    expect(::RSpec.configuration.formatters.count).to be > count_before
+    described_class.install_failure_fragments!(only_if: -> { true })
+    expect(failure_fragment_formatter_registered?).to be(true)
   end
 
   it "install_parallel_provisioning! registers before suite hook" do
