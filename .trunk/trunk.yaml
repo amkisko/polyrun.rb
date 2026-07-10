@@ -48,6 +48,7 @@ lint:
         - log/**
         - coverage/**
         - gemfiles/**
+        - .agents/**
   enabled:
     - biome@2.3.8
     - rubocop@1.87.0
