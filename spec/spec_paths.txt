@@ -1,3 +1,4 @@
+spec/polyrun/cli/run_shards_worker_interrupt_spec.rb
 spec/polyrun/cli_basics_spec.rb
 spec/polyrun/cli_ci_shard_hooks_spec.rb
 spec/polyrun/cli_ci_shard_in_process_spec.rb
@@ -20,6 +21,7 @@ spec/polyrun/cli_report_commands_spec.rb
 spec/polyrun/cli_run_queue_spec.rb
 spec/polyrun/cli_run_queue_validation_spec.rb
 spec/polyrun/cli_run_shards_coverage_workers_spec.rb
+spec/polyrun/cli_run_shards_worker_output_spec.rb
 spec/polyrun/cli_run_shards_worker_timeouts_spec.rb
 spec/polyrun/cli_spec_quality_spec.rb
 spec/polyrun/cli_start_prepare_spec.rb
@@ -30,6 +32,7 @@ spec/polyrun/config/resolver_spec.rb
 spec/polyrun/config_spec.rb
 spec/polyrun/coverage/cobertura_zero_lines_spec.rb
 spec/polyrun/coverage/collector_finish_spec.rb
+spec/polyrun/coverage/collector_finish_unit_spec.rb
 spec/polyrun/coverage/collector_fragments_spec.rb
 spec/polyrun/coverage/collector_gate_spec.rb
 spec/polyrun/coverage/collector_spec.rb
@@ -86,6 +89,9 @@ spec/polyrun/reporting/failure_merge_spec.rb
 spec/polyrun/reporting/junit_spec.rb
 spec/polyrun/reporting/rspec_junit_spec.rb
 spec/polyrun/require_surface_spec.rb
+spec/polyrun/rspec/example_debug_instrumentation_spec.rb
+spec/polyrun/rspec/example_debug_spec.rb
+spec/polyrun/rspec/sharded_formatter_compat_spec.rb
 spec/polyrun/rspec_spec.rb
 spec/polyrun/spec_quality/config_spec.rb
 spec/polyrun/spec_quality/fragment_spec.rb
@@ -103,4 +109,5 @@ spec/polyrun/timing/rspec_example_formatter_spec.rb
 spec/polyrun/timing/stats_spec.rb
 spec/polyrun/timing/summary_spec.rb
 spec/polyrun/timing/variance_report_spec.rb
+spec/polyrun/worker_output_spec.rb
 spec/polyrun/worker_ping_spec.rb

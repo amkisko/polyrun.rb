@@ -20,5 +20,18 @@ RSpec.describe Polyrun::RSpec::ShardedFormatterCompat do
       described_class.install!
       expect(::RSpec.configuration.silence_filter_announcements).to be(true)
     end
+
+    it "noops Fuubar seed announcements when Fuubar is loaded" do
+      fuubar_class = Class.new do
+        def seed(_notification)
+          raise "seed should be replaced"
+        end
+      end
+      stub_const("Fuubar", fuubar_class)
+      formatter = Fuubar.new
+      ENV["POLYRUN_SHARD_TOTAL"] = "2"
+      described_class.install!
+      expect { formatter.seed(nil) }.not_to raise_error
+    end
   end
 end

@@ -4,4 +4,6 @@ source "https://rubygems.org"
 
 ruby ">= 3.2.0"
 
+gem "parallel", "~> 1.28", "< 2"
+
 gemspec path: "../"

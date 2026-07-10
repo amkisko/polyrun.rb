@@ -3,6 +3,8 @@
 
 appraise "ruby32" do
   ruby ">= 3.2.0"
+  # RuboCop pulls parallel; 2.x requires Ruby >= 3.3.
+  gem "parallel", "~> 1.28", "< 2"
 end
 
 appraise "ruby34" do

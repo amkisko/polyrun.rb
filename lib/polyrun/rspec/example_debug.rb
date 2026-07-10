@@ -1,3 +1,4 @@
+require "logger"
 require "timeout"
 require_relative "example_debug_instrumentation"
 
@@ -8,7 +9,16 @@ module Polyrun
     # +POLYRUN_EXAMPLE_DEBUG=1+ enables installers; +DEBUG=1+ / +POLYRUN_DEBUG=1+ trace orchestration only.
     # +POLYRUN_DEBUG_SQL=1+ or legacy +DEBUG_SQL=1+ logs mutating SQL.
     # +POLYRUN_DEBUG_TRACE=1+ or legacy +DEBUG_TRACE=1+ traces :call/:raise under the app root.
+    # +DEBUG_LOG_LEVEL+ accepts Ruby Logger severities as integers (0 debug … 4 fatal) or names.
     module ExampleDebug
+      LOG_LEVEL_BY_NAME = {
+        "debug" => Logger::DEBUG,
+        "info" => Logger::INFO,
+        "warn" => Logger::WARN,
+        "error" => Logger::ERROR,
+        "fatal" => Logger::FATAL
+      }.freeze
+
       module_function
 
       def enabled?
@@ -36,19 +46,26 @@ module Polyrun
       end
 
       def log_level
-        Integer(ENV.fetch("DEBUG_LOG_LEVEL", "0"))
-      rescue ArgumentError
-        0
+        parse_log_level(ENV.fetch("DEBUG_LOG_LEVEL", "debug"))
       end
 
       def rails_log_level
         case log_level
-        when 0 then :debug
-        when 1 then :info
-        when 2 then :warn
-        when 3 then :error
+        when Logger::DEBUG then :debug
+        when Logger::INFO then :info
+        when Logger::WARN then :warn
+        when Logger::ERROR then :error
         else :fatal
         end
+      end
+
+      def parse_log_level(raw)
+        normalized = raw.to_s.strip.downcase
+        return LOG_LEVEL_BY_NAME.fetch(normalized) if LOG_LEVEL_BY_NAME.key?(normalized)
+
+        Integer(normalized)
+      rescue ArgumentError
+        Logger::DEBUG
       end
 
       def install!(rspec_config: fetch_rspec_configuration!)
@@ -112,13 +129,13 @@ module Polyrun
           define_singleton_method(:spec_dirname) { File.dirname(spec_file_path) }
           define_singleton_method(:spec_basename) { File.basename(spec_file_path) }
 
-          if print_spec_enabled?
+          if ExampleDebug.print_spec_enabled?
             Polyrun::Log.puts "\nRunning #{spec_file_path}:#{group[:line_number]}\n"
           end
         end
 
         rspec_config.after do |example|
-          next unless print_spec_enabled?
+          next unless ExampleDebug.print_spec_enabled?
 
           group = example.metadata[:example_group]
           Polyrun::Log.puts "\nFinished #{group[:file_path]}:#{group[:line_number]}\n"
@@ -135,7 +152,7 @@ module Polyrun
 
         %w[1 true yes on].include?(value.to_s.strip.downcase)
       end
-      private_class_method :truthy?, :fetch_rspec_configuration!
+      private_class_method :truthy?, :parse_log_level, :fetch_rspec_configuration!
     end
   end
 end
