@@ -40,10 +40,18 @@ module Polyrun
 
         pool = glob_under_cwd(all_glob, cwd)
         pool.uniq!
+        pool = reject_exclude_prefixes(pool, pb)
         stages = Array(pb["stages"])
         return sort_paths(pool) if stages.empty?
 
         apply_stages_to_pool(stages, pool, cwd)
+      end
+
+      def reject_exclude_prefixes(pool, pb)
+        prefixes = Array(pb["exclude_prefixes"]).map(&:to_s).reject(&:empty?)
+        return pool if prefixes.empty?
+
+        pool.reject { |path| prefixes.any? { |prefix| path.start_with?(prefix) } }
       end
 
       def apply_stages_to_pool(stages, pool, cwd)

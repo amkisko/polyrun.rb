@@ -7,5 +7,15 @@ module Polyrun
     def self.install_failure_fragments!: (?only_if: untyped?) -> void
 
     def self.install_worker_ping!: () -> void
+
+    def self.install_example_debug!: (?rspec_config: untyped?) -> void
+
+    def self.install_example_timeout!: (?rspec_config: untyped?, ?seconds: Float) -> void
+
+    def self.install_example_rails_logging!: (?rspec_config: untyped?) -> void
+
+    def self.install_example_prosopite!: (?rspec_config: untyped?) -> void
+
+    def self.install_sharded_formatter_compat!: (?rspec_config: untyped?) -> void
   end
 end

@@ -1,5 +1,6 @@
 require "fileutils"
 
+require_relative "../worker_output"
 require_relative "run_shards_parallel_wait"
 
 module Polyrun
@@ -22,6 +23,7 @@ module Polyrun
         mt = ctx[:matrix_shard_total]
 
         pids = []
+        Polyrun::WorkerOutput.prepare_log_dir! if Polyrun::WorkerOutput.routing_enabled? && parallel
         workers.times do |shard|
           paths = plan.shard(shard)
           if paths.empty?
@@ -60,6 +62,9 @@ module Polyrun
           pids << {pid: pid, shard: shard, spawned_at: spawned_at, ping_path: ping_path}
           Polyrun::Debug.log("[parent pid=#{$$}] run-shards: Process.spawn shard=#{shard} child_pid=#{pid} spec_files=#{paths.size}")
           Polyrun::Log.warn "polyrun run-shards: started shard #{shard} pid=#{pid} (#{paths.size} file(s))" if parallel
+          if Polyrun::WorkerOutput.routing_enabled? && parallel
+            Polyrun::Log.warn "polyrun run-shards: shard #{shard} log → #{Polyrun::WorkerOutput.log_path_for(shard)}"
+          end
         end
         [pids, nil]
       end
@@ -81,6 +86,8 @@ module Polyrun
       end
 
       def run_shards_spawn_one_worker(child_env, cmd, paths, hook_cfg)
+        return Polyrun::WorkerOutput.spawn_worker(child_env, cmd, paths, hook_cfg) if Polyrun::WorkerOutput.routing_enabled?
+
         if hook_cfg.worker_hooks? && !Polyrun::Hooks.disabled?
           Process.spawn(child_env, "sh", "-c", hook_cfg.build_worker_shell_script(cmd, paths))
         else

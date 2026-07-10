@@ -42,4 +42,16 @@ RSpec.describe Polyrun::RSpec do
     described_class.install_spec_quality!(only_if: -> { true }, root: Dir.mktmpdir)
     expect(defined?(Polyrun::SpecQuality::RspecHook)).to be_truthy
   end
+
+  it "install_example_debug! registers hooks when enabled" do
+    config = ::RSpec::Core::Configuration.new
+    ENV["POLYRUN_EXAMPLE_DEBUG"] = "1"
+    expect { described_class.install_example_debug!(rspec_config: config) }.not_to raise_error
+  ensure
+    ENV.delete("POLYRUN_EXAMPLE_DEBUG")
+  end
+
+  it "install_sharded_formatter_compat! runs without error" do
+    expect { described_class.install_sharded_formatter_compat! }.not_to raise_error
+  end
 end

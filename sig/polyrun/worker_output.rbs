@@ -1,0 +1,11 @@
+module Polyrun
+  module WorkerOutput
+    def self.routing_enabled?: () -> bool
+    def self.log_path_for: (Integer | String shard) -> String
+    def self.prepare_log_dir!: () -> void
+    def self.warn_shard_log: (Integer | String shard) -> void
+    def self.spawn_worker: (Hash[Symbol, untyped] child_env, Array[String] cmd, Array[String] paths, untyped hook_cfg) -> Integer
+    def self.finish_worker: (Integer pid) -> void
+    def self.shutdown_all!: () -> void
+  end
+end

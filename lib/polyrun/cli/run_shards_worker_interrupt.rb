@@ -1,3 +1,5 @@
+require_relative "../worker_output"
+
 module Polyrun
   class CLI
     # SIGINT/SIGTERM handling and non-blocking reap for parallel worker PIDs (used by run-shards / ci-shard fan-out).
@@ -7,12 +9,17 @@ module Polyrun
       def run_shards_log_interrupt_workers(pids, _ctx)
         parts = pids.map { |h| "shard=#{h[:shard]} pid=#{h[:pid]}" }
         Polyrun::Log.orchestration_warn "polyrun run-shards: SIGINT/SIGTERM while waiting on workers — stopping: #{parts.join(", ")}"
-        Polyrun::Log.warn "polyrun run-shards: search this log for each shard's started … pid= line and RSpec output; repeat SIGINT during cleanup escalates to SIGKILL"
+        if Polyrun::WorkerOutput.routing_enabled?
+          Polyrun::Log.warn "polyrun run-shards: per-shard worker logs under #{Polyrun::WorkerOutput.worker_log_directory_label}"
+        else
+          Polyrun::Log.warn "polyrun run-shards: search this log for each shard's started … pid= line and RSpec output; repeat SIGINT during cleanup escalates to SIGKILL"
+        end
       end
 
       # Best-effort worker teardown then exit. Does not return.
       def run_shards_shutdown_on_signal!(pids, code)
         run_shards_log_interrupt_workers(pids, nil)
+        Polyrun::WorkerOutput.shutdown_all!
         run_shards_terminate_children!(pids)
         exit(code)
       rescue Interrupt
@@ -23,6 +30,7 @@ module Polyrun
 
       # Send SIGTERM to each worker PID and wait so Ctrl+C / SIGTERM does not leave orphans.
       def run_shards_terminate_children!(pids)
+        Polyrun::WorkerOutput.shutdown_all!
         run_shards_signal_workers_term(pids)
         run_shards_reap_worker_pids_interruptible(pids.map { |h| h[:pid] })
       end

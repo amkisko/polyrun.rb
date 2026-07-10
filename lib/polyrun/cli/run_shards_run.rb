@@ -124,6 +124,7 @@ module Polyrun
 
       def run_shards_warn_interleaved(parallel, pid_count)
         return unless parallel && pid_count > 1
+        return if Polyrun::WorkerOutput.routing_enabled?
 
         Polyrun::Log.warn "polyrun run-shards: #{pid_count} children running; RSpec output below may be interleaved."
         Polyrun::Log.warn "polyrun run-shards: each worker prints its own summary line; the last \"N examples\" line is not a total across shards."

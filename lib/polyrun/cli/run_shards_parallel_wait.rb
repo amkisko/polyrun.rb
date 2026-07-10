@@ -111,6 +111,7 @@ module Polyrun
       end
 
       def run_shards_finalize_reaped_worker!(h, hook_cfg, workers, st, shard_results, after_hook_err)
+        Polyrun::WorkerOutput.finish_worker(h[:pid])
         exitstatus = st.exitstatus
         ok = st.success?
         Polyrun::Debug.log("[parent pid=#{$$}] run-shards: Process.wait child_pid=#{h[:pid]} shard=#{h[:shard]} exit=#{exitstatus} success=#{ok}")
@@ -218,6 +219,7 @@ module Polyrun
         _t, loc = run_shards_read_worker_ping_payload(h[:ping_path])
         ping_suffix = (loc && !loc.to_s.strip.empty?) ? "; last ping #{loc.to_s.strip}" : ""
         Polyrun::Log.orchestration_warn "polyrun run-shards: WORKER IDLE TIMEOUT after #{idle_sec}s since last per-example progress ping — shard #{h[:shard]} pid #{h[:pid]}#{ping_suffix}."
+        Polyrun::WorkerOutput.warn_shard_log(h[:shard])
         Polyrun::Log.warn "polyrun run-shards: idle shard file sample: #{sample}#{suffix}"
         Polyrun::Log.warn "polyrun run-shards: enable per-example worker progress pings in your test setup so idle timeouts reflect real work; exit #{WORKER_IDLE_TIMEOUT_EXIT_STATUS}."
       end
@@ -262,6 +264,7 @@ module Polyrun
             ""
           end
         Polyrun::Log.orchestration_warn "polyrun run-shards: WORKER TIMEOUT after #{timeout_sec}s (wall time since worker spawn) — shard #{h[:shard]} pid #{h[:pid]}."
+        Polyrun::WorkerOutput.warn_shard_log(h[:shard])
         Polyrun::Log.warn "polyrun run-shards: timeout shard includes: #{sample}#{suffix}"
         Polyrun::Log.warn "polyrun run-shards: override with --worker-timeout SEC or POLYRUN_WORKER_TIMEOUT_SEC; recorded exit #{WORKER_TIMEOUT_EXIT_STATUS} for this worker."
       end

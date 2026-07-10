@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 2.1.3 (2026-07-10)
+
+- Add `Polyrun::WorkerOutput` for per-shard worker stdout/stderr routing (`POLYRUN_WORKER_OUTPUT_ROUTING=1` or `POLYRUN_WORKER_LOG_DIR`); optional prefixed TTY echo (`POLYRUN_WORKER_OUTPUT_PREFIX=0` for log-only).
+- Add `partition.paths_build.exclude_prefixes` to omit path prefixes from `build-paths` / `start` while keeping files runnable outside polyrun.
+- Add `Polyrun::RSpec.install_example_debug!`, `install_example_timeout!`, `install_example_rails_logging!`, `install_example_prosopite!` (`POLYRUN_EXAMPLE_DEBUG=1` and related env vars).
+- Add `Polyrun::RSpec.install_sharded_formatter_compat!` for progress formatters (e.g. Fuubar) under `POLYRUN_SHARD_*`.
+
 ## 2.1.2 (2026-07-05)
 
 - Fix per-example timing JSON when RSpec supplies `absolute_file_path` metadata; fix formatter registration when `install_example_timing!` uses a custom output path.

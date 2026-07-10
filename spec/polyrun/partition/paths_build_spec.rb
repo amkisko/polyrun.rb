@@ -59,6 +59,21 @@ RSpec.describe Polyrun::Partition::PathsBuild do
       end
     end
 
+    it "excludes paths matching exclude_prefixes before staging" do
+      Dir.mktmpdir do |dir|
+        FileUtils.mkdir_p(File.join(dir, "spec", "benchmark"))
+        File.write(File.join(dir, "spec", "benchmark", "slow_spec.rb"), "")
+        File.write(File.join(dir, "spec", "unit_spec.rb"), "")
+        pb = {
+          "all_glob" => "spec/**/*_spec.rb",
+          "exclude_prefixes" => ["spec/benchmark/"],
+          "stages" => []
+        }
+        got = described_class.build_ordered_paths(pb, dir)
+        expect(got).to eq(%w[spec/unit_spec.rb])
+      end
+    end
+
     it "multi-stage glob stages consume the pool once each (no dupes, no drops)" do
       Dir.mktmpdir do |dir|
         FileUtils.mkdir_p(File.join(dir, "spec", "batch_a"))
