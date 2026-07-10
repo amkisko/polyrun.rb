@@ -33,6 +33,7 @@ spec/polyrun/config_spec.rb
 spec/polyrun/coverage/cobertura_zero_lines_spec.rb
 spec/polyrun/coverage/collector_finish_spec.rb
 spec/polyrun/coverage/collector_finish_unit_spec.rb
+spec/polyrun/coverage/collector_finish_in_process_spec.rb
 spec/polyrun/coverage/collector_fragments_spec.rb
 spec/polyrun/coverage/collector_gate_spec.rb
 spec/polyrun/coverage/collector_spec.rb
