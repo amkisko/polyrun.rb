@@ -33,20 +33,11 @@ RSpec.describe Polyrun::RSpec::ActiveRecordTimeoutRecovery do
       primary_handler = instance_double("ConnectionHandler", all_connection_pools: [primary_pool])
       cache_handler = instance_double("ConnectionHandler", all_connection_pools: [cache_pool])
 
+      handlers = {"primary" => primary_handler, "cache" => cache_handler}
       base = Class.new do
-        class << self
-          attr_accessor :handlers
-
-          def connection_handlers
-            handlers
-          end
-
-          def connection_handler
-            handlers.values.first
-          end
-        end
+        define_singleton_method(:connection_handlers) { handlers }
+        define_singleton_method(:connection_handler) { handlers.values.first }
       end
-      base.handlers = {"primary" => primary_handler, "cache" => cache_handler}
 
       stub_const("ActiveRecord::Base", base)
 
