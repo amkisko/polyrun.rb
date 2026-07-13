@@ -6,9 +6,10 @@ module Polyrun
   module RSpec
     # Per-example RSpec debugging for local investigation (SQL, TracePoint, timeouts).
     #
-    # +POLYRUN_EXAMPLE_DEBUG=1+ enables installers; +DEBUG=1+ / +POLYRUN_DEBUG=1+ trace orchestration only.
+    # +POLYRUN_EXAMPLE_DEBUG=1+ enables print helpers, Rails logging, and disables per-example timeouts.
     # +POLYRUN_DEBUG_SQL=1+ or legacy +DEBUG_SQL=1+ logs mutating SQL.
     # +POLYRUN_DEBUG_TRACE=1+ or legacy +DEBUG_TRACE=1+ traces :call/:raise under the app root.
+    # +DEBUG_PROSOPITE=1+ runs Prosopite N+1 scans when the gem is loaded.
     # +DEBUG_LOG_LEVEL+ accepts Ruby Logger severities as integers (0 debug … 4 fatal) or names.
     module ExampleDebug
       LOG_LEVEL_BY_NAME = {
@@ -26,15 +27,15 @@ module Polyrun
       end
 
       def sql_enabled?
-        enabled? && (truthy?(ENV["POLYRUN_DEBUG_SQL"]) || truthy?(ENV["DEBUG_SQL"]))
+        truthy?(ENV["POLYRUN_DEBUG_SQL"]) || truthy?(ENV["DEBUG_SQL"])
       end
 
       def trace_enabled?
-        enabled? && (truthy?(ENV["POLYRUN_DEBUG_TRACE"]) || truthy?(ENV["DEBUG_TRACE"]))
+        truthy?(ENV["POLYRUN_DEBUG_TRACE"]) || truthy?(ENV["DEBUG_TRACE"])
       end
 
       def prosopite_enabled?
-        enabled? && truthy?(ENV["DEBUG_PROSOPITE"])
+        truthy?(ENV["DEBUG_PROSOPITE"])
       end
 
       def print_spec_enabled?
@@ -99,14 +100,22 @@ module Polyrun
         return if seconds <= 0
         return if example_timeout_disabled?
 
+        require_relative "active_record_timeout_recovery"
+
         rspec_config.around(:each) do |example|
-          if example.metadata[:benchmark] || example.metadata[:slow]
-            example.run
-          else
-            Timeout.timeout(seconds) { example.run }
+          timed_out = false
+          begin
+            if example.metadata[:benchmark] || example.metadata[:slow]
+              example.run
+            else
+              Timeout.timeout(seconds) { example.run }
+            end
+          rescue Timeout::Error
+            timed_out = true
+            raise "Example timed out after #{seconds}s (#{example.location})"
+          ensure
+            ActiveRecordTimeoutRecovery.disconnect_all_connection_pools! if timed_out
           end
-        rescue Timeout::Error
-          raise "Example timed out after #{seconds}s (#{example.location})"
         end
       end
 

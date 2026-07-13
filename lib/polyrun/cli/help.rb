@@ -26,7 +26,7 @@ module Polyrun
           Per-worker wall timeout: --worker-timeout SEC or POLYRUN_WORKER_TIMEOUT_SEC. Exit 124; parent stops remaining workers.
           Per-worker idle timeout: --worker-idle-timeout SEC or POLYRUN_WORKER_IDLE_TIMEOUT_SEC after a progress ping (POLYRUN_WORKER_PING_FILE). Enable pings in test setup. Exit 125. Optional periodic pings: POLYRUN_WORKER_PING_THREAD=1 (POLYRUN_WORKER_PING_INTERVAL_SEC).
           Worker output routing (opt-in): POLYRUN_WORKER_OUTPUT_ROUTING=1 or POLYRUN_WORKER_LOG_DIR; per-shard logs under tmp/polyrun/workers (POLYRUN_WORKER_OUTPUT_PREFIX=0 for log-only)
-          Example debug (RSpec, opt-in): POLYRUN_EXAMPLE_DEBUG=1; POLYRUN_DEBUG_SQL / POLYRUN_DEBUG_TRACE
+          Example debug (RSpec, opt-in): POLYRUN_EXAMPLE_DEBUG=1 (print/Rails logging/timeouts); POLYRUN_DEBUG_SQL / DEBUG_SQL; POLYRUN_DEBUG_TRACE / DEBUG_TRACE; DEBUG_PROSOPITE=1
           Sharded formatter compat: silences per-worker seed, summary, and pending lines under POLYRUN_SHARD_* (see docs/SETUP_PROFILE.md)
           Orchestration warnings on process stderr: POLYRUN_ORCHESTRATION_STDERR=1
           Spec quality (opt-in): POLYRUN_SPEC_QUALITY=1; run-shards --merge-spec-quality; merge-spec-quality / report-spec-quality

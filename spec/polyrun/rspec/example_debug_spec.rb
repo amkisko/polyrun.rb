@@ -41,6 +41,60 @@ RSpec.describe Polyrun::RSpec::ExampleDebug do
       expect { described_class.install_example_timeout!(config, seconds: 5) }.not_to raise_error
     end
 
+    it "disconnects ActiveRecord pools when an example times out" do
+      recovery = class_double(
+        "Polyrun::RSpec::ActiveRecordTimeoutRecovery",
+        disconnect_all_connection_pools!: nil
+      )
+      stub_const("Polyrun::RSpec::ActiveRecordTimeoutRecovery", recovery)
+
+      config = ::RSpec::Core::Configuration.new
+      config.expect_with :rspec
+      config.disable_monkey_patching!
+      described_class.install_example_timeout!(config, seconds: 0.01)
+
+      allow(Timeout).to receive(:timeout).and_raise(Timeout::Error)
+
+      original_world = ::RSpec.world
+      ::RSpec.world = ::RSpec::Core::World.new(config)
+      expect(
+        ::RSpec.describe("timeout recovery probe") do
+          it "raises after timeout" do
+            expect { raise "should not run" }.not_to raise_error
+          end
+        end.run
+      ).to be(false)
+      expect(recovery).to have_received(:disconnect_all_connection_pools!)
+    ensure
+      ::RSpec.world = original_world if defined?(original_world)
+    end
+
+    it "does not disconnect ActiveRecord pools when an example fails for other reasons" do
+      recovery = class_double(
+        "Polyrun::RSpec::ActiveRecordTimeoutRecovery",
+        disconnect_all_connection_pools!: nil
+      )
+      stub_const("Polyrun::RSpec::ActiveRecordTimeoutRecovery", recovery)
+
+      config = ::RSpec::Core::Configuration.new
+      config.expect_with :rspec
+      config.disable_monkey_patching!
+      described_class.install_example_timeout!(config, seconds: 5)
+
+      original_world = ::RSpec.world
+      ::RSpec.world = ::RSpec::Core::World.new(config)
+      expect(
+        ::RSpec.describe("non-timeout failure probe") do
+          it "fails normally" do
+            raise "example failure"
+          end
+        end.run
+      ).to be(false)
+      expect(recovery).not_to have_received(:disconnect_all_connection_pools!)
+    ensure
+      ::RSpec.world = original_world if defined?(original_world)
+    end
+
     it "does not register per-example timeouts while example debug is enabled" do
       ENV["POLYRUN_EXAMPLE_DEBUG"] = "1"
       config = ::RSpec::Core::Configuration.new
@@ -78,21 +132,39 @@ RSpec.describe Polyrun::RSpec::ExampleDebug do
       old.each { |key, value| value.nil? ? ENV.delete(key) : ENV[key] = value }
     end
 
-    it "enables sql, trace, prosopite, and print helpers only with example debug" do
-      ENV["POLYRUN_DEBUG_SQL"] = "1"
-      ENV["DEBUG_TRACE"] = "1"
-      expect(described_class.sql_enabled?).to be(false)
-      expect(described_class.trace_enabled?).to be(false)
+    it "enables print helpers only with example debug" do
+      ENV["DEBUG_PRINT_SPEC"] = "1"
+      expect(described_class.print_spec_enabled?).to be(false)
 
       ENV["POLYRUN_EXAMPLE_DEBUG"] = "1"
-      expect(described_class.sql_enabled?).to be(true)
-      expect(described_class.trace_enabled?).to be(true)
-      expect(described_class.example_timeout_disabled?).to be(true)
-
-      ENV["DEBUG_PROSOPITE"] = "1"
-      ENV["DEBUG_PRINT_SPEC"] = "1"
-      expect(described_class.prosopite_enabled?).to be(true)
       expect(described_class.print_spec_enabled?).to be(true)
+      expect(described_class.example_timeout_disabled?).to be(true)
+    end
+
+    it "enables sql with POLYRUN_DEBUG_SQL or DEBUG_SQL alone" do
+      ENV["POLYRUN_DEBUG_SQL"] = "1"
+      expect(described_class.sql_enabled?).to be(true)
+      expect(described_class.enabled?).to be(false)
+
+      ENV.delete("POLYRUN_DEBUG_SQL")
+      ENV["DEBUG_SQL"] = "1"
+      expect(described_class.sql_enabled?).to be(true)
+    end
+
+    it "enables trace with POLYRUN_DEBUG_TRACE or DEBUG_TRACE alone" do
+      ENV["POLYRUN_DEBUG_TRACE"] = "1"
+      expect(described_class.trace_enabled?).to be(true)
+      expect(described_class.enabled?).to be(false)
+
+      ENV.delete("POLYRUN_DEBUG_TRACE")
+      ENV["DEBUG_TRACE"] = "1"
+      expect(described_class.trace_enabled?).to be(true)
+    end
+
+    it "enables prosopite with DEBUG_PROSOPITE alone" do
+      ENV["DEBUG_PROSOPITE"] = "1"
+      expect(described_class.prosopite_enabled?).to be(true)
+      expect(described_class.enabled?).to be(false)
     end
 
     it "maps DEBUG_LOG_LEVEL integers to Ruby Logger severities" do
@@ -186,10 +258,17 @@ RSpec.describe Polyrun::RSpec::ExampleDebug do
 
     it "registers trace and path helpers when enabled" do
       config = ::RSpec::Core::Configuration.new
-      ENV["POLYRUN_EXAMPLE_DEBUG"] = "1"
       ENV["POLYRUN_DEBUG_TRACE"] = "1"
       ENV["DEBUG_PRINT_SPEC"] = "1"
       expect { described_class.install!(rspec_config: config) }.not_to raise_error
+    end
+
+    it "registers sql and trace hooks without example debug" do
+      config = ::RSpec::Core::Configuration.new
+      ENV["DEBUG_SQL"] = "1"
+      ENV["DEBUG_TRACE"] = "1"
+      expect { described_class.install!(rspec_config: config) }.not_to raise_error
+      expect(described_class.enabled?).to be(false)
     end
   end
 end

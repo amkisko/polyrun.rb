@@ -69,14 +69,14 @@ Orchestration tracing stays on `DEBUG=1` / `POLYRUN_DEBUG=1`. Per-example toolin
 
 | Env | Effect |
 |--------|--------|
-| `POLYRUN_EXAMPLE_DEBUG=1` | Enable example debug installers |
+| `POLYRUN_EXAMPLE_DEBUG=1` | Enable print helpers, Rails logging; disable per-example timeouts |
 | `POLYRUN_DEBUG_SQL=1` or `DEBUG_SQL=1` | Log mutating SQL |
 | `POLYRUN_DEBUG_TRACE=1` or `DEBUG_TRACE=1` | TracePoint under app root |
 | `DEBUG_PROSOPITE=1` | Prosopite N+1 scan when gem is loaded |
 | `DEBUG_LOG_LEVEL` | Rails / ActiveRecord logger severity: `debug`, `info`, `warn`, `error`, `fatal`, or Ruby Logger integers (`0` debug … `4` fatal); default `debug` |
-| `RSPEC_EXAMPLE_TIMEOUT_SEC` | Per-example timeout (disabled while example debug is on) |
+| `RSPEC_EXAMPLE_TIMEOUT_SEC` | Per-example timeout (disabled while example debug is on); on timeout, ActiveRecord connection pools are disconnected so the next example gets fresh connections (any adapter) |
 
-In `spec_helper` / `spec/support`: `require "polyrun/rspec"` then `Polyrun::RSpec.install_sharded_formatter_compat!` (silences per-worker seed/summary/pending under `POLYRUN_SHARD_*`), `install_example_debug!`, `install_example_rails_logging!`, `install_example_timeout!`. Pair with `install_worker_ping!` for idle timeouts.
+In `spec_helper` / `spec/support`: `require "polyrun/rspec"` then `Polyrun::RSpec.install_sharded_formatter_compat!` (silences per-worker seed/summary/pending under `POLYRUN_SHARD_*`), `install_example_debug!`, `install_example_rails_logging!`, `install_example_prosopite!`, `install_example_timeout!`. Pair with `install_worker_ping!` for idle timeouts.
 
 ## 6. Coverage and CI reports
 

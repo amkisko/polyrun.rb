@@ -64,6 +64,11 @@ end
 require "polyrun/rspec"
 Polyrun::RSpec.install_sharded_formatter_compat!
 Polyrun::RSpec.install_failure_fragments!
+Polyrun::RSpec.install_worker_ping!
+Polyrun::RSpec.install_example_debug!
+Polyrun::RSpec.install_example_rails_logging!
+Polyrun::RSpec.install_example_prosopite!
+Polyrun::RSpec.install_example_timeout!
 if %w[1 true yes].include?(ENV["POLYRUN_SPEC_QUALITY"]&.to_s&.downcase)
   Polyrun::RSpec.install_spec_quality!
 end

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.2.1 (2026-07-13)
+
+- Fix per-example timeout leaving ActiveRecord connection pools in a bad state after `Timeout` interrupts database I/O; disconnect all pools on timeout (adapter-agnostic).
+- Fix `DEBUG_PROSOPITE=1`, `DEBUG_SQL` / `POLYRUN_DEBUG_SQL`, and `DEBUG_TRACE` / `POLYRUN_DEBUG_TRACE` requiring `POLYRUN_EXAMPLE_DEBUG=1`; each flag is standalone again.
+
 ## 2.2.0 (2026-07-13)
 
 - Fix `install_example_rails_logging!` raising `NameError` when example-debug Rails logging runs under `POLYRUN_EXAMPLE_DEBUG=1`.
