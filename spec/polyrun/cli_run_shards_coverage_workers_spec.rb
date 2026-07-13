@@ -78,7 +78,8 @@ RSpec.describe Polyrun::CLI do
         RUBY
         out, status = polyrun(
           "run-shards", "--workers", "2", "--",
-          RbConfig.ruby, stub
+          RbConfig.ruby, stub,
+          env: {"POLYRUN_WORKER_OUTPUT_ROUTING" => "0"}
         )
         expect(status.success?).to be true
         expect(out).to include("path(s) from")

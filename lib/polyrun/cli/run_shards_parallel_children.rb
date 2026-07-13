@@ -23,7 +23,7 @@ module Polyrun
         mt = ctx[:matrix_shard_total]
 
         pids = []
-        Polyrun::WorkerOutput.prepare_log_dir! if Polyrun::WorkerOutput.routing_enabled? && parallel
+        Polyrun::WorkerOutput.prepare_log_dir! if Polyrun::WorkerOutput.routing_enabled?
         workers.times do |shard|
           paths = plan.shard(shard)
           if paths.empty?

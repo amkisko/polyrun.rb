@@ -146,5 +146,17 @@ RSpec.describe Polyrun::WorkerOutput do
         old.nil? ? ENV.delete("POLYRUN_WORKER_LOG_DIR") : ENV["POLYRUN_WORKER_LOG_DIR"] = old
       end
     end
+
+    it "creates the default log directory for a single-worker run" do
+      with_worker_output_env("POLYRUN_WORKER_OUTPUT_ROUTING", "POLYRUN_WORKER_LOG_DIR") do
+        Dir.mktmpdir do |directory|
+          with_chdir(directory) do
+            ENV["POLYRUN_WORKER_OUTPUT_ROUTING"] = "1"
+            described_class.prepare_log_dir!
+            expect(Dir.exist?("tmp/polyrun/workers")).to be(true)
+          end
+        end
+      end
+    end
   end
 end
