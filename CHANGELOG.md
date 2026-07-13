@@ -3,7 +3,8 @@
 ## Unreleased
 
 - Fix `install_example_rails_logging!` raising `NameError` when example-debug Rails logging runs under `POLYRUN_EXAMPLE_DEBUG=1`.
-- Improve spec-quality per-example coverage diff: one snapshot per example, diff against raw `Coverage.peek_result` without copying the after blob.
+- Improve spec-quality per-example coverage diff: sparse scoped snapshots, track-aware diff without a second full blob copy, and optional lazy profile dimensions.
+- Add optional native coverage merge acceleration (`ext/polyrun_coverage_merge`: `merge_line_arrays`, `merge_two`, `line_counts`) with Ruby fallbacks.
 - Add RSpec performance benchmarks (`rake bench_performance`, `spec/performance/`) with profile logs under `tmp/benchmarks/`.
 
 ## 2.1.3 (2026-07-10)

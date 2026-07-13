@@ -17,6 +17,8 @@ bundle exec rake spec
 
 Coverage merge performance (large synthetic payloads):
 
+Native extension (optional; compiles via `bundle install` or `cd ext/polyrun_coverage_merge && ruby extconf.rb && make`):
+
 ```bash
 bundle exec rake bench_merge
 # or: ruby benchmark/merge_coverage.rb

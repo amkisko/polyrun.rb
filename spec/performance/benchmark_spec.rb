@@ -39,6 +39,7 @@ RSpec.describe "Performance benchmarks", :benchmark do
       tree_time = Benchmark.realtime { merge_reps.times { Polyrun::Coverage::Merge.merge_blob_tree(fragment_blobs) } }
 
       BenchmarkProfile.log "\n  Coverage merge (files=#{files}, lines=#{lines_per_file}, fragments=#{fragments}, reps=#{merge_reps}):"
+      BenchmarkProfile.log "    native merge_line_arrays: #{Polyrun::Coverage::Merge.native_merge_line_arrays?}"
       BenchmarkProfile.log "    merge_two:        #{merge_two_time.round(4)}s"
       BenchmarkProfile.log "    merge_blob_tree:  #{tree_time.round(4)}s"
       BenchmarkProfile.log "    per merge_two:    #{(merge_two_time / merge_reps * 1000).round(2)}ms"
@@ -51,22 +52,25 @@ RSpec.describe "Performance benchmarks", :benchmark do
       require "fileutils"
 
       bench_dir = File.join(Dir.tmpdir, "polyrun_bench_cov_#{Process.pid}")
-      FileUtils.mkdir_p(bench_dir)
+      lib_dir = File.join(bench_dir, "lib")
+      spec_dir = File.join(bench_dir, "spec")
+      FileUtils.mkdir_p(lib_dir)
+      FileUtils.mkdir_p(spec_dir)
       files.times do |index|
-        path = File.join(bench_dir, "file_#{index}.rb")
+        target_dir = index.even? ? lib_dir : spec_dir
+        path = File.join(target_dir, "file_#{index}.rb")
         body = Array.new(lines_per_file) { "  @cov = 1" }.join("\n")
         File.write(path, "def bench_method_#{index}\n#{body}\nend\n")
       end
 
       Coverage.start(lines: true)
       files.times do |index|
-        load File.join(bench_dir, "file_#{index}.rb")
-        send("bench_method_#{index}")
+        load File.join(index.even? ? lib_dir : spec_dir, "file_#{index}.rb")
+        send(:"bench_method_#{index}")
       end
 
       peek_time = Benchmark.realtime { peek_reps.times { Coverage.peek_result } }
       snapshot_time = Benchmark.realtime { peek_reps.times { Polyrun::Coverage::ExampleDiff.snapshot_peek(Coverage.peek_result) } }
-      legacy_peek_blob_time = Benchmark.realtime { peek_reps.times { Polyrun::Coverage::ExampleDiff.peek_blob } }
 
       diff_pair_time = Benchmark.realtime do
         peek_reps.times do
@@ -76,12 +80,40 @@ RSpec.describe "Performance benchmarks", :benchmark do
         end
       end
 
+      scoped_snapshot_time = Benchmark.realtime do
+        peek_reps.times do
+          Polyrun::Coverage::ExampleDiff.snapshot_peek(
+            Coverage.peek_result,
+            root: bench_dir,
+            track_under: %w[lib app]
+          )
+        end
+      end
+
+      scoped_diff_time = Benchmark.realtime do
+        peek_reps.times do
+          before = Polyrun::Coverage::ExampleDiff.snapshot_peek(
+            Coverage.peek_result,
+            root: bench_dir,
+            track_under: %w[lib app]
+          )
+          send(:bench_method_0)
+          Polyrun::Coverage::ExampleDiff.diff(
+            before,
+            Coverage.peek_result,
+            root: bench_dir,
+            track_under: %w[lib app]
+          )
+        end
+      end
+
       BenchmarkProfile.log "\n  Spec quality peek (loaded files=#{files}, lines=#{lines_per_file}, reps=#{peek_reps}):"
-      BenchmarkProfile.log "    Coverage.peek_result:     #{peek_time.round(4)}s"
+      BenchmarkProfile.log "    Coverage.peek_result:      #{peek_time.round(4)}s"
       BenchmarkProfile.log "    ExampleDiff.snapshot_peek: #{snapshot_time.round(4)}s"
-      BenchmarkProfile.log "    ExampleDiff.peek_blob:    #{legacy_peek_blob_time.round(4)}s"
-      BenchmarkProfile.log "    snapshot + diff (pair):   #{diff_pair_time.round(4)}s"
-      BenchmarkProfile.log "    per example-pair:         #{(diff_pair_time / peek_reps * 1000).round(3)}ms"
+      BenchmarkProfile.log "    scoped snapshot (lib/):    #{scoped_snapshot_time.round(4)}s"
+      BenchmarkProfile.log "    snapshot + diff (pair):    #{diff_pair_time.round(4)}s"
+      BenchmarkProfile.log "    scoped snapshot + diff:    #{scoped_diff_time.round(4)}s"
+      BenchmarkProfile.log "    per scoped example-pair:   #{(scoped_diff_time / peek_reps * 1000).round(3)}ms"
     ensure
       FileUtils.rm_rf(bench_dir) if bench_dir && File.directory?(bench_dir)
     end

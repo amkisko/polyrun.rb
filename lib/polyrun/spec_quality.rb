@@ -58,7 +58,11 @@ module Polyrun
         @current = {
           location: normalize_location(location),
           wall_start: wall_start || Process.clock_gettime(Process::CLOCK_MONOTONIC),
-          coverage_before: Coverage::ExampleDiff.peek_blob,
+          coverage_before: Coverage::ExampleDiff.peek_blob(
+            root: @config["root"],
+            track_under: @config["track_under"],
+            ignore_paths: @config["ignore_paths"]
+          ),
           profile_before: Profile.snapshot(dimensions: @config["profile"]),
           sql_count: 0,
           sql_fingerprints: Hash.new(0),
@@ -164,9 +168,9 @@ module Polyrun
 
       def coverage_delta_for_example(cur)
         after_source = Coverage::ExampleDiff.coverage_active? ? ::Coverage.peek_result : {}
-        delta = Coverage::ExampleDiff.diff(cur[:coverage_before], after_source)
-        Coverage::ExampleDiff.apply_track_under(
-          delta,
+        Coverage::ExampleDiff.diff(
+          cur[:coverage_before],
+          after_source,
           root: @config["root"],
           track_under: @config["track_under"],
           ignore_paths: @config["ignore_paths"]

@@ -27,6 +27,29 @@ RSpec.describe Polyrun::Coverage::ExampleDiff do
       expect(d[:unique_lines]).to eq(1)
       expect(d[:lines]).to eq([["/lib/x.rb", 2, 1]])
     end
+
+    it "applies track_under while diffing against raw peek" do
+      root = Dir.mktmpdir
+      lib = File.join(root, "lib", "a.rb")
+      spec = File.join(root, "spec", "b.rb")
+      FileUtils.mkdir_p(File.dirname(lib))
+      FileUtils.mkdir_p(File.dirname(spec))
+
+      before = {lib => {"sparse" => true, "hits" => {0 => 1}}}
+      after_peek = {
+        lib => {lines: [2, 0]},
+        spec => {lines: [nil, 3]}
+      }
+      filtered = described_class.diff(
+        before,
+        after_peek,
+        root: root,
+        track_under: %w[lib]
+      )
+      unfiltered = described_class.diff(before, after_peek)
+      expect(filtered[:lines]).to eq([[lib, 1, 1]])
+      expect(unfiltered[:lines]).to contain_exactly([lib, 1, 1], [spec, 2, 3])
+    end
   end
 
   describe ".snapshot_peek" do
@@ -34,7 +57,24 @@ RSpec.describe Polyrun::Coverage::ExampleDiff do
       raw = {"/app/a.rb" => {lines: [1, 2]}}
       snapshot = described_class.snapshot_peek(raw)
       raw["/app/a.rb"][:lines][0] = 99
-      expect(snapshot["/app/a.rb"]["lines"]).to eq([1, 2])
+      expect(snapshot["/app/a.rb"]["hits"][0]).to eq(1)
+    end
+
+    it "stores sparse hits and skips nil line slots" do
+      raw = {"/app/a.rb" => {lines: [1, nil, 2, 0]}}
+      snapshot = described_class.snapshot_peek(raw)
+      entry = snapshot["/app/a.rb"]
+      expect(entry["sparse"]).to be(true)
+      expect(entry["hits"]).to eq({0 => 1, 2 => 2, 3 => 0})
+    end
+
+    it "scopes snapshots to track_under paths" do
+      root = Dir.mktmpdir
+      lib = File.join(root, "lib", "a.rb")
+      spec = File.join(root, "spec", "b.rb")
+      raw = {lib => {lines: [1]}, spec => {lines: [2]}}
+      snapshot = described_class.snapshot_peek(raw, root: root, track_under: %w[lib])
+      expect(snapshot.keys).to eq([lib])
     end
   end
 

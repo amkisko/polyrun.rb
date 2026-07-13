@@ -153,16 +153,24 @@ module Polyrun
       # Per-file line stats for HTML and other formatters.
       # Integer line counts for one file entry (for O(files x groups) group aggregation).
       def line_counts(file_entry)
+        if native_acceleration?
+          MergeNative.line_counts(file_entry)
+        else
+          line_counts_ruby(file_entry)
+        end
+      end
+
+      def line_counts_ruby(file_entry)
         line_arr = line_array_from_file_entry(file_entry)
         return {relevant: 0, covered: 0} unless line_arr.is_a?(Array)
 
         relevant = 0
         covered = 0
-        line_arr.each do |h|
-          next if h.nil? || h == "ignored"
+        line_arr.each do |hit|
+          next if hit.nil? || hit == "ignored"
 
           relevant += 1
-          covered += 1 if h.to_i > 0
+          covered += 1 if hit.to_i > 0
         end
         {relevant: relevant, covered: covered}
       end

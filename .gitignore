@@ -25,4 +25,13 @@
 # Appraisal
 /gemfiles/*.lock
 
+# Native extensions (mkmf build output; sources under ext/**/{extconf.rb,*.c,*.h} stay tracked)
+/ext/**/Makefile
+/ext/**/mkmf.log
+/ext/**/*.o
+/ext/**/*.so
+/ext/**/*.bundle
+/ext/**/*.dSYM/
+/ext/**/conftest.*
+
 .pray/cache
