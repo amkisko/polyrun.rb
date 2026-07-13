@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.2.0 (2026-07-13)
+
 - Fix `install_example_rails_logging!` raising `NameError` when example-debug Rails logging runs under `POLYRUN_EXAMPLE_DEBUG=1`.
 - Improve spec-quality per-example coverage diff: sparse scoped snapshots, track-aware diff without a second full blob copy, and optional lazy profile dimensions.
 - Add optional native coverage merge acceleration (`ext/polyrun_coverage_merge`: `merge_line_arrays`, `merge_two`, `line_counts`) with Ruby fallbacks.

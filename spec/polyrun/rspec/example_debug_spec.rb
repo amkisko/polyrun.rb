@@ -165,7 +165,7 @@ RSpec.describe Polyrun::RSpec::ExampleDebug do
       described_class.install_rails_logging!(rspec_config: rspec_config)
 
       example = Struct.new(:metadata).new(
-        { example_group: { file_path: "spec/probe_spec.rb", line_number: 42 } }
+        {example_group: {file_path: "spec/probe_spec.rb", line_number: 42}}
       )
       example_group_instance = Object.new
 
