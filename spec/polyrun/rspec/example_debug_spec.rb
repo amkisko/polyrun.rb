@@ -1,4 +1,5 @@
 require "logger"
+require "stringio"
 require "spec_helper"
 require "polyrun/rspec/example_debug"
 
@@ -134,6 +135,42 @@ RSpec.describe Polyrun::RSpec::ExampleDebug do
       ENV["DEBUG_LOG_LEVEL"] = "not-a-level"
       expect(described_class.log_level).to eq(Logger::DEBUG)
       expect(described_class.rails_log_level).to eq(:debug)
+    end
+  end
+
+  describe ".install_rails_logging!" do
+    around do |example|
+      keys = %w[POLYRUN_EXAMPLE_DEBUG DEBUG_LOG_LEVEL]
+      old = keys.to_h { |key| [key, ENV[key]] }
+      keys.each { |key| ENV.delete(key) }
+      example.run
+    ensure
+      old.each { |key, value| value.nil? ? ENV.delete(key) : ENV[key] = value }
+    end
+
+    it "runs the registered before hook without NameError and applies DEBUG_LOG_LEVEL" do
+      ENV["POLYRUN_EXAMPLE_DEBUG"] = "1"
+      ENV["DEBUG_LOG_LEVEL"] = "info"
+
+      rails_module = Module.new
+      rails_module.define_singleton_method(:logger) { @logger }
+      rails_module.define_singleton_method(:logger=) { |value| @logger = value }
+      rails_module.logger = Logger.new(StringIO.new)
+      stub_const("Rails", rails_module)
+
+      before_hook = nil
+      rspec_config = Object.new
+      rspec_config.define_singleton_method(:before) { |&block| before_hook = block }
+
+      described_class.install_rails_logging!(rspec_config: rspec_config)
+
+      example = Struct.new(:metadata).new(
+        { example_group: { file_path: "spec/probe_spec.rb", line_number: 42 } }
+      )
+      example_group_instance = Object.new
+
+      expect { example_group_instance.instance_exec(example, &before_hook) }.not_to raise_error
+      expect(Rails.logger.level).to eq(Logger::INFO)
     end
   end
 

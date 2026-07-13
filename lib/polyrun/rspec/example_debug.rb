@@ -82,7 +82,7 @@ module Polyrun
           group = example.metadata[:example_group]
           Polyrun::Log.puts "\n\nRunning #{group[:file_path]}:#{group[:line_number]}"
 
-          level = log_level
+          level = ExampleDebug.log_level
           Rails.logger.level = level
           if defined?(ActiveRecord::Base)
             ar_logger = Logger.new(Polyrun::Log.stdout)

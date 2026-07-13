@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix `install_example_rails_logging!` raising `NameError` when example-debug Rails logging runs under `POLYRUN_EXAMPLE_DEBUG=1`.
+
 ## 2.1.3 (2026-07-10)
 
 - Add `Polyrun::WorkerOutput` for per-shard worker stdout/stderr routing (`POLYRUN_WORKER_OUTPUT_ROUTING=1` or `POLYRUN_WORKER_LOG_DIR`); optional prefixed TTY echo (`POLYRUN_WORKER_OUTPUT_PREFIX=0` for log-only).
