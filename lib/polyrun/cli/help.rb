@@ -13,7 +13,9 @@ module Polyrun
             -h, --help
 
           Trace timing (stderr): DEBUG=1 or POLYRUN_DEBUG=1
-          Coverage: POLYRUN_COVERAGE=1 (or config/polyrun_coverage.yml + POLYRUN_QUICK_COVERAGE=1); POLYRUN_COVERAGE_DISABLE=1 skips; POLYRUN_COVERAGE_BRANCHES=1 for branch data in fragments
+          Coverage: POLYRUN_COVERAGE=1 (or config/polyrun_coverage.yml + POLYRUN_QUICK_COVERAGE=1); POLYRUN_COVERAGE_DISABLE=1 skips; POLYRUN_COVERAGE_BRANCHES=1 for branch data in fragments; POLYRUN_COVERAGE_VERBOSE=1 for per-worker and merged console summaries
+          Benchmark profiles (stdout): POLYRUN_BENCH=1 (files still written under tmp/benchmarks/)
+          Hooks shell output: POLYRUN_HOOKS_VERBOSE=1 or -v / POLYRUN_VERBOSE=1 (or DEBUG); failures always print
           Merge profiling (stderr): POLYRUN_PROFILE_MERGE=1 (or verbose / DEBUG)
           Post-merge formats (run-shards): POLYRUN_MERGE_FORMATS (default: json,lcov,cobertura,console,html)
           Start skips: POLYRUN_SKIP_BUILD_SPEC_PATHS=1, POLYRUN_START_SKIP_PREPARE=1, POLYRUN_START_SKIP_DATABASES=1

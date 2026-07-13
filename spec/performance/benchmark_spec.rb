@@ -63,7 +63,7 @@ RSpec.describe "Performance benchmarks", :benchmark do
         File.write(path, "def bench_method_#{index}\n#{body}\nend\n")
       end
 
-      Coverage.start(lines: true)
+      Coverage.start(lines: true) unless Coverage.running?
       files.times do |index|
         load File.join(index.even? ? lib_dir : spec_dir, "file_#{index}.rb")
         send(:"bench_method_#{index}")
@@ -134,7 +134,7 @@ RSpec.describe "Performance benchmarks", :benchmark do
         File.write(path, "def mem_bench_#{index}\n#{body}\nend\n")
       end
 
-      Coverage.start(lines: true)
+      Coverage.start(lines: true) unless Coverage.running?
       sample_files.times do |index|
         load File.join(bench_dir, "file_#{index}.rb")
         send("mem_bench_#{index}")

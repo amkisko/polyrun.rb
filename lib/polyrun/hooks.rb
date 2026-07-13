@@ -2,6 +2,7 @@ require "shellwords"
 
 require_relative "log"
 require_relative "hooks/dsl"
+require_relative "hooks/shell_runner"
 require_relative "hooks/worker_runner"
 require_relative "hooks/worker_shell"
 
@@ -17,6 +18,7 @@ module Polyrun
   # Orchestration respects +POLYRUN_HOOKS_DISABLE=1+ (+run_phase_if_enabled+); +polyrun hook run+ always runs {#run_phase}.
   class Hooks
     include WorkerShell
+    include ShellRunner
 
     PHASES = %i[
       before_suite after_suite
@@ -128,13 +130,8 @@ module Polyrun
       end
 
       commands_for(phase).each do |cmd|
-        ok = begin
-          system(merged, "sh", "-c", cmd)
-        rescue Interrupt
-          Polyrun::Log.warn "polyrun hooks: #{phase} shell hook interrupted"
-          return 130
-        end
-        return $?.exitstatus unless ok
+        ok, exitstatus = run_shell_hook(cmd, merged)
+        return exitstatus unless ok
       end
       0
     end

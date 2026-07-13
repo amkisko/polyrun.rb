@@ -11,7 +11,7 @@ module Polyrun
 
       private
 
-      def cmd_merge_coverage(argv, _config_path)
+      def cmd_merge_coverage(argv, _config_path, print_console_summary: true)
         inputs, output, formats = merge_coverage_parse_argv(argv)
         if inputs.empty?
           Polyrun::Log.warn "merge-coverage: need at least one existing -i FILE (after glob expansion)"
@@ -36,7 +36,7 @@ module Polyrun
         payload = Polyrun::Coverage::Merge.to_simplecov_json(merged, meta: r[:meta], groups: r[:groups])
         out_abs = File.expand_path(output)
         merge_coverage_write_json_payload(out_abs, payload)
-        merge_coverage_write_format_outputs(merged, r, out_abs, formats)
+        merge_coverage_write_format_outputs(merged, r, out_abs, formats, print_console_summary: print_console_summary)
 
         elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0
         merge_coverage_log_finish(elapsed, inputs)
@@ -122,7 +122,7 @@ module Polyrun
         files.each { |f| merge_argv.push("-i", f) }
         merge_argv += ["-o", output, "--format", format_list]
         Polyrun::Debug.time("merge-coverage (parent after workers)") do
-          cmd_merge_coverage(merge_argv, config_path)
+          cmd_merge_coverage(merge_argv, config_path, print_console_summary: coverage_console_output?)
         end
       end
 

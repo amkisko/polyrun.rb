@@ -24,6 +24,7 @@ Dir.chdir(root_dir) do
 
   execute_command("bundle")
   execute_command("bundle exec appraisal generate")
+  execute_command("bundle exec appraisal install")
   execute_command("bundle exec rubocop -a 2>&1 | tee tmp/rubocop.log")
   execute_command("bundle exec rbs -I sig validate")
   execute_command("POLYRUN_COVERAGE=1 bundle exec appraisal ruby40 -- bundle exec polyrun parallel-rspec --workers 5 --merge-failures 2>&1 | tee tmp/polyrun-rspec.log")

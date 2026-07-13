@@ -63,6 +63,21 @@ RSpec.describe Polyrun::Hooks do
         end
       end
     end
+
+    it "suppresses successful shell hook stdout unless verbose is enabled" do
+      Dir.mktmpdir do |dir|
+        with_chdir(dir) do
+          keys = %w[POLYRUN_VERBOSE POLYRUN_HOOKS_VERBOSE DEBUG POLYRUN_DEBUG]
+          old = keys.to_h { |key| [key, ENV[key]] }
+          keys.each { |key| ENV.delete(key) }
+          h = described_class.new("before_suite" => "printf hook-visible > hook_out.txt")
+          expect { expect(h.run_phase(:before_suite, ENV.to_h)).to eq(0) }.not_to output("hook-visible").to_stdout
+          expect(File.read("hook_out.txt")).to eq("hook-visible")
+        ensure
+          old.each { |key, value| value.nil? ? ENV.delete(key) : ENV[key] = value }
+        end
+      end
+    end
   end
 
   describe "#empty?" do

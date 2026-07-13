@@ -47,5 +47,15 @@ RSpec.describe BenchmarkProfile do
       expect(contents).to include("Coverage merge (3 iterations):")
       expect(contents).to include("merge_two: 0.072s")
     end
+
+    it "buffers log lines without printing unless POLYRUN_BENCH=1", :aggregate_failures do
+      old = ENV["POLYRUN_BENCH"]
+      ENV.delete("POLYRUN_BENCH")
+      described_class.reset!
+      expect { described_class.log("secret timing line") }.not_to output.to_stdout
+      expect { described_class.write!(repository_root: repository_root) }.not_to output.to_stdout
+    ensure
+      old.nil? ? ENV.delete("POLYRUN_BENCH") : ENV["POLYRUN_BENCH"] = old
+    end
   end
 end

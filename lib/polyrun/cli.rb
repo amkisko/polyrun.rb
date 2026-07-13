@@ -120,6 +120,7 @@ module Polyrun
           config_path = argv.shift or break
         when "-v", "--verbose"
           @verbose = true
+          ENV["POLYRUN_VERBOSE"] = "1"
           argv.shift
         when "-h", "--help"
           print_help

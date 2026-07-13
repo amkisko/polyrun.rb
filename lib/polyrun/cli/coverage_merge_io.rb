@@ -39,10 +39,10 @@ module Polyrun
         end
       end
 
-      def merge_coverage_write_format_outputs(merged, r, out_abs, formats)
+      def merge_coverage_write_format_outputs(merged, r, out_abs, formats, print_console_summary: true)
         write_merge_lcov(merged, out_abs) if formats.include?("lcov")
         write_merge_cobertura(merged, r, out_abs) if formats.include?("cobertura")
-        write_merge_console(merged, out_abs) if formats.include?("console")
+        write_merge_console(merged, out_abs, print_summary: print_console_summary) if formats.include?("console")
         write_merge_html(merged, out_abs) if formats.include?("html")
       end
 
@@ -67,13 +67,21 @@ module Polyrun
         r[:meta]["polyrun_coverage_root"] || r[:meta][:polyrun_coverage_root]
       end
 
-      def write_merge_console(merged, out_abs)
+      def write_merge_console(merged, out_abs, print_summary: true)
         sum_path = out_abs.sub(/\.json\z/, "-summary.txt")
         sum_path = "#{out_abs}-summary.txt" if sum_path == out_abs
         summary = Polyrun::Coverage::Merge.console_summary(merged)
         summary_text = Polyrun::Coverage::Merge.format_console_summary(summary)
         Polyrun::Debug.time("write console summary") { File.write(sum_path, summary_text) }
+        return unless print_summary
+
         Polyrun::Log.print summary_text
+      end
+
+      def coverage_console_output?
+        @verbose ||
+          %w[1 true yes].include?(ENV["POLYRUN_COVERAGE_VERBOSE"]&.to_s&.downcase) ||
+          Polyrun::Debug.enabled?
       end
 
       def write_merge_html(merged, out_abs)

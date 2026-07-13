@@ -12,7 +12,7 @@ module BenchmarkProfile
   def log(message = "")
     line = message.to_s
     lines_storage << line
-    $stdout.puts(line) unless line.empty?
+    $stdout.puts(line) if verbose? && !line.empty?
     line
   end
 
@@ -23,8 +23,12 @@ module BenchmarkProfile
     path = output_path(repository_root: repository_root)
     FileUtils.mkdir_p(File.dirname(path))
     File.write(path, profile_header(repository_root: repository_root) + lines.join("\n") + "\n")
-    $stdout.puts("\nBenchmark profile written to #{path}")
+    $stdout.puts("\nBenchmark profile written to #{path}") if verbose?
     path
+  end
+
+  def verbose?
+    %w[1 true yes].include?(ENV["POLYRUN_BENCH"]&.to_s&.downcase)
   end
 
   def output_path(repository_root: default_repository_root, commit_sha: nil, working_tree_clean: nil, timestamp: nil)
