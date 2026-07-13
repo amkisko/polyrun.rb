@@ -87,11 +87,11 @@ module Polyrun
         return File.expand_path(raw) if raw && !raw.to_s.strip.empty?
 
         ext = case fmt
-              when "json" then "json"
-              when "csv" then "csv"
-              when "markdown", "md" then "md"
-              else "jsonl"
-              end
+        when "json" then "json"
+        when "csv" then "csv"
+        when "markdown", "md" then "md"
+        else "jsonl"
+        end
         File.expand_path(File.join("tmp", "polyrun_failures", "merged.#{ext}"))
       end
     end

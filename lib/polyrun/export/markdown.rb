@@ -9,7 +9,7 @@ module Polyrun
       end
 
       def heading(level, text)
-        level = [[level.to_i, 1].max, 6].min
+        level = level.to_i.clamp(1, 6)
         "#{"#" * level} #{text}\n"
       end
 

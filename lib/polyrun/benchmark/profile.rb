@@ -157,20 +157,30 @@ module Polyrun
       def format_metric_line(metric)
         value = metric["value"]
         unit = metric["unit"]
-        suffix = unit == "seconds" ? "s" : " #{unit}"
+        suffix = (unit == "seconds") ? "s" : " #{unit}"
         format("  %s: %s%s", metric["name"], value, suffix)
       end
 
+      STORAGE_KEY = :polyrun_benchmark_profile_storage
+
+      def storage
+        Thread.current[STORAGE_KEY] ||= {
+          "lines" => [],
+          "metrics" => [],
+          "current_section" => ["default"]
+        }
+      end
+
       def lines_storage
-        @lines_storage ||= []
+        storage["lines"]
       end
 
       def metrics_storage
-        @metrics_storage ||= []
+        storage["metrics"]
       end
 
       def current_section_storage
-        @current_section_storage ||= ["default"]
+        storage["current_section"]
       end
 
       def default_repository_root

@@ -76,45 +76,61 @@ module Polyrun
 
       def format_markdown(merged, cfg: {}, top: 30, profile: nil, plan_shards: nil)
         analysis = analyze(merged, cfg, plan_shards: plan_shards)
-        sections = []
+        sections = markdown_sections(analysis, top).compact
+        Export::Markdown.document("Polyrun spec quality report", sections)
+      end
 
-        shard_rows = (analysis[:shard_summary] || {}).sort_by { |shard, _| shard.to_s }.map do |shard, stats|
+      def markdown_sections(analysis, top)
+        [
+          markdown_shard_section(analysis[:shard_summary]),
+          markdown_zero_hit_section(analysis[:zero_hit], top),
+          markdown_hot_lines_section(analysis[:hot_lines], top),
+          markdown_churn_section(analysis[:line_churn], top)
+        ]
+      end
+
+      def markdown_shard_section(shard_summary)
+        shard_rows = (shard_summary || {}).sort_by { |shard, _| shard.to_s }.map do |shard, stats|
           [shard, stats["examples"], stats["zero_hit"], stats["line_churn"]]
         end
-        unless shard_rows.empty?
-          sections << {
-            heading: "Shard attribution",
-            headers: %w[shard examples zero_hit line_churn],
-            rows: shard_rows
-          }
-        end
+        return if shard_rows.empty?
 
-        zero_rows = analysis[:zero_hit].keys.sort.first(top).map { |location| [location] }
-        sections << {
+        {
+          heading: "Shard attribution",
+          headers: %w[shard examples zero_hit line_churn],
+          rows: shard_rows
+        }
+      end
+
+      def markdown_zero_hit_section(zero_hit, top)
+        zero_rows = zero_hit.keys.sort.first(top).zip
+        {
           heading: "Zero production lines",
           headers: %w[example],
           rows: zero_rows.empty? ? [["(none)"]] : zero_rows
         }
+      end
 
-        hot_rows = analysis[:hot_lines].first(top).map do |line, stats|
+      def markdown_hot_lines_section(hot_lines, top)
+        hot_rows = hot_lines.first(top).map do |line, stats|
           [line, stats["example_count"], stats["total_hits"]]
         end
-        sections << {
+        {
           heading: "Hot lines",
           headers: %w[line example_count total_hits],
           rows: hot_rows.empty? ? [["(none)", 0, 0]] : hot_rows
         }
+      end
 
-        churn_rows = analysis[:line_churn].first(top).map do |location, row|
+      def markdown_churn_section(churn_rows, top)
+        rows = churn_rows.first(top).map do |location, row|
           [location, row["line_churn"], row["max_line_churn"]]
         end
-        sections << {
+        {
           heading: "Per-example line churn",
           headers: %w[example line_churn max_line_churn],
-          rows: churn_rows.empty? ? [["(none)", 0, 0]] : churn_rows
+          rows: rows.empty? ? [["(none)", 0, 0]] : rows
         }
-
-        Export::Markdown.document("Polyrun spec quality report", sections)
       end
 
       def render(merged, format: "text", **kwargs)

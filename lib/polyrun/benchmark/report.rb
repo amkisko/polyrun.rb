@@ -74,7 +74,7 @@ module Polyrun
           }
         end
 
-        line_rows = Array(data["lines"]).reject(&:empty?).map { |line| [line] }
+        line_rows = Array(data["lines"]).reject(&:empty?).zip
         sections << {
           heading: "Log",
           headers: %w[line],

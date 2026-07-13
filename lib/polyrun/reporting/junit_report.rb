@@ -41,40 +41,46 @@ module Polyrun
 
       def emit_markdown(doc)
         cases = Array(doc["testcases"])
+        sections = [
+          markdown_summary_section(doc, cases),
+          markdown_testcases_section(cases)
+        ]
+        failure_section = markdown_failures_section(cases)
+        sections << failure_section if failure_section
+        Export::Markdown.document(doc["name"].to_s, sections)
+      end
+
+      def markdown_summary_section(doc, cases)
         total_time = cases.sum { |testcase| (testcase["time"] || testcase[:time] || 0).to_f }
-        failures = cases.count { |testcase| status_of(testcase) == "failed" }
-        errors = cases.count { |testcase| status_of(testcase) == "error" }
-        skipped = cases.count { |testcase| %w[pending skipped].include?(status_of(testcase)) }
         summary_rows = [
           ["tests", cases.size],
-          ["failures", failures],
-          ["errors", errors],
-          ["skipped", skipped],
+          ["failures", cases.count { |testcase| status_of(testcase) == "failed" }],
+          ["errors", cases.count { |testcase| status_of(testcase) == "error" }],
+          ["skipped", cases.count { |testcase| %w[pending skipped].include?(status_of(testcase)) }],
           ["time_seconds", format_float(total_time)],
           ["hostname", doc["hostname"]]
         ]
+        {heading: "Summary", headers: %w[metric value], rows: summary_rows}
+      end
+
+      def markdown_testcases_section(cases)
         testcase_rows = cases.map do |testcase|
           testcase = testcase.transform_keys(&:to_s)
           [testcase["classname"], testcase["name"], status_of(testcase), format_float(testcase["time"] || 0)]
         end
-        sections = [
-          {heading: "Summary", headers: %w[metric value], rows: summary_rows},
-          {heading: "Test cases", headers: MARKDOWN_HEADERS, rows: testcase_rows}
-        ]
+        {heading: "Test cases", headers: MARKDOWN_HEADERS, rows: testcase_rows}
+      end
+
+      def markdown_failures_section(cases)
         failed = cases.select { |testcase| %w[failed error].include?(status_of(testcase)) }
-        unless failed.empty?
-          failure_rows = failed.map do |testcase|
-            testcase = testcase.transform_keys(&:to_s)
-            failure = (testcase["failure"] || {}).transform_keys(&:to_s)
-            [testcase["name"], status_of(testcase), failure["message"], failure["body"]]
-          end
-          sections << {
-            heading: "Failures",
-            headers: %w[name status message body],
-            rows: failure_rows
-          }
+        return if failed.empty?
+
+        failure_rows = failed.map do |testcase|
+          testcase = testcase.transform_keys(&:to_s)
+          failure = (testcase["failure"] || {}).transform_keys(&:to_s)
+          [testcase["name"], status_of(testcase), failure["message"], failure["body"]]
         end
-        Export::Markdown.document(doc["name"].to_s, sections)
+        {heading: "Failures", headers: %w[name status message body], rows: failure_rows}
       end
     end
   end

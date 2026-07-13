@@ -61,10 +61,10 @@ module Polyrun
           File.expand_path(output)
         else
           extension = case format.to_s.downcase
-                      when "csv" then "csv"
-                      when "markdown", "md" then "md"
-                      else "xml"
-                      end
+          when "csv" then "csv"
+          when "markdown", "md" then "md"
+          else "xml"
+          end
           File.join(File.dirname(inputs.first), "junit.#{extension}")
         end
       end
