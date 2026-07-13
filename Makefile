@@ -1,4 +1,4 @@
-.PHONY: trunk-fmt trunk-check lint release test test-coverage clean
+.PHONY: trunk-fmt trunk-check lint native-extension release test test-coverage clean
 
 trunk-fmt:
 	trunk fmt
@@ -9,6 +9,10 @@ trunk-check:
 lint:
 	bundle exec rubocop
 	bundle exec rbs -I sig validate
+
+native-extension:
+	cd ext/polyrun_coverage_merge && ruby extconf.rb && make
+	bundle exec ruby -r polyrun/coverage/merge -e 'abort("native extension failed to load") unless Polyrun::Coverage::Merge.native_acceleration?'
 
 release:
 	ruby usr/bin/release.rb

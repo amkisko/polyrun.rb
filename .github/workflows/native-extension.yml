@@ -1,0 +1,40 @@
+name: native-extension
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  compile:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        ruby: ["3.4"]
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+
+      - name: Compile polyrun_coverage_merge
+        working-directory: ext/polyrun_coverage_merge
+        run: |
+          ruby extconf.rb
+          make
+
+      - name: Native merge specs
+        run: bundle exec rspec spec/polyrun/coverage/merge_native_spec.rb spec/polyrun/coverage/merge_native_html_spec.rb

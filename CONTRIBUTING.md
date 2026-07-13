@@ -19,6 +19,17 @@ Coverage merge performance (large synthetic payloads):
 
 Native extension (optional; compiles via `bundle install` or `cd ext/polyrun_coverage_merge && ruby extconf.rb && make`):
 
+After pulling changes under `ext/**/*.c` or `ext/**/extconf.rb`, rebuild the extension before running specs or benchmarks:
+
+```bash
+make native-extension
+# or: bundle exec rake native_extension
+```
+
+If merge specs segfault or native acceleration behaves oddly after a pull, run `make clean` in `ext/polyrun_coverage_merge` and `make native-extension` again (or `bundle install` to trigger a full compile).
+
+CI compiles the extension on Linux and macOS (`.github/workflows/native-extension.yml`).
+
 ```bash
 bundle exec rake bench_merge
 # or: ruby benchmark/merge_coverage.rb
@@ -29,7 +40,8 @@ RSpec performance benchmarks (coverage merge + spec-quality peek; writes `tmp/be
 ```bash
 bundle exec rake bench_performance
 # optional: STACKPROF=1 or BENCHMARK_IPS=1 for spec/performance/profiling_spec.rb
-# optional: BENCH_MEMORY=1 bundle exec rspec spec/performance/benchmark_spec.rb --tag benchmark
+# optional: BENCH_MEMORY=1 bundle exec rspec spec/performance/benchmark_merge_spec.rb spec/performance/benchmark_spec.rb --tag benchmark
+# optional env: BENCH_LINE_COUNT_REPS, BENCH_MEMORY_REPS
 ```
 
 Run the suite under alternate Ruby constraints (see `Appraisals` and `gemfiles/`):

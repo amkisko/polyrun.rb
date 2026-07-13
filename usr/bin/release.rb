@@ -23,6 +23,7 @@ Dir.chdir(root_dir) do
   FileUtils.mkdir_p("tmp")
 
   execute_command("bundle")
+  execute_command("make native-extension")
   execute_command("bundle exec appraisal generate")
   execute_command("bundle exec appraisal install")
   execute_command("bundle exec rubocop -a 2>&1 | tee tmp/rubocop.log")

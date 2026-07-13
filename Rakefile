@@ -15,6 +15,11 @@ end
 task default: :spec
 task ci: %i[spec rubocop]
 
+desc "Compile and verify polyrun_coverage_merge native extension"
+task :native_extension do
+  sh "make native-extension"
+end
+
 namespace :coverage do
   desc "Run RSpec with Polyrun coverage (single process; gate from config/polyrun_coverage.yml)"
   task :rspec do
@@ -46,6 +51,7 @@ task :bench_performance do
       "BENCH_LINES" => ENV.fetch("BENCH_LINES", "310"),
       "BENCH_FRAGMENTS" => ENV.fetch("BENCH_FRAGMENTS", "8"),
       "BENCH_MERGE_REPS" => ENV.fetch("BENCH_MERGE_REPS", "3"),
+      "BENCH_LINE_COUNT_REPS" => ENV.fetch("BENCH_LINE_COUNT_REPS", "5"),
       "BENCH_PEEK_REPS" => ENV.fetch("BENCH_PEEK_REPS", "200")},
-    "bundle exec rspec spec/performance/benchmark_spec.rb --tag benchmark")
+    "bundle exec rspec spec/performance/benchmark_spec.rb spec/performance/benchmark_merge_spec.rb --tag benchmark")
 end

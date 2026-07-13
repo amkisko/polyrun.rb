@@ -2,49 +2,12 @@ require "spec_helper"
 require "benchmark"
 require "stringio"
 
-# Performance benchmarks for coverage merge and spec-quality hot paths.
+# Performance benchmarks for spec-quality hot paths.
 # rubocop:disable RSpec/DescribeClass, RSpec/NoExpectationExample
 RSpec.describe "Performance benchmarks", :benchmark do
   let(:files) { Integer(ENV.fetch("BENCH_FILES", "110")) }
   let(:lines_per_file) { Integer(ENV.fetch("BENCH_LINES", "310")) }
-  let(:fragments) { Integer(ENV.fetch("BENCH_FRAGMENTS", "8")) }
-  let(:merge_reps) { Integer(ENV.fetch("BENCH_MERGE_REPS", "3")) }
   let(:peek_reps) { Integer(ENV.fetch("BENCH_PEEK_REPS", "200")) }
-
-  def build_blob(random, offset)
-    blob = {}
-    files.times do |file_index|
-      path = "/project/app/models/aggregate_#{file_index}.rb"
-      line_hits = Array.new(lines_per_file) do
-        case random.rand(100)
-        when 0 then nil
-        when 1 then "ignored"
-        else random.rand(0..15)
-        end
-      end
-      line_hits.map! { |hit| hit.is_a?(Integer) ? (hit + offset) % 8 : hit }
-      blob[path] = {"lines" => line_hits}
-    end
-    blob
-  end
-
-  describe "coverage merge" do
-    it "compares merge_two, merge_blob_tree, and merge_fragments", :aggregate_failures do
-      random = Random.new(42)
-      left = build_blob(random, 0)
-      right = build_blob(random, 1)
-      fragment_blobs = Array.new(fragments) { |index| build_blob(random, index) }
-
-      merge_two_time = Benchmark.realtime { merge_reps.times { Polyrun::Coverage::Merge.merge_two(left, right) } }
-      tree_time = Benchmark.realtime { merge_reps.times { Polyrun::Coverage::Merge.merge_blob_tree(fragment_blobs) } }
-
-      BenchmarkProfile.log "\n  Coverage merge (files=#{files}, lines=#{lines_per_file}, fragments=#{fragments}, reps=#{merge_reps}):"
-      BenchmarkProfile.log "    native merge_line_arrays: #{Polyrun::Coverage::Merge.native_merge_line_arrays?}"
-      BenchmarkProfile.log "    merge_two:        #{merge_two_time.round(4)}s"
-      BenchmarkProfile.log "    merge_blob_tree:  #{tree_time.round(4)}s"
-      BenchmarkProfile.log "    per merge_two:    #{(merge_two_time / merge_reps * 1000).round(2)}ms"
-    end
-  end
 
   describe "spec quality peek" do
     it "compares peek_result, snapshot_peek, and diff against raw peek", :aggregate_failures do
