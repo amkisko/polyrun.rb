@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add CSV and Markdown exports for coverage, timing, spec-quality, and failure merge reports.
+- Add `report-junit --format xml|csv|markdown` (XML remains default for CI).
+- Add `Polyrun::Benchmark::Profile` / `report-benchmark` / `polyrun bench`; benchmark runs write JSON sidecars under `tmp/benchmarks/` with optional `POLYRUN_BENCH_FORMATS`.
+- Include `csv` and `markdown` in default post-merge coverage formats (`POLYRUN_MERGE_FORMATS`).
+
 ## 2.2.0 (2026-07-13)
 
 - Fix `install_example_rails_logging!` raising `NameError` when example-debug Rails logging runs under `POLYRUN_EXAMPLE_DEBUG=1`.

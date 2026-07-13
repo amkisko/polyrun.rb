@@ -46,6 +46,22 @@ RSpec.describe BenchmarkProfile do
       expect(contents).to include("# Benchmark profile")
       expect(contents).to include("Coverage merge (3 iterations):")
       expect(contents).to include("merge_two: 0.072s")
+      json_path = path.sub(/\.log\z/, ".json")
+      expect(File).to exist(json_path)
+      expect(JSON.parse(File.read(json_path))["lines"]).to include("  merge_two: 0.072s")
+    end
+
+    it "writes sidecar exports when POLYRUN_BENCH_FORMATS is set", :aggregate_failures do
+      old = ENV["POLYRUN_BENCH_FORMATS"]
+      ENV["POLYRUN_BENCH_FORMATS"] = "csv,markdown"
+      described_class.reset!
+      Polyrun::Benchmark::Profile.record_metric!(name: "merge_two", value: 0.05, section: "merge")
+      path = described_class.write!(repository_root: repository_root)
+      base = path.sub(/\.log\z/, "")
+      expect(File).to exist("#{base}.csv")
+      expect(File).to exist("#{base}.md")
+    ensure
+      old.nil? ? ENV.delete("POLYRUN_BENCH_FORMATS") : ENV["POLYRUN_BENCH_FORMATS"] = old
     end
 
     it "buffers log lines without printing unless POLYRUN_BENCH=1", :aggregate_failures do

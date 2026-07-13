@@ -63,7 +63,7 @@ module Polyrun
         formats = Polyrun::Coverage::Reporting::DEFAULT_FORMATS.dup
 
         parser = OptionParser.new do |opts|
-          opts.banner = "usage: polyrun report-coverage -i FILE [-o DIR] [--basename NAME] [--format json,lcov,cobertura,console,html]"
+          opts.banner = "usage: polyrun report-coverage -i FILE [-o DIR] [--basename NAME] [--format json,lcov,cobertura,console,html,csv,markdown]"
           opts.on("-i", "--input PATH", "Merged or raw SimpleCov JSON") { |v| input = v }
           opts.on("-o", "--output DIR", "Output directory") { |v| output_dir = v }
           opts.on("--basename NAME", "File name prefix") { |v| basename = v }

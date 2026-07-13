@@ -75,6 +75,31 @@ RSpec.describe "polyrun spec-quality CLI" do
     end
   end
 
+  it "report-spec-quality writes CSV and Markdown exports" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        merged = File.join(dir, "merged.json")
+        csv_out = File.join(dir, "report.csv")
+        md_out = File.join(dir, "report.md")
+        File.write(merged, JSON.dump({
+          "examples" => {
+            "spec/a_spec.rb:1" => {"unique_lines" => 0, "line_churn" => 0, "lines" => []},
+            "spec/b_spec.rb:2" => {"unique_lines" => 1, "line_churn" => 55, "lines" => []}
+          },
+          "hot_lines" => {}
+        }))
+        _, csv_st = polyrun("report-spec-quality", "-i", merged, "-o", csv_out, "--format", "csv")
+        _, md_st = polyrun("report-spec-quality", "-i", merged, "-o", md_out, "--format", "markdown")
+        expect(csv_st.success?).to be true
+        expect(md_st.success?).to be true
+        expect(File.read(csv_out)).to include("example,unique_lines,line_churn")
+        expect(File.read(csv_out)).to include("spec/b_spec.rb:2")
+        expect(File.read(md_out)).to include("# Polyrun spec quality report")
+        expect(File.read(md_out)).to include("spec/a_spec.rb:1")
+      end
+    end
+  end
+
   it "merge-spec-quality accepts positional fragment paths" do
     Dir.mktmpdir do |dir|
       with_chdir(dir) do

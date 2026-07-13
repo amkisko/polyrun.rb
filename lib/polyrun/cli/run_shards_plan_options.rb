@@ -63,7 +63,7 @@ module Polyrun
         opts.on("--merge-format LIST", String) { |v| st[:merge_format] = v }
         opts.on("--merge-failures", "After all workers exit, merge failure fragments from tmp/polyrun_failures (requires failure fragments in test setup)") { st[:merge_failures] = true }
         opts.on("--merge-failures-output PATH", String) { |v| st[:merge_failures_output] = v }
-        opts.on("--merge-failures-format VAL", "jsonl (default) or json") { |v| st[:merge_failures_format] = v }
+        opts.on("--merge-failures-format VAL", "jsonl (default), json, csv, or markdown") { |v| st[:merge_failures_format] = v }
         opts.on("--merge-spec-quality", "After workers exit, merge spec-quality fragments from coverage (enable spec-quality collection in test setup)") { st[:merge_spec_quality] = true }
         opts.on("--merge-spec-quality-output PATH", String) { |v| st[:merge_spec_quality_output] = v }
         opts.on("--no-report-spec-quality", "Skip printing spec-quality report after merge") { st[:report_spec_quality] = false }

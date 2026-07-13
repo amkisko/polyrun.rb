@@ -1,4 +1,7 @@
 # rubocop:disable Polyrun/FileLength, Metrics/ModuleLength -- report analysis + text formatting
+require_relative "../export/csv"
+require_relative "../export/markdown"
+
 module Polyrun
   module SpecQuality
     # Human-readable spec quality report from merged JSON.
@@ -53,6 +56,80 @@ module Polyrun
         lines.concat(format_outliers_section(analysis[:outliers], top, profile))
 
         lines.join("\n") + "\n"
+      end
+
+      EXAMPLE_CSV_HEADERS = %w[example unique_lines line_churn max_line_churn shard_index].freeze
+
+      def format_csv(merged, cfg: {}, top: 30, profile: nil, plan_shards: nil)
+        rows = merged.fetch("examples", {}).map do |location, row|
+          [
+            location,
+            row["unique_lines"],
+            row["line_churn"],
+            row["max_line_churn"],
+            row["polyrun_shard_index"]
+          ]
+        end.sort_by { |row| [-row[2].to_i, row[0].to_s] }
+        rows = rows.first(top) if top
+        Export::Csv.generate(EXAMPLE_CSV_HEADERS, rows)
+      end
+
+      def format_markdown(merged, cfg: {}, top: 30, profile: nil, plan_shards: nil)
+        analysis = analyze(merged, cfg, plan_shards: plan_shards)
+        sections = []
+
+        shard_rows = (analysis[:shard_summary] || {}).sort_by { |shard, _| shard.to_s }.map do |shard, stats|
+          [shard, stats["examples"], stats["zero_hit"], stats["line_churn"]]
+        end
+        unless shard_rows.empty?
+          sections << {
+            heading: "Shard attribution",
+            headers: %w[shard examples zero_hit line_churn],
+            rows: shard_rows
+          }
+        end
+
+        zero_rows = analysis[:zero_hit].keys.sort.first(top).map { |location| [location] }
+        sections << {
+          heading: "Zero production lines",
+          headers: %w[example],
+          rows: zero_rows.empty? ? [["(none)"]] : zero_rows
+        }
+
+        hot_rows = analysis[:hot_lines].first(top).map do |line, stats|
+          [line, stats["example_count"], stats["total_hits"]]
+        end
+        sections << {
+          heading: "Hot lines",
+          headers: %w[line example_count total_hits],
+          rows: hot_rows.empty? ? [["(none)", 0, 0]] : hot_rows
+        }
+
+        churn_rows = analysis[:line_churn].first(top).map do |location, row|
+          [location, row["line_churn"], row["max_line_churn"]]
+        end
+        sections << {
+          heading: "Per-example line churn",
+          headers: %w[example line_churn max_line_churn],
+          rows: churn_rows.empty? ? [["(none)", 0, 0]] : churn_rows
+        }
+
+        Export::Markdown.document("Polyrun spec quality report", sections)
+      end
+
+      def render(merged, format: "text", **kwargs)
+        case format.to_s.downcase
+        when "text", "console", "txt"
+          format_report(merged, **kwargs)
+        when "json"
+          JSON.pretty_generate(analyze(merged, kwargs[:cfg] || {}, plan_shards: kwargs[:plan_shards]))
+        when "csv"
+          format_csv(merged, **kwargs)
+        when "markdown", "md"
+          format_markdown(merged, **kwargs)
+        else
+          raise Polyrun::Error, "report-spec-quality: unknown format #{format.inspect} (use text, json, csv, or markdown)"
+        end
       end
 
       def gate_violations(merged, cfg = {})

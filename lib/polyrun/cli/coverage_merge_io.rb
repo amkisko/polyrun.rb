@@ -13,7 +13,7 @@ module Polyrun
         output = "coverage/polyrun-merged.json"
         formats = ["json"]
         parser = OptionParser.new do |opts|
-          opts.banner = "usage: polyrun merge-coverage -i FILE [-i FILE] [-o PATH] [--format json,lcov,cobertura,console,html]"
+          opts.banner = "usage: polyrun merge-coverage -i FILE [-i FILE] [-o PATH] [--format json,lcov,cobertura,console,html,csv,markdown]"
           opts.on("-i", "--input FILE", "Coverage JSON (repeatable; globs ok)") do |f|
             expand_merge_input_pattern(f).each { |x| inputs << x }
           end
@@ -44,6 +44,8 @@ module Polyrun
         write_merge_cobertura(merged, r, out_abs) if formats.include?("cobertura")
         write_merge_console(merged, out_abs, print_summary: print_console_summary) if formats.include?("console")
         write_merge_html(merged, out_abs) if formats.include?("html")
+        write_merge_csv(merged, out_abs) if formats.include?("csv")
+        write_merge_markdown(merged, out_abs) if formats.include?("markdown")
       end
 
       def write_merge_lcov(merged, out_abs)
@@ -88,6 +90,22 @@ module Polyrun
         html_path = out_abs.sub(/\.json\z/, ".html")
         html_path = "#{out_abs}.html" if html_path == out_abs
         Polyrun::Debug.time("write HTML report") { File.write(html_path, Polyrun::Coverage::Merge.emit_html(merged)) }
+      end
+
+      def write_merge_csv(merged, out_abs)
+        csv_path = out_abs.sub(/\.json\z/, ".csv")
+        csv_path = "#{out_abs}.csv" if csv_path == out_abs
+        Polyrun::Debug.time("write CSV report") do
+          File.write(csv_path, Polyrun::Coverage::FileStatsReport.emit_csv(merged))
+        end
+      end
+
+      def write_merge_markdown(merged, out_abs)
+        markdown_path = out_abs.sub(/\.json\z/, ".md")
+        markdown_path = "#{out_abs}.md" if markdown_path == out_abs
+        Polyrun::Debug.time("write Markdown report") do
+          File.write(markdown_path, Polyrun::Coverage::FileStatsReport.emit_markdown(merged))
+        end
       end
 
       def merge_coverage_log_finish(elapsed, inputs)

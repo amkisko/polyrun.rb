@@ -3,6 +3,7 @@ require "json"
 
 require_relative "merge"
 require_relative "result"
+require_relative "file_stats_report"
 
 module Polyrun
   module Coverage
@@ -26,8 +27,11 @@ module Polyrun
         when :cobertura then CoberturaFormatter
         when :console then ConsoleFormatter
         when :html then HtmlFormatter
+        when :csv then CsvFormatter
+        when :markdown then MarkdownFormatter
         else
-          raise ArgumentError, "unknown coverage format: #{name.inspect} (expected :json, :lcov, :cobertura, :console, :html)"
+          raise ArgumentError,
+            "unknown coverage format: #{name.inspect} (expected :json, :lcov, :cobertura, :console, :html, :csv, :markdown)"
         end
       end
 
@@ -109,6 +113,23 @@ module Polyrun
           root = result.meta && (result.meta["polyrun_coverage_root"] || result.meta[:polyrun_coverage_root])
           File.write(path, Merge.emit_html(result.coverage_blob, title: title, root: root, groups: result.groups))
           {html: path}
+        end
+      end
+
+      class CsvFormatter < Base
+        def write_files(result, output_dir, basename)
+          path = File.join(output_dir, "#{basename}.csv")
+          File.write(path, FileStatsReport.emit_csv(result.coverage_blob))
+          {csv: path}
+        end
+      end
+
+      class MarkdownFormatter < Base
+        def write_files(result, output_dir, basename)
+          path = File.join(output_dir, "#{basename}.md")
+          title = (result.meta && result.meta["title"]) || (result.meta && result.meta[:title]) || "Polyrun coverage report"
+          File.write(path, FileStatsReport.emit_markdown(result.coverage_blob, title: title))
+          {markdown: path}
         end
       end
     end

@@ -36,12 +36,12 @@ module Polyrun
         output = File.join("tmp", "polyrun_failures", "merged.jsonl")
         format = "jsonl"
         OptionParser.new do |opts|
-          opts.banner = "usage: polyrun merge-failures -i FILE [-i FILE] [-o PATH] [--format jsonl|json]"
+          opts.banner = "usage: polyrun merge-failures -i FILE [-i FILE] [-o PATH] [--format jsonl|json|csv|markdown]"
           opts.on("-i", "--input FILE", "JSONL fragment or RSpec JSON (repeatable; globs ok)") do |f|
             expand_merge_input_pattern(f).each { |x| inputs << x }
           end
           opts.on("-o", "--output PATH", String) { |v| output = v }
-          opts.on("--format VAL", "jsonl (default) or json") { |v| format = v }
+          opts.on("--format VAL", "jsonl (default), json, csv, or markdown") { |v| format = v }
         end.parse!(argv)
         inputs.uniq!
         inputs.select! { |p| File.file?(p) }
@@ -75,6 +75,8 @@ module Polyrun
         return "jsonl" if f.empty?
         return "jsonl" if f == "jsonl"
         return "json" if f == "json"
+        return "csv" if f == "csv"
+        return "markdown" if %w[markdown md].include?(f)
 
         Polyrun::Log.warn "polyrun run-shards: unknown merge_failures_format=#{ctx[:merge_failures_format].inspect}; using jsonl"
         "jsonl"
@@ -84,7 +86,12 @@ module Polyrun
         raw = ctx[:merge_failures_output]
         return File.expand_path(raw) if raw && !raw.to_s.strip.empty?
 
-        ext = (fmt == "json") ? "json" : "jsonl"
+        ext = case fmt
+              when "json" then "json"
+              when "csv" then "csv"
+              when "markdown", "md" then "md"
+              else "jsonl"
+              end
         File.expand_path(File.join("tmp", "polyrun_failures", "merged.#{ext}"))
       end
     end

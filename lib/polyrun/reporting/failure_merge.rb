@@ -1,6 +1,9 @@
 require "json"
 require "fileutils"
 
+require_relative "../export/csv"
+require_relative "../export/markdown"
+
 module Polyrun
   module Reporting
     # Merge per-worker / per-shard failure fragments (JSONL or RSpec JSON) into one report.
@@ -8,6 +11,10 @@ module Polyrun
     module FailureMerge
       DEFAULT_FRAGMENT_DIR = "tmp/polyrun_failures".freeze
       FRAGMENT_GLOB = "polyrun-failure-fragment-*.jsonl".freeze
+      CSV_HEADERS = %w[
+        id full_description location file_path line_number message exception_class
+        polyrun_shard_index polyrun_shard_total source
+      ].freeze
 
       module_function
 
@@ -24,7 +31,7 @@ module Polyrun
       end
 
       # @param paths [Array<String>] fragment paths (.jsonl and/or RSpec --format json outputs)
-      # @param format [String] "jsonl" or "json"
+      # @param format [String] "jsonl", "json", "csv", or "markdown"
       # @param output [String] destination path
       # @return [Integer] count of failure rows merged
       def merge_files!(paths, output:, format: "jsonl")
@@ -34,21 +41,50 @@ module Polyrun
         FileUtils.mkdir_p(File.dirname(out_abs))
         case fmt
         when "json"
-          doc = {
-            "meta" => {
-              "polyrun_merge" => true,
-              "inputs" => paths.map { |p| File.expand_path(p) },
-              "failure_count" => rows.size
-            },
-            "failures" => rows
-          }
-          File.write(out_abs, JSON.generate(doc))
+          write_json_output!(out_abs, paths, rows)
         when "jsonl"
-          File.write(out_abs, rows.map { |h| JSON.generate(h) }.join("\n") + (rows.empty? ? "" : "\n"))
+          write_jsonl_output!(out_abs, rows)
+        when "csv"
+          write_csv_output!(out_abs, rows)
+        when "markdown", "md"
+          write_markdown_output!(out_abs, rows)
         else
-          raise Polyrun::Error, "merge-failures: unknown format #{fmt.inspect} (use jsonl or json)"
+          raise Polyrun::Error, "merge-failures: unknown format #{fmt.inspect} (use jsonl, json, csv, or markdown)"
         end
         rows.size
+      end
+
+      def write_json_output!(out_abs, paths, rows)
+        doc = {
+          "meta" => {
+            "polyrun_merge" => true,
+            "inputs" => paths.map { |p| File.expand_path(p) },
+            "failure_count" => rows.size
+          },
+          "failures" => rows
+        }
+        File.write(out_abs, JSON.generate(doc))
+      end
+
+      def write_jsonl_output!(out_abs, rows)
+        File.write(out_abs, rows.map { |h| JSON.generate(h) }.join("\n") + (rows.empty? ? "" : "\n"))
+      end
+
+      def write_csv_output!(out_abs, rows)
+        csv_rows = rows.map { |row| CSV_HEADERS.map { |key| row[key] } }
+        File.write(out_abs, Export::Csv.generate(CSV_HEADERS, csv_rows))
+      end
+
+      def write_markdown_output!(out_abs, rows)
+        sections = rows.map.with_index(1) do |row, index|
+          {
+            heading: "Failure #{index}: #{row["full_description"] || row["location"] || row["id"]}",
+            headers: %w[field value],
+            rows: row.sort_by { |key, _| key.to_s }.map { |key, value| [key, value] }
+          }
+        end
+        sections = [{heading: "Failures", body: "(none)"}] if sections.empty?
+        File.write(out_abs, Export::Markdown.document("Polyrun failure report", sections))
       end
 
       def collect_rows(paths)

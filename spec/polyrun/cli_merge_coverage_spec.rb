@@ -106,13 +106,30 @@ RSpec.describe Polyrun::CLI do
       j = File.join(dir, "in.json")
       File.write(j, JSON.dump({"coverage" => {"/z.rb" => {"lines" => [1]}}}))
       outd = File.join(dir, "out")
-      _, status = polyrun("report-coverage", "-i", j, "-o", outd, "--basename", "full", "--format", "json,lcov,cobertura,console,html")
+      formats = Polyrun::Coverage::Reporting::DEFAULT_FORMATS.join(",")
+      _, status = polyrun("report-coverage", "-i", j, "-o", outd, "--basename", "full", "--format", formats)
       expect(status.success?).to be true
       expect(File).to exist(File.join(outd, "full.json"))
       expect(File).to exist(File.join(outd, "full.lcov"))
       expect(File).to exist(File.join(outd, "full.xml"))
       expect(File).to exist(File.join(outd, "full-summary.txt"))
       expect(File).to exist(File.join(outd, "full.html"))
+      expect(File).to exist(File.join(outd, "full.csv"))
+      expect(File).to exist(File.join(outd, "full.md"))
+    end
+  end
+
+  it "merge-coverage writes CSV and Markdown exports" do
+    Dir.mktmpdir do |dir|
+      input = File.join(dir, "a.json")
+      out = File.join(dir, "out.json")
+      File.write(input, JSON.dump({"coverage" => {"/x.rb" => {"lines" => [nil, 1, 0]}}}))
+      _, status = polyrun("merge-coverage", "-i", input, "-o", out, "--format", "json,csv,markdown")
+      expect(status.success?).to be true
+      expect(File).to exist(out.sub(".json", ".csv"))
+      expect(File).to exist(out.sub(".json", ".md"))
+      expect(File.read(out.sub(".json", ".csv"))).to include("path,line_percent")
+      expect(File.read(out.sub(".json", ".md"))).to include("# Polyrun coverage report")
     end
   end
 end

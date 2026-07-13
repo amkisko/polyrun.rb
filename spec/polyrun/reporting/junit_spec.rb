@@ -79,4 +79,38 @@ RSpec.describe Polyrun::Reporting::Junit do
       end.to raise_error(Polyrun::Error, /examples.*testcases/)
     end
   end
+
+  describe ".render" do
+    let(:doc) do
+      {
+        "name" => "RSpec",
+        "hostname" => "ci",
+        "testcases" => [
+          {"classname" => "spec/a_spec.rb", "name" => "passes", "time" => 0.1, "status" => "passed"},
+          {
+            "classname" => "spec/a_spec.rb",
+            "name" => "fails",
+            "time" => 0.2,
+            "status" => "failed",
+            "failure" => {"message" => "boom", "body" => "trace"}
+          }
+        ]
+      }
+    end
+
+    it "emits CSV rows for each testcase" do
+      csv = described_class.render(doc, format: "csv")
+      expect(csv).to include("classname,name,status,time_seconds,failure_message")
+      expect(csv).to include("fails,failed")
+      expect(csv).to include("boom")
+    end
+
+    it "emits Markdown summary and failure section" do
+      markdown = described_class.render(doc, format: "markdown")
+      expect(markdown).to include("# RSpec")
+      expect(markdown).to include("| failures | 1 |")
+      expect(markdown).to include("## Failures")
+      expect(markdown).to include("boom")
+    end
+  end
 end

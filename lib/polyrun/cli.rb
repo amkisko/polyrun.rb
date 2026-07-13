@@ -14,6 +14,7 @@ require_relative "cli/run_queue_command"
 require_relative "cli/queue_command"
 require_relative "cli/timing_command"
 require_relative "cli/spec_quality_commands"
+require_relative "cli/benchmark_commands"
 require_relative "cli/init_command"
 require_relative "cli/quick_command"
 require_relative "cli/ci_shard_run_parse"
@@ -32,7 +33,7 @@ module Polyrun
 
     # Keep in sync with +dispatch_cli_command_subcommands+ (+when+ branches). Used for implicit path routing.
     DISPATCH_SUBCOMMAND_NAMES = %w[
-      plan prepare merge-coverage merge-failures merge-spec-quality report-coverage report-junit report-timing report-spec-quality
+      plan prepare merge-coverage merge-failures merge-spec-quality report-coverage report-junit report-timing report-spec-quality report-benchmark bench
       env config merge-timing db:setup-template db:setup-shard db:clone-shards
       run-shards parallel-rspec start build-paths init queue run-queue quick hook
     ].freeze
@@ -55,6 +56,7 @@ module Polyrun
     include QueueCommand
     include TimingCommand
     include SpecQualityCommands
+    include BenchmarkCommands
     include InitCommand
     include QuickCommand
     include CiShardRunParse
@@ -171,6 +173,10 @@ module Polyrun
         cmd_merge_spec_quality(argv)
       when "report-spec-quality"
         cmd_report_spec_quality(argv)
+      when "report-benchmark"
+        cmd_report_benchmark(argv)
+      when "bench"
+        cmd_bench(argv)
       when "db:setup-template"
         cmd_db_setup_template(argv, config_path)
       when "db:setup-shard"

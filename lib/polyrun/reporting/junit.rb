@@ -14,26 +14,26 @@ module Polyrun
     module Junit
       module_function
 
-      def write_from_json_file(json_path, output_path:)
+      def write_from_json_file(json_path, output_path:, format: "xml")
         data = JSON.parse(File.read(json_path))
-        write_from_hash(data, output_path: output_path)
+        write_from_hash(data, output_path: output_path, format: format)
       end
 
       # Merge several RSpec JSON outputs (parallel shards) by concatenating +examples+.
-      def merge_rspec_json_files(paths, output_path:)
+      def merge_rspec_json_files(paths, output_path:, format: "xml")
         merged = {"examples" => []}
         paths.each do |p|
           data = JSON.parse(File.read(p))
           merged["examples"].concat(data["examples"] || [])
         end
         merged["summary"] = {"summary_line" => "merged #{paths.size} RSpec JSON file(s)"}
-        write_from_hash(merged, output_path: output_path)
+        write_from_hash(merged, output_path: output_path, format: format)
       end
 
-      def write_from_hash(data, output_path:)
+      def write_from_hash(data, output_path:, format: "xml")
         doc = parse_input(data)
-        xml = emit_xml(doc)
-        File.write(output_path, xml)
+        body = render(doc, format: format)
+        File.write(output_path, body)
         output_path
       end
 
@@ -123,3 +123,4 @@ module Polyrun
 end
 
 require_relative "junit_emit"
+require_relative "junit_report"

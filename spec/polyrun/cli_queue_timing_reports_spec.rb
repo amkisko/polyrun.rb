@@ -157,6 +157,23 @@ RSpec.describe Polyrun::CLI do
     end
   end
 
+  it "report-timing writes CSV and Markdown exports" do
+    Dir.mktmpdir do |dir|
+      f = File.join(dir, "polyrun_timing.json")
+      csv_out = File.join(dir, "slow.csv")
+      md_out = File.join(dir, "slow.md")
+      File.write(f, JSON.dump({"/a.rb" => 2.0, "/b.rb" => 5.0}))
+      _, csv_status = polyrun("report-timing", "-i", f, "-o", csv_out, "--format", "csv")
+      _, md_status = polyrun("report-timing", "-i", f, "-o", md_out, "--format", "markdown")
+      expect(csv_status.success?).to be true
+      expect(md_status.success?).to be true
+      expect(File.read(csv_out)).to include("rank,path,last_seconds")
+      expect(File.read(csv_out)).to include("/b.rb")
+      expect(File.read(md_out)).to include("# Polyrun slowest files")
+      expect(File.read(md_out)).to include("/b.rb")
+    end
+  end
+
   it "merge-timing accepts positional file arguments" do
     Dir.mktmpdir do |dir|
       f = File.join(dir, "t.json")

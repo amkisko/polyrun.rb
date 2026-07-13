@@ -14,10 +14,10 @@ module Polyrun
 
           Trace timing (stderr): DEBUG=1 or POLYRUN_DEBUG=1
           Coverage: POLYRUN_COVERAGE=1 (or config/polyrun_coverage.yml + POLYRUN_QUICK_COVERAGE=1); POLYRUN_COVERAGE_DISABLE=1 skips; POLYRUN_COVERAGE_BRANCHES=1 for branch data in fragments; POLYRUN_COVERAGE_VERBOSE=1 for per-worker and merged console summaries
-          Benchmark profiles (stdout): POLYRUN_BENCH=1 (files still written under tmp/benchmarks/)
+          Benchmark profiles: POLYRUN_BENCH=1 (stdout); JSON sidecar in tmp/benchmarks/; POLYRUN_BENCH_FORMATS=csv,markdown for extra exports; report-benchmark / bench
           Hooks shell output: POLYRUN_HOOKS_VERBOSE=1 or -v / POLYRUN_VERBOSE=1 (or DEBUG); failures always print
           Merge profiling (stderr): POLYRUN_PROFILE_MERGE=1 (or verbose / DEBUG)
-          Post-merge formats (run-shards): POLYRUN_MERGE_FORMATS (default: json,lcov,cobertura,console,html)
+          Post-merge formats (run-shards): POLYRUN_MERGE_FORMATS (default: json,lcov,cobertura,console,html,csv,markdown)
           Start skips: POLYRUN_SKIP_BUILD_SPEC_PATHS=1, POLYRUN_START_SKIP_PREPARE=1, POLYRUN_START_SKIP_DATABASES=1
           Paths build skip: POLYRUN_SKIP_PATHS_BUILD=1
           Slow merge warning (seconds, default 10; 0 disables): POLYRUN_MERGE_SLOW_WARN_SECONDS
@@ -37,8 +37,8 @@ module Polyrun
             version              print version
             plan                 emit partition manifest JSON
             prepare              run prepare recipe: default | assets (optional prepare.command overrides bin/rails assets:precompile) | shell (prepare.command required)
-            merge-coverage       merge SimpleCov JSON fragments (json/lcov/cobertura/console)
-            merge-failures       merge per-shard failure JSONL fragments or RSpec JSON files (jsonl/json)
+            merge-coverage       merge SimpleCov JSON fragments (json/lcov/cobertura/console/html/csv/markdown)
+            merge-failures       merge per-shard failure JSONL fragments or RSpec JSON files (jsonl/json/csv/markdown)
             run-shards           fan out N parallel OS processes (POLYRUN_SHARD_*; not Ruby threads); optional --merge-coverage / --merge-failures / --merge-spec-quality
             parallel-rspec       run-shards + merge-coverage (defaults to: bundle exec rspec after --)
             start                parallel-rspec; auto-runs prepare (shell/assets) and db:setup-* when polyrun.yml configures them; legacy script/build_spec_paths.rb if paths_build absent
@@ -51,11 +51,13 @@ module Polyrun
             quick                quick test runner (describe/it, before/after, let, expect…to, assert_*; optional capybara!)
             hook run <phase>     run one shell hook from polyrun.yml hooks: (e.g. before_suite); optional --shard/--total
             report-coverage      write all coverage formats from one JSON file
-            report-junit         RSpec JSON or Polyrun testcase JSON → JUnit XML (CI)
-            report-timing        print slow-file summary from merged timing JSON
+            report-junit         RSpec JSON or Polyrun testcase JSON → JUnit XML, CSV, or Markdown
+            report-timing        slow-file summary from merged timing JSON (text/csv/markdown)
+            report-benchmark     benchmark profile export from tmp/benchmarks/profile_*.json
+            bench                run performance benchmark specs (same as rake bench_performance)
             merge-timing         merge polyrun_timing_*.json shards
             merge-spec-quality   merge polyrun-spec-quality-fragment-*.jsonl shards
-            report-spec-quality  spec quality report from merged JSON (zero-hit, hot lines, churn)
+            report-spec-quality  spec quality report from merged JSON (text/json/csv/markdown)
             config               print effective config by dotted path (loaded YAML plus merged prepare.env, resolved partition shard fields, workers)
             env                  print shard + database env (see polyrun.yml databases)
             db:setup-template    migrate template DB (PostgreSQL)

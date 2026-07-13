@@ -9,7 +9,7 @@ module Polyrun
     # Ready-to-use multi-format output (SimpleCov-compatible result blob), no extra gems.
     # Pass +formatter:+ for multi-formatter composition ({Formatter::MultiFormatter}, custom classes).
     module Reporting
-      DEFAULT_FORMATS = %w[json lcov cobertura console html].freeze
+      DEFAULT_FORMATS = %w[json lcov cobertura console html csv markdown].freeze
 
       # Comma list for +merge-coverage+ / +run-shards --merge-coverage+ defaults (Codecov, Jenkins, HTML, etc.).
       DEFAULT_MERGE_FORMAT_LIST = DEFAULT_FORMATS.join(",").freeze

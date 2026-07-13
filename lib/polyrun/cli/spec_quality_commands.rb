@@ -43,10 +43,11 @@ module Polyrun
         config_path = nil
         strict = false
         json_out = false
+        report_format = nil
         plan_paths = []
 
         OptionParser.new do |opts|
-          opts.banner = "usage: polyrun report-spec-quality -i FILE [-o PATH] [--top N] [--profile LIST] [--strict] [--json]"
+          opts.banner = "usage: polyrun report-spec-quality -i FILE [-o PATH] [--top N] [--profile LIST] [--strict] [--format text|json|csv|markdown] [--json]"
           opts.on("-i", "--input PATH", "Merged polyrun-spec-quality.json") { |v| input = v }
           opts.on("-o", "--output PATH", "Write report to file instead of stdout") { |v| out_file = v }
           opts.on("--top N", Integer) { |v| top = v }
@@ -54,6 +55,7 @@ module Polyrun
           opts.on("-c", "--config PATH", "polyrun_spec_quality.yml path") { |v| config_path = v }
           opts.on("--plan PATH", "Partition plan JSON (repeatable; polyrun plan output per shard)") { |v| plan_paths << v }
           opts.on("--strict", "Exit 1 when gate thresholds fail") { strict = true }
+          opts.on("--format VAL", "text (default), json, csv, or markdown") { |v| report_format = v }
           opts.on("--json", "Write analysis JSON instead of text report") { json_out = true }
         end.parse!(argv)
         input ||= argv.first
@@ -67,13 +69,20 @@ module Polyrun
         cfg = load_spec_quality_config(config_path)
         strict = true if cfg["strict"] || strict
         plan_shards = Polyrun::SpecQuality::PlanLoader.load_shards(plan_paths)
+        resolved_format = report_format || (json_out ? "json" : "text")
 
-        text = if json_out
-          JSON.pretty_generate(Polyrun::SpecQuality::Report.analyze(merged, cfg, plan_shards: plan_shards))
-        else
-          Polyrun::SpecQuality::Report.format_report(
-            merged, cfg: cfg, top: top, profile: profile, plan_shards: plan_shards
+        begin
+          text = Polyrun::SpecQuality::Report.render(
+            merged,
+            format: resolved_format,
+            cfg: cfg,
+            top: top,
+            profile: profile,
+            plan_shards: plan_shards
           )
+        rescue Polyrun::Error => e
+          Polyrun::Log.warn e.message.to_s
+          return 2
         end
 
         if out_file

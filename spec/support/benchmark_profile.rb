@@ -1,88 +1,49 @@
-require "fileutils"
-require "open3"
+require "polyrun/benchmark/profile"
+require "polyrun/benchmark/report"
 
-# rubocop:disable ThreadSafety/ClassInstanceVariable -- benchmark log buffer is single-process test support
+# Test-suite adapter: performance specs use repo root for profile paths.
 module BenchmarkProfile
   module_function
 
   def reset!
-    lines_storage.clear
+    Polyrun::Benchmark::Profile.reset!
   end
 
   def log(message = "")
-    line = message.to_s
-    lines_storage << line
-    $stdout.puts(line) if verbose? && !line.empty?
-    line
+    Polyrun::Benchmark::Profile.log(message)
   end
 
   def write!(repository_root: default_repository_root)
-    lines = lines_storage
-    return if lines.empty?
+    Polyrun::Benchmark::Profile.write!(repository_root: repository_root)
+  end
 
-    path = output_path(repository_root: repository_root)
-    FileUtils.mkdir_p(File.dirname(path))
-    File.write(path, profile_header(repository_root: repository_root) + lines.join("\n") + "\n")
-    $stdout.puts("\nBenchmark profile written to #{path}") if verbose?
-    path
+  def output_path(repository_root: default_repository_root, **kwargs)
+    Polyrun::Benchmark::Profile.output_path(repository_root: repository_root, **kwargs)
   end
 
   def verbose?
-    %w[1 true yes].include?(ENV["POLYRUN_BENCH"]&.to_s&.downcase)
-  end
-
-  def output_path(repository_root: default_repository_root, commit_sha: nil, working_tree_clean: nil, timestamp: nil)
-    commit_identifier = commit_sha || self.commit_sha(repository_root: repository_root)
-    clean_tree = working_tree_clean.nil? ? working_tree_clean?(repository_root: repository_root) : working_tree_clean
-    filename = if clean_tree
-      "profile_#{commit_identifier}.log"
-    else
-      recorded_at = timestamp || self.timestamp
-      "profile_#{commit_identifier}_#{recorded_at}.log"
-    end
-
-    File.join(repository_root, "tmp", "benchmarks", filename)
-  end
-
-  def profile_header(repository_root: default_repository_root)
-    [
-      "# Benchmark profile",
-      "# commit: #{commit_sha(repository_root: repository_root)}",
-      "# recorded_at: #{Time.now.utc.iso8601}",
-      "# working_tree_clean: #{working_tree_clean?(repository_root: repository_root)}",
-      "# ruby: #{RUBY_VERSION}",
-      ""
-    ].join("\n")
+    Polyrun::Benchmark::Profile.verbose?
   end
 
   def commit_sha(repository_root: default_repository_root)
-    git_command("git rev-parse HEAD", repository_root: repository_root) || "unknown"
+    Polyrun::Benchmark::Profile.commit_sha(repository_root: repository_root)
   end
 
   def working_tree_clean?(repository_root: default_repository_root)
-    git_command("git status --porcelain", repository_root: repository_root).to_s.empty?
+    Polyrun::Benchmark::Profile.working_tree_clean?(repository_root: repository_root)
   end
 
   def timestamp
-    Time.now.utc.strftime("%Y%m%d%H%M%S")
+    Polyrun::Benchmark::Profile.timestamp
   end
 
-  def git_command(command, repository_root:)
-    stdout, status = Open3.capture2(command, chdir: repository_root)
-    return nil unless status.success?
-
-    stdout.strip
-  rescue
-    nil
+  def profile_header(repository_root: default_repository_root)
+    Polyrun::Benchmark::Profile.profile_header(
+      Polyrun::Benchmark::Profile.profile_meta(repository_root: repository_root)
+    )
   end
-
-  def lines_storage
-    @lines_storage ||= []
-  end
-  private_class_method :lines_storage
 
   def default_repository_root
     File.expand_path("../..", __dir__)
   end
 end
-# rubocop:enable ThreadSafety/ClassInstanceVariable
