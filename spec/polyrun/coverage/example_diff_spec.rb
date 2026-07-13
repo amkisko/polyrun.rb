@@ -13,12 +13,28 @@ RSpec.describe Polyrun::Coverage::ExampleDiff do
       expect(d[:lines]).to contain_exactly(["/app/a.rb", 1, 2], ["/app/a.rb", 2, 1])
     end
 
+    it "matches blob diff when after is a raw Coverage.peek_result-shaped hash" do
+      before = {"/app/a.rb" => {"lines" => [1, 0, nil, 2]}}
+      after_blob = {"/app/a.rb" => {"lines" => [3, 1, nil, 2]}}
+      after_peek = {"/app/a.rb" => {lines: [3, 1, nil, 2]}}
+      expect(described_class.diff(before, after_peek)).to eq(described_class.diff(before, after_blob))
+    end
+
     it "handles newly loaded files in after blob" do
       before = {}
       after = {"/lib/x.rb" => {"lines" => [nil, 1]}}
       d = described_class.diff(before, after)
       expect(d[:unique_lines]).to eq(1)
       expect(d[:lines]).to eq([["/lib/x.rb", 2, 1]])
+    end
+  end
+
+  describe ".snapshot_peek" do
+    it "dupes line arrays so later stdlib mutations do not change the snapshot" do
+      raw = {"/app/a.rb" => {lines: [1, 2]}}
+      snapshot = described_class.snapshot_peek(raw)
+      raw["/app/a.rb"][:lines][0] = 99
+      expect(snapshot["/app/a.rb"]["lines"]).to eq([1, 2])
     end
   end
 

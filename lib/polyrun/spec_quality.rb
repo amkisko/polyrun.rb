@@ -59,7 +59,7 @@ module Polyrun
           location: normalize_location(location),
           wall_start: wall_start || Process.clock_gettime(Process::CLOCK_MONOTONIC),
           coverage_before: Coverage::ExampleDiff.peek_blob,
-          profile_before: Profile.snapshot,
+          profile_before: Profile.snapshot(dimensions: @config["profile"]),
           sql_count: 0,
           sql_fingerprints: Hash.new(0),
           factory_counts: {}
@@ -78,16 +78,9 @@ module Polyrun
         loc = location || cur[:location]
         return if loc.nil? || loc.to_s.empty?
 
-        after_cov = Coverage::ExampleDiff.peek_blob
-        delta = Coverage::ExampleDiff.diff(cur[:coverage_before], after_cov)
-        delta = Coverage::ExampleDiff.apply_track_under(
-          delta,
-          root: @config["root"],
-          track_under: @config["track_under"],
-          ignore_paths: @config["ignore_paths"]
-        )
+        delta = coverage_delta_for_example(cur)
 
-        profile_after = Profile.snapshot
+        profile_after = Profile.snapshot(dimensions: @config["profile"])
         profile_delta = Profile.diff(cur[:profile_before], profile_after)
         wall = Process.clock_gettime(Process::CLOCK_MONOTONIC) - cur[:wall_start]
         profile_delta["wall"] = wall
@@ -167,6 +160,17 @@ module Polyrun
         end
 
         Polyrun::Partition::TimingKeys.canonical_file_path(File.expand_path(s, root))
+      end
+
+      def coverage_delta_for_example(cur)
+        after_source = Coverage::ExampleDiff.coverage_active? ? ::Coverage.peek_result : {}
+        delta = Coverage::ExampleDiff.diff(cur[:coverage_before], after_source)
+        Coverage::ExampleDiff.apply_track_under(
+          delta,
+          root: @config["root"],
+          track_under: @config["track_under"],
+          ignore_paths: @config["ignore_paths"]
+        )
       end
 
       def build_row(cur, location, delta, profile_delta, factory_counts)

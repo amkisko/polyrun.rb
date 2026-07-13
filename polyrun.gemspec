@@ -25,6 +25,9 @@ Gem::Specification.new do |spec|
   # Normative: zero runtime dependencies (stdlib + vendored/native code only).
   # Ruby 3.5+: `benchmark` is no longer a default gem; keep scripts and `rake bench_merge` warning-free.
   spec.add_development_dependency "benchmark", ">= 0.3"
+  spec.add_development_dependency "benchmark-ips", "~> 2"
+  spec.add_development_dependency "memory_profiler", "~> 1"
+  spec.add_development_dependency "stackprof", "~> 0.2"
   spec.add_development_dependency "rake", "~> 13.0"
   spec.add_development_dependency "rspec", "~> 3.12"
   spec.add_development_dependency "appraisal", "~> 2.5"

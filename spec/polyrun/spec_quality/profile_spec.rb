@@ -7,6 +7,17 @@ RSpec.describe Polyrun::SpecQuality::Profile do
     expect(snap).to include("cpu_user", "cpu_system", "gc_allocated")
   end
 
+  it "snapshot skips gc fields when mem is not requested" do
+    snap = described_class.snapshot(dimensions: %w[cpu])
+    expect(snap).to include("cpu_user", "cpu_system")
+    expect(snap).not_to include("gc_allocated", "gc_heap_live")
+  end
+
+  it "snapshot skips io fields when io is not requested" do
+    snap = described_class.snapshot(dimensions: %w[cpu mem])
+    expect(snap).not_to include("io_read_bytes", "io_write_bytes")
+  end
+
   it "diff subtracts numeric fields" do
     before = {"cpu_user" => 1.0, "gc_allocated" => 100}
     after = {"cpu_user" => 1.5, "gc_allocated" => 250}

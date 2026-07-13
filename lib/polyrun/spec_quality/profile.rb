@@ -4,18 +4,30 @@ module Polyrun
     module Profile
       module_function
 
-      def snapshot
-        cpu = Process.times
-        gc = GC.stat
-        io = read_proc_io
-        {
-          "cpu_user" => cpu.utime,
-          "cpu_system" => cpu.stime,
-          "gc_allocated" => gc[:total_allocated_objects],
-          "gc_heap_live" => gc[:heap_live_slots],
-          "io_read_bytes" => io[:read_bytes],
-          "io_write_bytes" => io[:write_bytes]
-        }
+      def snapshot(dimensions: %w[cpu mem io wall])
+        dims = enabled_dimensions(dimensions)
+        capture_all = dims.empty?
+        out = {}
+
+        if capture_all || dims.include?("cpu") || dims.include?("wall")
+          cpu = Process.times
+          out["cpu_user"] = cpu.utime
+          out["cpu_system"] = cpu.stime
+        end
+
+        if capture_all || dims.include?("mem")
+          gc = GC.stat
+          out["gc_allocated"] = gc[:total_allocated_objects]
+          out["gc_heap_live"] = gc[:heap_live_slots]
+        end
+
+        if capture_all || dims.include?("io")
+          io = read_proc_io
+          out["io_read_bytes"] = io[:read_bytes]
+          out["io_write_bytes"] = io[:write_bytes]
+        end
+
+        out
       end
 
       def diff(before, after)

@@ -3,6 +3,8 @@
 ## Unreleased
 
 - Fix `install_example_rails_logging!` raising `NameError` when example-debug Rails logging runs under `POLYRUN_EXAMPLE_DEBUG=1`.
+- Improve spec-quality per-example coverage diff: one snapshot per example, diff against raw `Coverage.peek_result` without copying the after blob.
+- Add RSpec performance benchmarks (`rake bench_performance`, `spec/performance/`) with profile logs under `tmp/benchmarks/`.
 
 ## 2.1.3 (2026-07-10)
 

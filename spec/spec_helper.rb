@@ -23,6 +23,8 @@ ENV["POLYRUN_SKIP_PATHS_BUILD"] = "1"
 
 require "polyrun"
 require_relative "support/polyrun_cli_helpers"
+require_relative "support/benchmark_profile"
+require_relative "support/benchmark_profiler"
 
 RSpec.configure do |config|
   # run-shards may set POLYRUN_SHARD_*; most examples assume a clean env. Collector keeps
@@ -54,6 +56,9 @@ RSpec.configure do |config|
   config.disable_monkey_patching!
   config.warnings = true
   config.order = :random
+
+  config.before(:all, :benchmark) { BenchmarkProfile.reset! }
+  config.after(:all, :benchmark) { BenchmarkProfile.write! }
 end
 
 require "polyrun/rspec"

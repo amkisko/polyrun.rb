@@ -22,6 +22,14 @@ bundle exec rake bench_merge
 # or: ruby benchmark/merge_coverage.rb
 ```
 
+RSpec performance benchmarks (coverage merge + spec-quality peek; writes `tmp/benchmarks/profile_<sha>.log`):
+
+```bash
+bundle exec rake bench_performance
+# optional: STACKPROF=1 or BENCHMARK_IPS=1 for spec/performance/profiling_spec.rb
+# optional: BENCH_MEMORY=1 bundle exec rspec spec/performance/benchmark_spec.rb --tag benchmark
+```
+
 Run the suite under alternate Ruby constraints (see `Appraisals` and `gemfiles/`):
 
 ```bash

@@ -39,3 +39,13 @@ task :bench_merge do
   script = File.expand_path("benchmark/merge_coverage.rb", __dir__)
   exec(ruby, script)
 end
+
+desc "Run RSpec performance benchmarks (writes tmp/benchmarks/profile_<sha>.log)"
+task :bench_performance do
+  sh({"BENCH_FILES" => ENV.fetch("BENCH_FILES", "110"),
+      "BENCH_LINES" => ENV.fetch("BENCH_LINES", "310"),
+      "BENCH_FRAGMENTS" => ENV.fetch("BENCH_FRAGMENTS", "8"),
+      "BENCH_MERGE_REPS" => ENV.fetch("BENCH_MERGE_REPS", "3"),
+      "BENCH_PEEK_REPS" => ENV.fetch("BENCH_PEEK_REPS", "200")},
+    "bundle exec rspec spec/performance/benchmark_spec.rb --tag benchmark")
+end
