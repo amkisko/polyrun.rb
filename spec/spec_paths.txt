@@ -1,4 +1,5 @@
 spec/benchmark_profile_spec.rb
+spec/performance/benchmark_merge_spec.rb
 spec/performance/benchmark_spec.rb
 spec/performance/profiling_spec.rb
 spec/polyrun/cli/run_shards_worker_interrupt_spec.rb
@@ -44,6 +45,7 @@ spec/polyrun/coverage/example_diff_spec.rb
 spec/polyrun/coverage/filter_spec.rb
 spec/polyrun/coverage/formatter_spec.rb
 spec/polyrun/coverage/merge_formats_spec.rb
+spec/polyrun/coverage/merge_native_html_spec.rb
 spec/polyrun/coverage/merge_native_spec.rb
 spec/polyrun/coverage/merge_scale_spec.rb
 spec/polyrun/coverage/merge_spec.rb
