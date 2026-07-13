@@ -101,10 +101,10 @@ spec/polyrun/reporting/failure_merge_spec.rb
 spec/polyrun/reporting/junit_spec.rb
 spec/polyrun/reporting/rspec_junit_spec.rb
 spec/polyrun/require_surface_spec.rb
+spec/polyrun/rspec/active_record_timeout_recovery_spec.rb
 spec/polyrun/rspec/example_debug_instrumentation_spec.rb
 spec/polyrun/rspec/example_debug_spec.rb
 spec/polyrun/rspec/example_debug_timeout_spec.rb
-spec/polyrun/rspec/active_record_timeout_recovery_spec.rb
 spec/polyrun/rspec/sharded_formatter_compat_spec.rb
 spec/polyrun/rspec_spec.rb
 spec/polyrun/spec_quality/config_spec.rb
