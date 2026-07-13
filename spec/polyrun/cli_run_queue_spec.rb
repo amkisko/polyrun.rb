@@ -62,7 +62,7 @@ RSpec.describe Polyrun::CLI do
         with_chdir(dir) do
           list = File.join(dir, "paths.txt")
           File.write(list, "fail.rb\n")
-          out, st = polyrun(
+          _out, st = polyrun(
             "run-queue", "--workers", "1", "--batch", "1", "--on-failure", "requeue",
             "--dir", ".rq3", "--paths-file", list,
             "--", "ruby", "-e", "exit 1"

@@ -28,7 +28,11 @@ Dir.chdir(root_dir) do
   execute_command("bundle exec appraisal install")
   execute_command("bundle exec rubocop -a 2>&1 | tee tmp/rubocop.log")
   execute_command("bundle exec rbs -I sig validate")
-  execute_command("POLYRUN_COVERAGE=1 bundle exec appraisal ruby40 -- bundle exec polyrun parallel-rspec --workers 5 --merge-failures 2>&1 | tee tmp/polyrun-rspec.log")
+  execute_command(
+    "POLYRUN_COVERAGE=1 POLYRUN_WORKER_OUTPUT_ROUTING=1 POLYRUN_WORKER_OUTPUT_PREFIX=0 " \
+    "bundle exec appraisal ruby40 -- bundle exec polyrun parallel-rspec --workers 5 --merge-failures " \
+    "2>&1 | tee tmp/polyrun-rspec.log"
+  )
 
   puts "Tests passed. Checking git status..."
 

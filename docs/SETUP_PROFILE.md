@@ -76,7 +76,7 @@ Orchestration tracing stays on `DEBUG=1` / `POLYRUN_DEBUG=1`. Per-example toolin
 | `DEBUG_LOG_LEVEL` | Rails / ActiveRecord logger severity: `debug`, `info`, `warn`, `error`, `fatal`, or Ruby Logger integers (`0` debug … `4` fatal); default `debug` |
 | `RSPEC_EXAMPLE_TIMEOUT_SEC` | Per-example timeout (disabled while example debug is on) |
 
-In `spec_helper` / `spec/support`: `require "polyrun/rspec"` then `Polyrun::RSpec.install_example_debug!`, `install_example_rails_logging!`, `install_example_timeout!`, and `install_sharded_formatter_compat!` when using Fuubar under `POLYRUN_SHARD_*`. Pair with `install_worker_ping!` for idle timeouts.
+In `spec_helper` / `spec/support`: `require "polyrun/rspec"` then `Polyrun::RSpec.install_sharded_formatter_compat!` (silences per-worker seed/summary/pending under `POLYRUN_SHARD_*`), `install_example_debug!`, `install_example_rails_logging!`, `install_example_timeout!`. Pair with `install_worker_ping!` for idle timeouts.
 
 ## 6. Coverage and CI reports
 

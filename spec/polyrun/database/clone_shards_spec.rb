@@ -56,6 +56,8 @@ RSpec.describe Polyrun::Database::CloneShards do
       true
     end
 
+    old_report = Thread.report_on_exception
+    Thread.report_on_exception = false
     expect do
       described_class.provision!(
         dh,
@@ -67,5 +69,7 @@ RSpec.describe Polyrun::Database::CloneShards do
         silent: true
       )
     end.to raise_error(Polyrun::Error, /CloneShards shard_index=1: create failed for wh_test_1/)
+  ensure
+    Thread.report_on_exception = old_report if defined?(old_report)
   end
 end

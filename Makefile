@@ -19,7 +19,8 @@ release:
 
 test:
 	rm -rf coverage
-	bundle exec polyrun parallel-rspec --workers 5 --merge-failures
+	POLYRUN_WORKER_OUTPUT_ROUTING=1 POLYRUN_WORKER_OUTPUT_PREFIX=0 \
+		bundle exec polyrun parallel-rspec --workers 5 --merge-failures
 
 clean:
 	-rm -f *.gem

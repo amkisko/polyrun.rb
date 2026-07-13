@@ -62,6 +62,7 @@ RSpec.configure do |config|
 end
 
 require "polyrun/rspec"
+Polyrun::RSpec.install_sharded_formatter_compat!
 Polyrun::RSpec.install_failure_fragments!
 if %w[1 true yes].include?(ENV["POLYRUN_SPEC_QUALITY"]&.to_s&.downcase)
   Polyrun::RSpec.install_spec_quality!
