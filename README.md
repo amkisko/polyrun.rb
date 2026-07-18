@@ -197,6 +197,19 @@ See [`examples/README.md`](examples/README.md) for Rails apps (Capybara, Playwri
 
 You can replace SimpleCov and simplecov plugins, parallel_tests, and rspec_junit_formatter with Polyrun for those roles. Use `merge-timing`, `report-timing`, and `Data::FactoryCounts` (optionally with `Data::FactoryInstrumentation`) for slow-file and factory metrics. YAML fixture batches and bulk inserts can use `Data::Fixtures` and `ParallelProvisioning` for shard-aware seeding; wire your own `truncate` and `load_seed` in hooks.
 
+## Links
+
+- [GitHub](https://github.com/amkisko/polyrun.rb)
+- [GitLab](https://gitlab.com/amkisko/polyrun.rb)
+- [RubyGems](https://rubygems.org/gems/polyrun)
+- [Versions Atom](https://rubygems.org/gems/polyrun/versions.atom) (feed id `10936755433440`)
+- [libraries.io](https://libraries.io/rubygems/polyrun)
+- [Deps.dev](https://deps.dev/rubygems/polyrun)
+- [SonarCloud](https://sonarcloud.io/project/overview?id=amkisko_polyrun.rb)
+- [Snyk](https://snyk.io/test/github/amkisko/polyrun.rb)
+- [Codecov](https://app.codecov.io/github/amkisko/polyrun.rb)
+- [OpenSSF Scorecard](https://scorecard.dev/viewer/?uri=github.com/amkisko/polyrun.rb)
+
 ## License
 
 Released under the [MIT License](LICENSE). Copyright (c) 2026 Andrei Makarov.

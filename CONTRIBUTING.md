@@ -47,7 +47,6 @@ bundle exec rake bench_performance
 Run the suite under alternate Ruby constraints (see `Appraisals` and `gemfiles/`):
 
 ```bash
-bundle exec appraisal ruby32 rspec
 bundle exec appraisal ruby34 rspec
 bundle exec appraisal ruby40 rspec
 ```

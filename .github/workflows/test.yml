@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: ["3.2", "3.3", "3.4", "4.0"]
+        ruby: ["3.4", "4.0"]
 
     steps:
       - uses: actions/checkout@v7
@@ -44,8 +44,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - appraisal: ruby32
-            ruby: "3.2"
           - appraisal: ruby34
             ruby: "3.4"
           - appraisal: ruby40

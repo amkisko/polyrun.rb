@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.summary = "Parallel tests, coverage (SimpleCov-compatible) formatters, fixtures/snapshots, assets & DB provisioning—zero runtime deps"
   spec.homepage = "https://github.com/amkisko/polyrun.rb"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.1.0"
+  spec.required_ruby_version = ">= 3.4"
 
   spec.files = (
     Dir["lib/**/*", "sig/**/*.rbs", "bin/polyrun", "README.md", "CHANGELOG.md", "docs/SETUP_PROFILE.md", "LICENSE", "CONTRIBUTING.md", "CODE_OF_CONDUCT.md", "SECURITY.md", "polyrun.gemspec"] +
