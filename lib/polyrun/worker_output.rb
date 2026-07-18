@@ -136,9 +136,13 @@ module Polyrun
         loop do
           forwarder.consume(stream, io.readpartial(4096))
         end
-      rescue IOError, Errno::EPIPE
-        remaining = io.read
-        forwarder.consume(stream, remaining) if remaining && !remaining.empty?
+      rescue IOError, Errno::EPIPE, EOFError
+        begin
+          remaining = io.read
+          forwarder.consume(stream, remaining) if remaining && !remaining.empty?
+        rescue IOError, EOFError, Errno::EPIPE
+          nil
+        end
       ensure
         io.close unless io.closed?
       end
