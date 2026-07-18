@@ -137,7 +137,8 @@ module Polyrun
           forwarder.consume(stream, io.readpartial(4096))
         end
       rescue IOError, Errno::EPIPE
-        # worker closed the pipe
+        remaining = io.read
+        forwarder.consume(stream, remaining) if remaining && !remaining.empty?
       ensure
         io.close unless io.closed?
       end
