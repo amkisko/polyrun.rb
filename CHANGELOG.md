@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.2.2 (2026-07-25)
+
+- BREAKING: Require Ruby 3.4 or newer
+- Fix `Process.spawn` for string worker commands so the command is one argv element instead of character-splatted
+- Drain remaining worker pipe output when the forwarder hits `IOError` or `Errno::EPIPE`
+
 ## 2.2.1 (2026-07-13)
 
 - Fix per-example timeout leaving ActiveRecord connection pools in a bad state after `Timeout` interrupts database I/O; disconnect all pools on timeout (adapter-agnostic).
