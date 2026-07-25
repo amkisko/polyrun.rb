@@ -66,7 +66,8 @@ module Polyrun
             err: err_write
           )
         else
-          Process.spawn(child_env, *cmd, *paths, out: out_write, err: err_write)
+          # Array(cmd) so a String command is one argv element (not character-splatted).
+          Process.spawn(child_env, *Array(cmd), *Array(paths), out: out_write, err: err_write)
         end
 
       out_write.close
