@@ -3,6 +3,7 @@ version: 1
 coverage:
   output_path: coverage
   formats:
+    - json
     - html
     - cobertura
     - console

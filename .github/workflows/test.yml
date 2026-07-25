@@ -14,6 +14,19 @@ permissions:
   contents: read
 
 jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+
+      - name: Run lint
+        run: make lint
+
   test:
     runs-on: ubuntu-latest
     strategy:
@@ -31,12 +44,6 @@ jobs:
 
       - name: RSpec
         run: bundle exec polyrun parallel-rspec --workers 5 --merge-failures
-
-      - name: RuboCop
-        run: bundle exec rubocop
-
-      - name: RBS
-        run: bundle exec rake rbs
 
   appraisal:
     runs-on: ubuntu-latest
@@ -64,3 +71,40 @@ jobs:
 
       - name: RSpec (Appraisal)
         run: bundle exec polyrun parallel-rspec --workers 5 --merge-failures
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - run: POLYRUN_COVERAGE=1 bundle exec polyrun parallel-rspec --workers 5 --merge-failures
+      - name: Report coverage for Sonar/Codecov
+        run: >
+          bundle exec polyrun report-coverage
+          -i coverage/merged.json
+          -o coverage
+          --basename coverage
+          --format json,cobertura
+      - name: Merge JUnit for Codecov
+        run: bundle exec polyrun report-junit -i "tmp/rspec-*.json" -o coverage/junit-coverage.xml
+      - uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995 # v8.1.0
+        continue-on-error: true
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - uses: codecov/codecov-action@v7
+        continue-on-error: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - uses: codecov/codecov-action@v7
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        with:
+          report_type: test_results
+          files: coverage/junit-coverage.xml
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

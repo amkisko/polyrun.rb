@@ -25,6 +25,7 @@ require "polyrun"
 require_relative "support/polyrun_cli_helpers"
 require_relative "support/benchmark_profile"
 require_relative "support/benchmark_profiler"
+require_relative "support/junit_formatter"
 
 RSpec.configure do |config|
   # run-shards may set POLYRUN_SHARD_*; most examples assume a clean env. Collector keeps
