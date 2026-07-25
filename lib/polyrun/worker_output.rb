@@ -157,12 +157,14 @@ module Polyrun
     private_class_method :drain_remaining_output
 
     def drain_forwarders(entry)
+      # Join first so threads can drain pipe buffers after the child exits.
+      # Closing read ends before join races and can drop the final bytes.
+      entry[:threads].each(&:join)
       entry[:ios].each do |io|
         io.close unless io.closed?
       rescue IOError
         nil
       end
-      entry[:threads].each(&:join)
       entry[:forwarder].close
     end
     private_class_method :drain_forwarders
