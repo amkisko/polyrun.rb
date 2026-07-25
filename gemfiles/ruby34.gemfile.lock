@@ -1,7 +1,7 @@
 PATH
   remote: ..
   specs:
-    polyrun (2.2.1)
+    polyrun (2.2.2)
 
 GEM
   remote: https://rubygems.org/
@@ -19,7 +19,7 @@ GEM
     lint_roller (1.1.0)
     logger (1.7.0)
     memory_profiler (1.1.0)
-    parallel (1.28.0)
+    parallel (2.1.0)
     parser (3.3.11.1)
       ast (~> 2.4.1)
       racc
@@ -101,7 +101,7 @@ DEPENDENCIES
   benchmark (>= 0.3)
   benchmark-ips (~> 2)
   memory_profiler (~> 1)
-  parallel (~> 1.28, < 2)
+  parallel (~> 2.1)
   polyrun!
   rake (~> 13.0)
   rbs (>= 3.5)
@@ -124,9 +124,9 @@ CHECKSUMS
   lint_roller (1.1.0) sha256=2c0c845b632a7d172cb849cc90c1bce937a28c5c8ccccb50dfd46a485003cc87
   logger (1.7.0) sha256=196edec7cc44b66cfb40f9755ce11b392f21f7967696af15d274dde7edff0203
   memory_profiler (1.1.0) sha256=79a17df7980a140c83c469785905409d3027ca614c42c086089d128b805aa8f8
-  parallel (1.28.0) sha256=33e6de1484baf2524792d178b0913fc8eb94c628d6cfe45599ad4458c638c970
+  parallel (2.1.0) sha256=b35258865c2e31134c5ecb708beaaf6772adf9d5efae28e93e99260877b09356
   parser (3.3.11.1) sha256=d17ace7aabe3e72c3cc94043714be27cc6f852f104d81aa284c2281aecc65d54
-  polyrun (2.2.1)
+  polyrun (2.2.2)
   prism (1.9.0) sha256=7b530c6a9f92c24300014919c9dcbc055bf4cdf51ec30aed099b06cd6674ef85
   racc (1.8.1) sha256=4a7f6929691dbec8b5209a0b373bc2614882b55fc5d2e447a21aaa691303d62f
   rainbow (3.1.1) sha256=039491aa3a89f42efa1d6dec2fc4e62ede96eb6acd95e52f1ad581182b79bc6a
