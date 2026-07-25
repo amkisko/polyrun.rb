@@ -17,7 +17,7 @@ native-extension:
 release:
 	ruby usr/bin/release.rb
 
-test:
+test: lint
 	rm -rf coverage
 	POLYRUN_WORKER_OUTPUT_ROUTING=1 POLYRUN_WORKER_OUTPUT_PREFIX=0 \
 		bundle exec polyrun parallel-rspec --workers 5 --merge-failures
@@ -25,7 +25,6 @@ test:
 clean:
 	-rm -f *.gem
 	-rm -rf coverage tmp .bundle vendor/bundle .pray/cache
-	-rm -f gemfiles/*.lock
 	-find examples -depth -type d \
 		\( -name log -o -name tmp -o -name storage -o -name node_modules -o -name coverage \) \
 		-exec rm -rf {} +

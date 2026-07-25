@@ -23,7 +23,6 @@
 /examples/**/config/credentials/*.key
 
 # Appraisal
-/gemfiles/*.lock
 
 # Native extensions (mkmf build output; sources under ext/**/{extconf.rb,*.c,*.h} stay tracked)
 /ext/**/Makefile
