@@ -136,19 +136,24 @@ module Polyrun
         loop do
           forwarder.consume(stream, io.readpartial(4096))
         end
-      rescue IOError, Errno::EPIPE, EOFError
-        begin
-          remaining = io.read
-          forwarder.consume(stream, remaining) if remaining && !remaining.empty?
-        rescue IOError, EOFError, Errno::EPIPE
-          nil
-        end
+      rescue IOError, Errno::EPIPE
+        drain_remaining_output(io, forwarder, stream)
       ensure
         io.close unless io.closed?
       end
       # rubocop:enable ThreadSafety/NewThread
     end
     private_class_method :forwarder_thread
+
+    # EOFError subclasses IOError; keep drain rescues separate so a closed pipe
+    # during the final read does not escape the forwarder thread.
+    def drain_remaining_output(io, forwarder, stream)
+      remaining = io.read
+      forwarder.consume(stream, remaining) if remaining && !remaining.empty?
+    rescue IOError, Errno::EPIPE
+      nil
+    end
+    private_class_method :drain_remaining_output
 
     def drain_forwarders(entry)
       entry[:ios].each do |io|
