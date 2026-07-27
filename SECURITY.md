@@ -2,9 +2,9 @@
 
 ## Reporting a Vulnerability
 
-Do not open a public GitHub issue for security vulnerabilities.
+Do not open a public issue for security vulnerabilities.
 
-Email security details to security@kiskolabs.com.
+Email security details to: security@kiskolabs.com
 
 Include: description, steps to reproduce, potential impact, and suggested fix (if available).
 
@@ -21,7 +21,7 @@ Include: description, steps to reproduce, potential impact, and suggested fix (i
 - We will publish a security advisory after the vulnerability is patched
 - We will coordinate public disclosure with you
 
-## Automation security
+## Automation Security
 
-- Context isolation: do not include production credentials, API keys, or personally identifiable information in prompts sent to third-party LLMs or automation services.
-- Supply chain: verify automated dependencies.
+- Context Isolation: It is strictly forbidden to include production credentials, API keys, or Personally Identifiable Information (PII) in prompts sent to third-party LLMs or automation services.
+- Supply Chain: All automated dependencies must be verified.
