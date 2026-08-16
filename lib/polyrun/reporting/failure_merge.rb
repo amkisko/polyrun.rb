@@ -101,7 +101,7 @@ module Polyrun
           return rows_from_jsonl_file(path)
         end
 
-        text = File.read(path)
+        text = File.read(path, encoding: Encoding::UTF_8)
         data =
           begin
             JSON.parse(text)
@@ -126,7 +126,7 @@ module Polyrun
 
       def rows_from_jsonl_file(path)
         acc = []
-        File.readlines(path, chomp: true).each_with_index do |line, idx|
+        File.readlines(path, chomp: true, encoding: Encoding::UTF_8).each_with_index do |line, idx|
           line = line.strip
           next if line.empty?
 

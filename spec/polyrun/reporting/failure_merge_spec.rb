@@ -6,6 +6,19 @@ require "fileutils"
 require "polyrun/reporting/failure_merge"
 
 RSpec.describe Polyrun::Reporting::FailureMerge do
+  def with_default_external(encoding)
+    original = Encoding.default_external
+    verbose = $VERBOSE
+    $VERBOSE = nil
+    Encoding.default_external = encoding
+    $VERBOSE = verbose
+    yield
+  ensure
+    $VERBOSE = nil
+    Encoding.default_external = original
+    $VERBOSE = verbose
+  end
+
   describe ".merge_files!" do
     it "merges jsonl fragments into one jsonl file" do
       Dir.mktmpdir do |dir|
@@ -45,6 +58,51 @@ RSpec.describe Polyrun::Reporting::FailureMerge do
         doc = JSON.parse(File.read(out))
         expect(doc["failures"].size).to eq(1)
         expect(doc["failures"][0]["message"]).to eq("boom")
+      end
+    end
+
+    it "merges JSONL with a non-ASCII message when default_external is US-ASCII" do
+      Dir.mktmpdir do |dir|
+        fragment = File.join(dir, "polyrun-failure-fragment-worker0.jsonl")
+        message = "Playwright \u250C\u2500\u2510 missing Chromium"
+        File.write(fragment, JSON.generate({"id" => "ex:1", "message" => message}) + "\n", encoding: Encoding::UTF_8)
+        out = File.join(dir, "merged.jsonl")
+        n = with_default_external(Encoding::US_ASCII) do
+          described_class.merge_files!([fragment], output: out, format: "jsonl")
+        end
+        expect(n).to eq(1)
+        row = JSON.parse(File.read(out, encoding: Encoding::UTF_8).lines.first)
+        expect(row["message"]).to eq(message)
+      end
+    end
+
+    it "merges RSpec JSON with a non-ASCII exception message when default_external is US-ASCII" do
+      Dir.mktmpdir do |dir|
+        rspec_json = File.join(dir, "rspec-0.json")
+        message = "Capybara \u2502 dump"
+        File.write(
+          rspec_json,
+          JSON.dump({
+            "examples" => [
+              {
+                "id" => "f1",
+                "status" => "failed",
+                "full_description" => "x",
+                "file_path" => "a_spec.rb",
+                "line_number" => 3,
+                "exception" => {"message" => message, "class" => "RuntimeError"}
+              }
+            ]
+          }),
+          encoding: Encoding::UTF_8
+        )
+        out = File.join(dir, "merged.json")
+        n = with_default_external(Encoding::US_ASCII) do
+          described_class.merge_files!([rspec_json], output: out, format: "json")
+        end
+        expect(n).to eq(1)
+        doc = JSON.parse(File.read(out, encoding: Encoding::UTF_8))
+        expect(doc["failures"][0]["message"]).to eq(message)
       end
     end
 
