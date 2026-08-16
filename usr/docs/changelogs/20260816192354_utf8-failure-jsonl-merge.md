@@ -14,7 +14,7 @@ Failure merge no longer depends on process locale for Unicode exception dumps. C
 
 ## Next
 
-Mention in CHANGELOG.md when cutting the next gem version.
+CHANGELOG.md 2.2.3 records the UTF-8 failure merge read. Publish the gem after this release commit lands on main.
 
 ## Source
 

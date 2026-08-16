@@ -14,7 +14,7 @@ run-shards --merge-failures raised Encoding::CompatibilityError in String#strip 
 
 ## Next
 
-Ship the UTF-8 read in FailureMerge.rows_from_jsonl_file and rows_from_path. Cut a gem release after merge so consumers on 2.2.2 pick it up.
+UTF-8 read is on main. Version 2.2.3 is prepared; publish so consumers leave 2.2.2.
 
 ## Source
 

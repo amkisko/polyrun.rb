@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.2.3 (2026-08-16)
+
+- Fix `merge-failures` `Encoding::CompatibilityError` when JSONL or RSpec JSON contains UTF-8 and the process locale is US-ASCII; read fragments as UTF-8
+- Join worker output forwarders before closing pipe ends so shard logs keep the last bytes after a worker exits
+
 ## 2.2.2 (2026-07-25)
 
 - BREAKING: Require Ruby 3.4 or newer
