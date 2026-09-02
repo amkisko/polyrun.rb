@@ -2,6 +2,8 @@
 
 Ruby gem for parallel test runs, merged coverage (SimpleCov-compatible JSON to JSON, LCOV, Cobertura, or console output), CI reporting (JUnit, timing), and parallel-test hygiene (fixtures, snapshots, per-shard databases, asset preparation). Ship it as one development dependency: no runtime gem dependencies beyond the standard library and vendored code.
 
+Design changes go through `rfcs/` (RFC 0001).
+
 ## Why?
 
 Running tests in parallel across processes still requires a single merged coverage report, stable shard assignment, isolated databases per worker so rows are not shared, and reliable timing data for cost-based splits—without wiring together many small tools and shell scripts.

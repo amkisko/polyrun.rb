@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- Add `rfcs/` starter pack: process (RFC 0001), positioning (RFC 0002), and Standards Track design RFCs 0003–0006 for shard layouts, coverage merge, hooks, and partition config.
+
 ## 2.2.3 (2026-08-16)
 
 - Fix `merge-failures` `Encoding::CompatibilityError` when JSONL or RSpec JSON contains UTF-8 and the process locale is US-ASCII; read fragments as UTF-8
