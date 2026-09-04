@@ -11,9 +11,9 @@ module Polyrun
         rspec_config.around do |example|
           subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
             payload = event.payload[:sql]
-            next unless loggable_sql?(payload)
+            next unless ExampleDebug.loggable_sql?(payload)
 
-            line = sql_with_interpolated_binds(payload, event.payload[:type_casted_binds])
+            line = ExampleDebug.sql_with_interpolated_binds(payload, event.payload[:type_casted_binds])
             io.puts "+ #{line}"
           end
 

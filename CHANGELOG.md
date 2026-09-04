@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## 2.2.4 (2026-09-04)
+
+- Fix `DEBUG_SQL` / `POLYRUN_DEBUG_SQL` raising `NoMethodError` for `loggable_sql?` when the SQL subscriber runs on an RSpec example group.
 - Add `rfcs/` starter pack: process (RFC 0001), positioning (RFC 0002), and Standards Track design RFCs 0003–0006 for shard layouts, coverage merge, hooks, and partition config.
 
 ## 2.2.3 (2026-08-16)
