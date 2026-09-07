@@ -33,4 +33,4 @@
 /ext/**/*.dSYM/
 /ext/**/conftest.*
 
-.pray/cache
+.pray
