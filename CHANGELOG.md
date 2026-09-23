@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Fix bare `polyrun` suite selection when both `spec/` and `test/` exist: honor `partition.suite`, else infer from `partition.paths_file`, else filesystem auto-detect (RSpec first).
+- Exit 2 when `partition.suite` disagrees with `paths_file`, or when `run-shards` paths infer a different suite than a recognizable command after `--`.
+- Add `parallel-minitest` and `parallel-quick` CLI subcommands (same shape as `parallel-rspec`).
+
 ## 2.2.4 (2026-09-04)
 
 - Fix `DEBUG_SQL` / `POLYRUN_DEBUG_SQL` raising `NoMethodError` for `loggable_sql?` when the SQL subscriber runs on an RSpec example group.

@@ -45,7 +45,8 @@ module Polyrun
       # Otherwise returns +{ items:, source: }+ (human-readable source label).
       #
       # +partition.suite+ (optional): +auto+ (default), +rspec+, +minitest+, +quick+ — used only when resolving
-      # from globs (no explicit +paths_file+ and no +spec/spec_paths.txt+).
+      # from globs (no explicit +paths_file+ and no +spec/spec_paths.txt+). Bare +polyrun+ suite selection is
+      # {Suite.resolve_default} (explicit suite → paths_file inference → {detect_auto_suite}).
       def resolve_run_shard_items(paths_file: nil, cwd: Dir.pwd, partition: {})
         if paths_file
           abs = File.expand_path(paths_file.to_s, cwd)

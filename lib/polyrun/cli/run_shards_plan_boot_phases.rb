@@ -33,6 +33,9 @@ module Polyrun
         items, paths_source, err = run_shards_resolve_items(o[:paths_file], pc)
         return [err, nil] if err
 
+        err = run_shards_validate_suite_vs_command!(items, cmd)
+        return [err, nil] if err
+
         costs, strategy, err = run_shards_resolve_costs(
           o[:timing_path],
           o[:strategy],

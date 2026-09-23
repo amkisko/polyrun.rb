@@ -10,7 +10,7 @@ Running tests in parallel across processes still requires a single merged covera
 
 Polyrun provides:
 
-- Orchestration: `plan`, `run-shards`, and `parallel-rspec` (run-shards plus merge-coverage), with an optional on-disk queue and constraints for file lists and load balancing. For **GitHub Actions-style matrix sharding** (one job per global shard), use `ci-shard-run -- …` (any test runner) or `ci-shard-rspec`—not `run-shards` / `parallel-rspec`, which fan out N workers on one machine.
+- Orchestration: `plan`, `run-shards`, and `parallel-rspec` / `parallel-minitest` / `parallel-quick` (run-shards plus merge-coverage), with an optional on-disk queue and constraints for file lists and load balancing. Bare `polyrun` (no subcommand) picks the suite from `partition.suite`, else `partition.paths_file`, else filesystem auto-detect. For **GitHub Actions-style matrix sharding** (one job per global shard), use `ci-shard-run -- …` (any test runner) or `ci-shard-rspec`—not `run-shards` / `parallel-*`, which fan out N workers on one machine.
 - Coverage: merge SimpleCov-compatible JSON fragments; emit JSON, LCOV, Cobertura, or console summaries (you can drop separate SimpleCov merge plugins for this path).
 - CI reporting: JUnit XML from RSpec JSON; slow-file reports from merged timing JSON.
 - Parallel hygiene: asset digest markers, SQL snapshots, YAML fixture batches, and DB URL or shard helpers aligned with `POLYRUN_SHARD_*`.
@@ -92,6 +92,8 @@ bin/polyrun build-paths   # write spec/spec_paths.txt from partition.paths_build
 bin/polyrun ci-shard-run -- bundle exec rspec   # CI matrix: shard plan + append paths to the command after --
 bin/polyrun ci-shard-rspec   # same as ci-shard-run -- bundle exec rspec
 bin/polyrun parallel-rspec --workers 5   # run-shards + merge-coverage (default: bundle exec rspec)
+bin/polyrun parallel-minitest --workers 5   # same; default rails test or ruby -I test
+bin/polyrun parallel-quick --workers 5   # same; default bundle exec polyrun quick
 bin/polyrun run-shards --workers 5 --merge-coverage -- bundle exec rspec
 bin/polyrun merge-coverage -i cov1.json -i cov2.json -o merged.json --format json,lcov,cobertura,console
 bin/polyrun env --shard 0 --total 4   # print DATABASE_URL exports from polyrun.yml in cwd

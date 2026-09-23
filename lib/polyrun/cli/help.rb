@@ -5,7 +5,7 @@ module Polyrun
         Polyrun::Log.puts <<~HELP
           usage: polyrun [global options] [<command> | <paths...>]
 
-          With no command, runs parallel tests for the detected suite: RSpec under spec/, Minitest under test/, or Polyrun Quick (same discovery as polyrun quick). If the first argument is a known subcommand name, it is dispatched. Otherwise, path-like tokens (optionally with run-shards flags such as --workers) shard those files in parallel; see commands below.
+          With no command, runs parallel tests for the resolved suite: partition.suite when set; else suite inferred from partition.paths_file; else filesystem auto-detect (RSpec under spec/ before Minitest under test/, then Polyrun Quick). If the first argument is a known subcommand name, it is dispatched. Otherwise, path-like tokens (optionally with run-shards flags such as --workers) shard those files in parallel; see commands below.
 
           global:
             -c, --config PATH    polyrun.yml path (or POLYRUN_CONFIG)
@@ -41,6 +41,8 @@ module Polyrun
             merge-failures       merge per-shard failure JSONL fragments or RSpec JSON files (jsonl/json/csv/markdown)
             run-shards           fan out N parallel OS processes (POLYRUN_SHARD_*; not Ruby threads); optional --merge-coverage / --merge-failures / --merge-spec-quality
             parallel-rspec       run-shards + merge-coverage (defaults to: bundle exec rspec after --)
+            parallel-minitest    run-shards + merge-coverage (defaults to: bundle exec rails test or ruby -I test after --)
+            parallel-quick       run-shards + merge-coverage (defaults to: bundle exec polyrun quick after --)
             start                parallel-rspec; auto-runs prepare (shell/assets) and db:setup-* when polyrun.yml configures them; legacy script/build_spec_paths.rb if paths_build absent
             ci-shard-run         CI matrix: build-paths + plan for POLYRUN_SHARD_INDEX / POLYRUN_SHARD_TOTAL (or config), then run your command with that shard's paths after --; optional --shard-processes M or --workers M (POLYRUN_SHARD_PROCESSES; not POLYRUN_WORKERS) for N×M jobs × processes on this host
             ci-shard-rspec       same as ci-shard-run -- bundle exec rspec; optional --shard-processes / --workers / -- [rspec-only flags]

@@ -64,7 +64,22 @@ module Polyrun
           Polyrun::Log.warn "polyrun run-shards: no paths (empty paths file or list)"
           return [nil, nil, 2]
         end
+
+        path_suite = Polyrun::Partition::Paths.infer_suite_from_paths(items)
+        if path_suite == :invalid
+          Polyrun::Log.warn "polyrun run-shards: mixing _spec.rb and _test.rb paths in one run is not supported"
+          return [nil, nil, 2]
+        end
+
         [items, paths_source, nil]
+      end
+
+      def run_shards_validate_suite_vs_command!(items, cmd)
+        msg = Polyrun::Partition::Suite.command_mismatch_message(items, cmd)
+        return nil unless msg
+
+        Polyrun::Log.warn "polyrun run-shards: #{msg}"
+        2
       end
 
       def run_shards_resolve_costs(timing_path, strategy, timing_granularity, strategy_explicit: false)

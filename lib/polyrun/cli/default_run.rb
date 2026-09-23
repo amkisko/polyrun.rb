@@ -7,12 +7,18 @@ module Polyrun
       private
 
       def dispatch_default_parallel!(config_path)
-        suite = Polyrun::Partition::Paths.detect_auto_suite(Dir.pwd)
-        unless suite
-          Polyrun::Log.warn "polyrun: no tests found (spec/**/*_spec.rb, test/**/*_test.rb, or Polyrun quick files). See polyrun help."
+        cfg = Polyrun::Config.load(path: config_path || ENV["POLYRUN_CONFIG"])
+        pc = cfg.partition
+        code = Polyrun::Partition::PathsBuild.apply!(partition: pc, cwd: Dir.pwd)
+        return code if code != 0
+
+        resolved = Polyrun::Partition::Suite.resolve_default(cwd: Dir.pwd, partition: pc)
+        if resolved[:error]
+          Polyrun::Log.warn "polyrun: #{resolved[:error]}"
           return 2
         end
 
+        suite = resolved[:suite]
         Polyrun::Log.warn "polyrun: default → parallel #{suite} (use `polyrun help` for subcommands)" if @verbose
 
         case suite

@@ -35,7 +35,7 @@ module Polyrun
     DISPATCH_SUBCOMMAND_NAMES = %w[
       plan prepare merge-coverage merge-failures merge-spec-quality report-coverage report-junit report-timing report-spec-quality report-benchmark bench
       env config merge-timing db:setup-template db:setup-shard db:clone-shards
-      run-shards parallel-rspec start build-paths init queue run-queue quick hook
+      run-shards parallel-rspec parallel-minitest parallel-quick start build-paths init queue run-queue quick hook
     ].freeze
 
     # First argv token that is a normal subcommand (not a path); if argv[0] is not here but looks like paths, run implicit parallel.
@@ -187,6 +187,10 @@ module Polyrun
         cmd_run_shards(argv, config_path)
       when "parallel-rspec"
         cmd_parallel_rspec(argv, config_path)
+      when "parallel-minitest"
+        cmd_parallel_minitest(argv, config_path)
+      when "parallel-quick"
+        cmd_parallel_quick(argv, config_path)
       when "start"
         cmd_start(argv, config_path)
       when "build-paths"
