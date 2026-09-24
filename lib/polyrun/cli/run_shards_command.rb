@@ -40,11 +40,8 @@ module Polyrun
       end
 
       # Same as parallel-rspec but runs +bundle exec rails test+ or +bundle exec ruby -I test+ after +--+.
+      # Does not run +start+ prepare/database bootstrap (use +polyrun start+ or bare +polyrun+ for that).
       def cmd_parallel_minitest(argv, config_path)
-        cfg = Polyrun::Config.load(path: config_path || ENV["POLYRUN_CONFIG"])
-        code = start_bootstrap!(cfg, argv, config_path)
-        return code if code != 0
-
         sep = argv.index("--")
         combined =
           if sep
@@ -60,11 +57,8 @@ module Polyrun
 
       # Same as parallel-rspec but runs +bundle exec polyrun quick+ after +--+ (one Quick process per shard).
       # Run from the app root with +bundle exec+ so workers resolve the same gem as the parent (same concern as +bundle exec rspec+).
+      # Does not run +start+ prepare/database bootstrap (use +polyrun start+ or bare +polyrun+ for that).
       def cmd_parallel_quick(argv, config_path)
-        cfg = Polyrun::Config.load(path: config_path || ENV["POLYRUN_CONFIG"])
-        code = start_bootstrap!(cfg, argv, config_path)
-        return code if code != 0
-
         sep = argv.index("--")
         combined =
           if sep

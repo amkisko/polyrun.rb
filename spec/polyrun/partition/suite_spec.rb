@@ -72,6 +72,11 @@ RSpec.describe Polyrun::Partition::Suite do
       expect(described_class.infer_from_command(%w[bundle exec polyrun quick])).to eq(:quick)
       expect(described_class.infer_from_command([RbConfig.ruby, "stub.rb"])).to be_nil
     end
+
+    it "detects bin/rails test and compact ruby -Itest" do
+      expect(described_class.infer_from_command(%w[bin/rails test])).to eq(:minitest)
+      expect(described_class.infer_from_command(%w[bundle exec ruby -Itest])).to eq(:minitest)
+    end
   end
 
   describe ".command_mismatch_message" do
@@ -87,6 +92,18 @@ RSpec.describe Polyrun::Partition::Suite do
     it "returns nil for custom commands" do
       expect(
         described_class.command_mismatch_message(["test/a_test.rb"], [RbConfig.ruby, "stub.rb"])
+      ).to be_nil
+    end
+
+    it "rejects mixed lists only when the command is a known single-suite runner" do
+      mixed = %w[spec/a_spec.rb test/b_test.rb]
+      expect(described_class.command_mismatch_message(mixed, %w[bundle exec rspec])).to include("mixing")
+      expect(described_class.command_mismatch_message(mixed, [RbConfig.ruby, "stub.rb"])).to be_nil
+    end
+
+    it "treats path:line RSpec locators as rspec" do
+      expect(
+        described_class.command_mismatch_message(["spec/a_spec.rb:1"], %w[bundle exec rspec])
       ).to be_nil
     end
   end

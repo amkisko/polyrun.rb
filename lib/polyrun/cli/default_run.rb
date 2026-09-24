@@ -25,8 +25,14 @@ module Polyrun
         when :rspec
           cmd_start([], config_path)
         when :minitest
+          code = start_bootstrap!(cfg, [], config_path)
+          return code if code != 0
+
           cmd_parallel_minitest([], config_path)
         when :quick
+          code = start_bootstrap!(cfg, [], config_path)
+          return code if code != 0
+
           cmd_parallel_quick([], config_path)
         else
           2

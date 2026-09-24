@@ -65,12 +65,6 @@ module Polyrun
           return [nil, nil, 2]
         end
 
-        path_suite = Polyrun::Partition::Paths.infer_suite_from_paths(items)
-        if path_suite == :invalid
-          Polyrun::Log.warn "polyrun run-shards: mixing _spec.rb and _test.rb paths in one run is not supported"
-          return [nil, nil, 2]
-        end
-
         [items, paths_source, nil]
       end
 

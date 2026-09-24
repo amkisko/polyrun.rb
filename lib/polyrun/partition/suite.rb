@@ -49,9 +49,16 @@ module Polyrun
 
       def command_mismatch_message(items, cmd)
         path_suite = Paths.infer_suite_from_paths(Array(items))
-        return nil if path_suite.nil? || path_suite == :invalid
-
         cmd_suite = infer_from_command(cmd)
+
+        if path_suite == :invalid
+          return nil unless cmd_suite
+
+          return "mixing _spec.rb and _test.rb paths is not supported with a #{cmd_suite} command " \
+                 "(use a suite-agnostic custom command, or split the path list)"
+        end
+
+        return nil if path_suite.nil?
         return nil if cmd_suite.nil?
         return nil if path_suite == cmd_suite
 
@@ -81,12 +88,29 @@ module Polyrun
       private_class_method :infer_from_paths_file
 
       def minitest_command?(tokens)
-        return true if tokens.include?("rails") && tokens.include?("test")
-        return true if tokens.include?("ruby") && tokens.include?("-I") && tokens.include?("test")
+        return true if tokens.any? { |t| File.basename(t) == "rails" } && tokens.include?("test")
+        return true if ruby_with_test_load_path?(tokens)
 
         false
       end
       private_class_method :minitest_command?
+
+      def ruby_with_test_load_path?(tokens)
+        tokens.each_with_index do |tok, i|
+          next unless File.basename(tok) == "ruby"
+
+          rest = tokens[(i + 1)..] || []
+          rest.each_with_index do |arg, j|
+            return true if arg == "-Itest"
+            return true if arg == "-I" && rest[j + 1] == "test"
+            next unless arg.start_with?("-I") && arg.length > 2
+
+            return true if arg[2..].split(/[=:]/).include?("test")
+          end
+        end
+        false
+      end
+      private_class_method :ruby_with_test_load_path?
     end
   end
 end

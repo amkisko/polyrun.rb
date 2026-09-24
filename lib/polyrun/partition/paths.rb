@@ -23,9 +23,10 @@ module Polyrun
       end
 
       # Infer parallel suite from explicit paths (+_spec.rb+ vs +_test.rb+ vs Polyrun quick-style +.rb+).
+      # Recognizes RSpec-style +path:line+ locators (strips a trailing numeric locator before classifying).
       # Returns +:rspec+, +:minitest+, +:quick+, +:invalid+ (mixed spec and test), or +nil+ (empty).
       def infer_suite_from_paths(paths)
-        paths = paths.map { |p| File.expand_path(p) }
+        paths = Array(paths).map { |p| suite_classify_path(p) }
         return nil if paths.empty?
 
         specs = paths.count { |p| File.basename(p).end_with?("_spec.rb") }
@@ -44,8 +45,9 @@ module Polyrun
       # When +paths_file+ is set but missing, returns +{ error: "..." }+.
       # Otherwise returns +{ items:, source: }+ (human-readable source label).
       #
-      # +partition.suite+ (optional): +auto+ (default), +rspec+, +minitest+, +quick+ — used only when resolving
-      # from globs (no explicit +paths_file+ and no +spec/spec_paths.txt+). Bare +polyrun+ suite selection is
+      # +partition.suite+ (optional): +auto+ (default), +rspec+, +minitest+, +quick+ — used when resolving
+      # from globs. Legacy +spec/spec_paths.txt+ is used only for +auto+/+rspec+ (RSpec-oriented); an
+      # explicit +minitest+/+quick+ suite skips it and globs instead. Bare +polyrun+ suite selection is
       # {Suite.resolve_default} (explicit suite → paths_file inference → {detect_auto_suite}).
       def resolve_run_shard_items(paths_file: nil, cwd: Dir.pwd, partition: {})
         if paths_file
@@ -54,7 +56,7 @@ module Polyrun
             return {error: "paths file not found: #{abs}"}
           end
           {items: read_lines(abs), source: paths_file.to_s}
-        elsif File.file?(File.join(cwd, "spec", "spec_paths.txt"))
+        elsif use_legacy_spec_paths?(cwd, partition)
           {items: read_lines(File.join(cwd, "spec", "spec_paths.txt")), source: "spec/spec_paths.txt"}
         else
           resolve_run_shard_items_glob(cwd: cwd, partition: partition)
@@ -105,6 +107,22 @@ module Polyrun
         require_relative "../quick/runner"
         Polyrun::Quick::Runner.parallel_default_paths(base)
       end
+
+      # Strip trailing numeric locators (+path:line+ or +path:line:column+), then expand.
+      def suite_classify_path(path)
+        raw = path.to_s.sub(/(?::\d+)+\z/, "")
+        File.expand_path(raw)
+      end
+      private_class_method :suite_classify_path
+
+      def use_legacy_spec_paths?(cwd, partition)
+        return false unless File.file?(File.join(cwd, "spec", "spec_paths.txt"))
+
+        suite = (partition["suite"] || partition[:suite] || "auto").to_s.downcase
+        suite = "auto" if suite.empty?
+        %w[auto rspec].include?(suite)
+      end
+      private_class_method :use_legacy_spec_paths?
     end
   end
 end

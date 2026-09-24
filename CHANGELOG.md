@@ -4,7 +4,9 @@
 
 - Fix bare `polyrun` suite selection when both `spec/` and `test/` exist: honor `partition.suite`, else infer from `partition.paths_file`, else filesystem auto-detect (RSpec first).
 - Exit 2 when `partition.suite` disagrees with `paths_file`, or when `run-shards` paths infer a different suite than a recognizable command after `--`.
-- Add `parallel-minitest` and `parallel-quick` CLI subcommands (same shape as `parallel-rspec`).
+- Add `parallel-minitest` and `parallel-quick` CLI subcommands (same shape as `parallel-rspec`); they do not run `start` prepare or database bootstrap.
+- Recognize `bin/rails test` and compact `ruby -Itest` in the suite/command mismatch guard; strip `path:line` locators before classifying paths.
+- Skip legacy `spec/spec_paths.txt` when `partition.suite` is `minitest` or `quick`; allow mixed path lists only with suite-agnostic custom runners.
 
 ## 2.2.4 (2026-09-04)
 
