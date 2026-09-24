@@ -17,6 +17,7 @@ spec/polyrun/cli_hooks_spec.rb
 spec/polyrun/cli_merge_coverage_spec.rb
 spec/polyrun/cli_merge_failures_spec.rb
 spec/polyrun/cli_parallel_rspec_start_spec.rb
+spec/polyrun/cli_parallel_side_effects_spec.rb
 spec/polyrun/cli_plan_spec.rb
 spec/polyrun/cli_prepare_extra_spec.rb
 spec/polyrun/cli_prepare_spec.rb
@@ -32,6 +33,7 @@ spec/polyrun/cli_run_shards_worker_timeouts_spec.rb
 spec/polyrun/cli_spec_quality_spec.rb
 spec/polyrun/cli_start_prepare_spec.rb
 spec/polyrun/cli_subcommand_registry_spec.rb
+spec/polyrun/cli_suite_alignment_spec.rb
 spec/polyrun/config/dotted_path_spec.rb
 spec/polyrun/config/effective_spec.rb
 spec/polyrun/config/resolver_spec.rb
@@ -86,6 +88,7 @@ spec/polyrun/partition/paths_build_spec.rb
 spec/polyrun/partition/paths_spec.rb
 spec/polyrun/partition/plan_spec.rb
 spec/polyrun/partition/reports_spec.rb
+spec/polyrun/partition/suite_spec.rb
 spec/polyrun/partition/timing_keys_spec.rb
 spec/polyrun/prepare/artifacts_spec.rb
 spec/polyrun/prepare/assets_spec.rb

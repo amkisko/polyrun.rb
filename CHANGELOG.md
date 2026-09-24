@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## 2.2.5 (2026-09-24)
 
 - Fix bare `polyrun` suite selection when both `spec/` and `test/` exist: honor `partition.suite`, else infer from `partition.paths_file`, else filesystem auto-detect (RSpec first).
 - Exit 2 when `partition.suite` disagrees with `paths_file`, or when `run-shards` paths infer a different suite than a recognizable command after `--`.
