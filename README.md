@@ -147,6 +147,7 @@ That single require loads the CLI and core library **without** loading RSpec or 
 | `Polyrun::Prepare::Assets` | Digest trees, marker file, `assets:precompile`. |
 | `Polyrun::Database::Shard` | Shard env map, `%{shard}` DB names, URL path suffix for `postgres://`, `mysql2://`, `mongodb://`, etc. |
 | `Polyrun::Database::UrlBuilder` | URLs from `polyrun.yml` `databases:` — nested blocks or `adapter:` for common Rails stacks (`postgresql`, `mysql`/`mysql2`, `trilogy`, `sqlserver`/`mssql`, `sqlite3`/`sqlite`, `mongodb`/`mongo`). |
+| `Polyrun::Database::CloneShards` / `Provision` | PostgreSQL-only template + shard `CREATE DATABASE … TEMPLATE` via `psql`. Non-Postgres configs still use UrlBuilder for env; set `start.databases: false` and provision shards in prepare. |
 | `Polyrun::Hooks` | Load from `Config#hooks`; `run_phase` / `run_phase_if_enabled`; `build_worker_shell_script` wraps the worker command. |
 | `Polyrun::Hooks::Dsl` | Ruby hook file (`hooks.ruby`); `before(:suite)` / `after(:each)` etc. in `config/polyrun_hooks.rb` (see README). |
 

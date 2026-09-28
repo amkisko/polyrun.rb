@@ -256,5 +256,72 @@ RSpec.describe Polyrun::CLI do
       end
     end
   end
+
+  it "start skips CloneShards when databases adapter is mysql2 and keeps URL config" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        File.write("polyrun.yml", <<~YAML)
+          databases:
+            template_db: app_test_template
+            shard_db_pattern: "app_test_%{shard}"
+            mysql2:
+              host: 127.0.0.1
+              port: 3306
+              username: app_test
+              password: app_test
+          partition:
+            shard_total: 1
+            paths_file: spec/paths.txt
+        YAML
+        FileUtils.mkdir_p("spec")
+        File.write("spec/paths.txt", "spec/a_spec.rb\n")
+        File.write("spec/a_spec.rb", "")
+        stub = File.join(dir, "_shard.rb")
+        File.write(stub, <<~RUBY)
+          require "fileutils"
+          require "json"
+          FileUtils.mkdir_p("coverage")
+          idx = ENV.fetch("POLYRUN_SHARD_INDEX", "0")
+          File.write(File.join("coverage", "polyrun-fragment-\#{idx}.json"), JSON.dump({"coverage" => {"/y.rb" => {"lines" => [nil, 2]}}}))
+          exit 0
+        RUBY
+        out, status = polyrun("start", "--workers", "1", "-c", "polyrun.yml", "--", RbConfig.ruby, stub)
+        expect(status.success?).to be true
+        text = out.to_s.dup.force_encoding(Encoding::UTF_8)
+        unless text.valid_encoding?
+          text = text.encode(Encoding::UTF_8, invalid: :replace, undef: :replace)
+        end
+        expect(text).to include("skipping database provision")
+        expect(text).to include("PostgreSQL-only")
+        expect(text).not_to include("CREATE DATABASE")
+      end
+    end
+  end
+
+  it "start exits 1 when start.databases is true and adapter is not PostgreSQL" do
+    Dir.mktmpdir do |dir|
+      with_chdir(dir) do
+        File.write("polyrun.yml", <<~YAML)
+          start:
+            databases: true
+          databases:
+            template_db: app_test_template
+            shard_db_pattern: "app_test_%{shard}"
+            mysql2:
+              host: 127.0.0.1
+              username: app_test
+          partition:
+            shard_total: 1
+            paths_file: spec/paths.txt
+        YAML
+        FileUtils.mkdir_p("spec")
+        File.write("spec/paths.txt", "spec/a_spec.rb\n")
+        File.write("spec/a_spec.rb", "")
+        out, status = polyrun("start", "--workers", "1", "-c", "polyrun.yml", "--", "true")
+        expect(status.exitstatus).to eq(1)
+        expect(out).to match(/PostgreSQL-only|mysql2/i)
+      end
+    end
+  end
 end
 # rubocop:enable Polyrun/FileLength

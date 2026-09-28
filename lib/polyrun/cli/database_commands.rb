@@ -47,26 +47,32 @@ module Polyrun
       def cmd_db_setup_shard(argv, config_path)
         dry = db_setup_shard_parse_options!(argv)
         cfg = Polyrun::Config.load(path: config_path || ENV["POLYRUN_CONFIG"])
-        dh = cfg.databases
-        if !dh.is_a?(Hash) || dh.empty?
+        databases = cfg.databases
+        if !databases.is_a?(Hash) || databases.empty?
           Polyrun::Log.warn "db:setup-shard: configure databases: in polyrun.yml"
           return 2
         end
 
+        unless Polyrun::Database::UrlBuilder::ConnectionInfer.postgresql?(databases)
+          adapter = Polyrun::Database::UrlBuilder::ConnectionInfer.infer_adapter_name(databases)
+          Polyrun::Log.warn "db:setup-shard: PostgreSQL-only (databases adapter is #{adapter})"
+          return 2
+        end
+
         shard = resolve_shard_index(cfg.partition)
-        template = dh["template_db"] || dh[:template_db]
+        template = databases["template_db"] || databases[:template_db]
         if !template
           Polyrun::Log.warn "db:setup-shard: set databases.template_db"
           return 2
         end
 
-        plan = Polyrun::Database::UrlBuilder.shard_database_plan(dh, shard_index: shard)
+        plan = Polyrun::Database::UrlBuilder.shard_database_plan(databases, shard_index: shard)
         if plan.empty?
           Polyrun::Log.warn "db:setup-shard: could not derive shard database names from polyrun.yml"
           return 2
         end
 
-        db_setup_shard_run_plan(plan, dry: dry)
+        db_setup_shard_run_plan(plan, databases, dry: dry)
       end
 
       def db_setup_shard_parse_options!(argv)
@@ -77,7 +83,7 @@ module Polyrun
         dry
       end
 
-      def db_setup_shard_run_plan(plan, dry:)
+      def db_setup_shard_run_plan(plan, databases, dry:)
         if dry
           plan.each do |row|
             Polyrun::Log.warn "would: CREATE DATABASE #{row[:new_db]} TEMPLATE #{row[:template_db]}"
@@ -85,11 +91,19 @@ module Polyrun
           return 0
         end
 
+        conn = Polyrun::Database::UrlBuilder::Connection.resolve_connection(databases)
+        opts = {
+          host: conn[:host],
+          port: conn[:port],
+          username: conn[:user],
+          password: conn[:password]
+        }
         threads = plan.map do |row|
           Thread.new do
             Polyrun::Database::Provision.create_database_from_template!(
               new_db: row[:new_db],
-              template_db: row[:template_db].to_s
+              template_db: row[:template_db].to_s,
+              **opts
             )
           end
         end

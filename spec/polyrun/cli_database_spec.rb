@@ -119,4 +119,38 @@ RSpec.describe Polyrun::CLI do
       expect(status.exitstatus).to eq(2)
     end
   end
+
+  it "db:clone-shards exits 1 when databases adapter is mysql2" do
+    Dir.mktmpdir do |dir|
+      cfg = File.join(dir, "polyrun.yml")
+      File.write(cfg, <<~YAML)
+        databases:
+          template_db: app_template
+          shard_db_pattern: "app_test_%{shard}"
+          mysql2:
+            host: 127.0.0.1
+            username: app_test
+      YAML
+      out, status = polyrun("-c", cfg, "db:clone-shards", "--workers", "1", "--dry-run")
+      expect(status.exitstatus).to eq(1)
+      expect(out).to match(/PostgreSQL-only.*mysql2/i)
+    end
+  end
+
+  it "db:setup-shard exits 2 when databases adapter is mysql2" do
+    Dir.mktmpdir do |dir|
+      cfg = File.join(dir, "polyrun.yml")
+      File.write(cfg, <<~YAML)
+        databases:
+          template_db: app_template
+          shard_db_pattern: "app_test_%{shard}"
+          mysql2:
+            host: 127.0.0.1
+            username: app_test
+      YAML
+      out, status = polyrun("-c", cfg, "db:setup-shard", "--dry-run")
+      expect(status.exitstatus).to eq(2)
+      expect(out).to match(/PostgreSQL-only.*mysql2/i)
+    end
+  end
 end

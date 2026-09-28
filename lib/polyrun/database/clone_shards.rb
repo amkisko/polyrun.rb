@@ -9,6 +9,7 @@ module Polyrun
       # See +provision!+ on the singleton class for options.
       def provision!(databases_hash, workers:, rails_root:, migrate: true, replace: true, force_drop: false, dry_run: false, silent: true)
         dh = databases_hash.is_a?(Hash) ? databases_hash : {}
+        ensure_postgresql!(dh)
         workers = Integer(workers)
         raise Polyrun::Error, "workers must be >= 1" if workers < 1
 
@@ -18,6 +19,16 @@ module Polyrun
         create_shards_from_plan!(dh, workers, replace, force_drop, dry_run)
         true
       end
+
+      def ensure_postgresql!(dh)
+        return if UrlBuilder::ConnectionInfer.postgresql?(dh)
+
+        adapter = UrlBuilder::ConnectionInfer.infer_adapter_name(dh)
+        raise Polyrun::Error,
+          "CloneShards is PostgreSQL-only (databases adapter is #{adapter}). " \
+          "Use polyrun env for URLs and provision shards yourself."
+      end
+      private_class_method :ensure_postgresql!
 
       def migrate_canonical_databases!(dh, rails_root, dry_run, silent)
         pt = (dh["template_db"] || dh[:template_db]).to_s
@@ -37,6 +48,7 @@ module Polyrun
       private_class_method :migrate_canonical_databases!
 
       def create_shards_from_plan!(dh, workers, replace, force_drop, dry_run)
+        conn = UrlBuilder::Connection.resolve_connection(dh)
         if dry_run
           workers.times do |shard_index|
             plan = UrlBuilder.shard_database_plan(dh, shard_index: shard_index)
@@ -44,7 +56,7 @@ module Polyrun
               raise Polyrun::Error, "CloneShards: empty shard plan for shard_index=#{shard_index}"
             end
 
-            plan.each { |row| create_one_shard!(row, replace, force_drop, dry_run) }
+            plan.each { |row| create_one_shard!(row, replace, force_drop, dry_run, conn) }
           end
           return
         end
@@ -56,7 +68,7 @@ module Polyrun
               raise Polyrun::Error, "CloneShards: empty shard plan for shard_index=#{shard_index}"
             end
 
-            plan.each { |row| create_one_shard!(row, replace, force_drop, dry_run) }
+            plan.each { |row| create_one_shard!(row, replace, force_drop, dry_run, conn) }
           rescue => e
             raise Polyrun::Error, "CloneShards shard_index=#{shard_index}: #{e.message}"
           end
@@ -65,7 +77,7 @@ module Polyrun
       end
       private_class_method :create_shards_from_plan!
 
-      def create_one_shard!(row, replace, force_drop, dry_run)
+      def create_one_shard!(row, replace, force_drop, dry_run, conn)
         new_db = row[:new_db].to_s
         tmpl = row[:template_db].to_s
         if dry_run
@@ -74,10 +86,21 @@ module Polyrun
           return
         end
 
-        Provision.drop_database_if_exists!(database: new_db, force: force_drop) if replace
-        Provision.create_database_from_template!(new_db: new_db, template_db: tmpl)
+        opts = provision_connection_options(conn)
+        Provision.drop_database_if_exists!(database: new_db, force: force_drop, **opts) if replace
+        Provision.create_database_from_template!(new_db: new_db, template_db: tmpl, **opts)
       end
       private_class_method :create_one_shard!
+
+      def provision_connection_options(conn)
+        {
+          host: conn[:host],
+          port: conn[:port],
+          username: conn[:user],
+          password: conn[:password]
+        }
+      end
+      private_class_method :provision_connection_options
     end
   end
 end

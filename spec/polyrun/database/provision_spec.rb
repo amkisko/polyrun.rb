@@ -37,6 +37,33 @@ RSpec.describe Polyrun::Database::Provision do
       allow(Open3).to receive(:capture3).and_return(["", "nope", bad_status])
       expect { described_class.create_database_from_template!(new_db: "n", template_db: "t") }.to raise_error(Polyrun::Error, /create database failed/)
     end
+
+    it "passes host port username and PGPASSWORD from options" do
+      allow(Open3).to receive(:capture3).and_return(["", "", ok_status])
+      described_class.create_database_from_template!(
+        new_db: "n",
+        template_db: "t",
+        host: "db.internal",
+        port: "5433",
+        username: "app_user",
+        password: "secret"
+      )
+      expect(Open3).to have_received(:capture3) do |*args|
+        env = args.first
+        expect(env).to be_a(Hash)
+        expect(env["PGPASSWORD"]).to eq("secret")
+        expect(env).to include("PATH")
+        expect(args).to include("-h", "db.internal", "-p", "5433", "-U", "app_user")
+      end
+    end
+
+    it "omits env hash when password is blank so the parent environment is inherited" do
+      allow(Open3).to receive(:capture3).and_return(["", "", ok_status])
+      described_class.create_database_from_template!(new_db: "n", template_db: "t", password: "")
+      expect(Open3).to have_received(:capture3) do |*args|
+        expect(args.first).to eq("psql")
+      end
+    end
   end
 
   describe ".prepare_template!" do

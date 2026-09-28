@@ -29,6 +29,10 @@ module Polyrun
           "postgresql"
         end
 
+        def postgresql?(databases_hash)
+          infer_adapter_name(databases_hash.is_a?(Hash) ? databases_hash : {}) == "postgresql"
+        end
+
         def normalize_adapter_alias(name)
           case name
           when "postgres", "pg" then "postgresql"

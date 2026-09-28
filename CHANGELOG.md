@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+- Fix `polyrun start` auto database provision when `databases:` uses a non-Postgres adapter (`mysql2`, trilogy, …): skip CloneShards with a clear warning (or exit 1 if `start.databases: true`); keep `template_db` / `shard_db_pattern` for URL shaping.
+- Fail `db:clone-shards` / `db:setup-shard` before `psql` when the inferred adapter is not PostgreSQL.
+- Pass `postgresql:` host, port, username, and password from `polyrun.yml` into `psql` during shard provision (password via child `PGPASSWORD`).
+
 ## 2.2.5 (2026-09-24)
 
 - Fix bare `polyrun` suite selection when both `spec/` and `test/` exist: honor `partition.suite`, else infer from `partition.paths_file`, else filesystem auto-detect (RSpec first).

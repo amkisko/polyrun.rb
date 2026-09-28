@@ -25,6 +25,7 @@ Do not mix “fan out N workers inside one job” with “matrix shard index” 
 |--------|---------|
 | Single test DB | Omitting `databases:` in `polyrun.yml` may be enough; ensure parallel workers do not share one DB if they mutate data |
 | Multi-DB or shard suffixes | `databases:` in `polyrun.yml` (`shard_db_pattern`, `template_db`, optional `connections` and `env_key`). `database.yml` or `DATABASE_URL` may use `%{shard}` or `POLYRUN_SHARD_INDEX` suffixes—the same convention as `polyrun env` |
+| Non-Postgres adapters (mysql2, trilogy, …) | `UrlBuilder` still emits URLs from `template_db` / `shard_db_pattern`. Auto provision on `polyrun start` and `db:clone-shards` / `db:setup-shard` are PostgreSQL-only (`CREATE DATABASE … TEMPLATE`). For MySQL/MariaDB, set `start.databases: false` (or rely on the skip warning) and provision shards in `prepare` |
 | External provisioning | Sometimes `db:prepare` plus shell clone scripts (multi-DB apps)—document ordering: prepare databases before `run-shards` |
 
 ## 4. Prepare (run once before workers)

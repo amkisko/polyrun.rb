@@ -14,7 +14,7 @@ module Polyrun
       end
 
       # +DROP DATABASE IF EXISTS name;+ — maintenance DB +postgres+ (or +maintenance_db+).
-      def drop_database_if_exists!(database:, host: nil, port: nil, username: nil, maintenance_db: "postgres", force: false)
+      def drop_database_if_exists!(database:, host: nil, port: nil, username: nil, password: nil, maintenance_db: "postgres", force: false)
         host ||= ENV["PGHOST"] || "localhost"
         port ||= ENV["PGPORT"] || "5432"
         username ||= ENV["PGUSER"] || "postgres"
@@ -25,26 +25,32 @@ module Polyrun
           else
             "DROP DATABASE IF EXISTS #{quote_ident(database)};"
           end
-        cmd = ["psql", "-U", username, "-h", host, "-p", port.to_s, "-d", maintenance_db, "-v", "ON_ERROR_STOP=1", "-c", sql]
-        _out, err, st = Open3.capture3(*cmd)
-        raise Polyrun::Error, "drop database failed: #{err}" unless st.success?
-
-        true
+        run_psql!(sql, host: host, port: port, username: username, password: password, maintenance_db: maintenance_db, failure_prefix: "drop database failed")
       end
 
       # CREATE DATABASE new_db TEMPLATE template_db — connects to maintenance DB +postgres+.
-      def create_database_from_template!(new_db:, template_db:, host: nil, port: nil, username: nil, maintenance_db: "postgres")
+      def create_database_from_template!(new_db:, template_db:, host: nil, port: nil, username: nil, password: nil, maintenance_db: "postgres")
         host ||= ENV["PGHOST"] || "localhost"
         port ||= ENV["PGPORT"] || "5432"
         username ||= ENV["PGUSER"] || "postgres"
 
         sql = "CREATE DATABASE #{quote_ident(new_db)} TEMPLATE #{quote_ident(template_db)};"
+        run_psql!(sql, host: host, port: port, username: username, password: password, maintenance_db: maintenance_db, failure_prefix: "create database failed")
+      end
+
+      def run_psql!(sql, host:, port:, username:, password:, maintenance_db:, failure_prefix:)
         cmd = ["psql", "-U", username, "-h", host, "-p", port.to_s, "-d", maintenance_db, "-v", "ON_ERROR_STOP=1", "-c", sql]
-        _out, err, st = Open3.capture3(*cmd)
-        raise Polyrun::Error, "create database failed: #{err}" unless st.success?
+        _out, err, st =
+          if password.nil? || password.to_s.empty?
+            Open3.capture3(*cmd)
+          else
+            Open3.capture3(ENV.to_h.merge("PGPASSWORD" => password.to_s), *cmd)
+          end
+        raise Polyrun::Error, "#{failure_prefix}: #{err}" unless st.success?
 
         true
       end
+      private_class_method :run_psql!
 
       # Runs +bin/rails db:prepare+ with merged ENV (+DATABASE_URL+ for primary, +CACHE_DATABASE_URL+, etc.).
       # Multi-DB Rails apps must pass all template URLs in one invocation so each DB uses its own +migrations_paths+.
