@@ -59,4 +59,73 @@ RSpec.describe "Polyrun::Coverage::Collector.finish (in-process)" do
       expect(payload.fetch("groups")).to have_key("Lib")
     end
   end
+
+  it "warns without exiting when coverage is below minimum and strict is false" do
+    Dir.mktmpdir do |root|
+      library_directory = File.join(root, "lib")
+      FileUtils.mkdir_p(library_directory)
+      source_path = File.join(library_directory, "sample.rb")
+      File.write(source_path, "SAMPLE = 1\n")
+      output_path = File.join(root, "coverage", "frag.json")
+      cfg = {
+        root: root,
+        output_path: output_path,
+        track_under: ["lib"],
+        track_files: nil,
+        groups: nil,
+        reject_patterns: [],
+        minimum_line_percent: 99,
+        strict: false,
+        meta: {},
+        fragment_meta: {},
+        formatter: nil,
+        shard_total_at_start: 1
+      }
+      ENV["POLYRUN_SHARD_TOTAL"] = "1"
+      with_collector_config(cfg) do
+        allow(Coverage).to receive(:result).and_return({source_path => {lines: [0]}})
+        expect(Polyrun::Log).to receive(:warn).at_least(:once)
+        expect { Polyrun::Coverage::Collector.finish }.not_to raise_error
+      end
+    end
+  end
+
+  it "runs a single-shard formatter to the report directory" do
+    Dir.mktmpdir do |root|
+      library_directory = File.join(root, "lib")
+      FileUtils.mkdir_p(library_directory)
+      source_path = File.join(library_directory, "sample.rb")
+      File.write(source_path, "SAMPLE = 1\n")
+      output_path = File.join(root, "coverage", "frag.json")
+      report_directory = File.join(root, "coverage", "reports")
+      formatter = Class.new do
+        define_method(:format) do |_result, output_dir:, basename:|
+          FileUtils.mkdir_p(output_dir)
+          File.write(File.join(output_dir, "#{basename}.xml"), "<coverage/>")
+        end
+      end.new
+      cfg = {
+        root: root,
+        output_path: output_path,
+        track_under: ["lib"],
+        track_files: nil,
+        groups: nil,
+        reject_patterns: [],
+        minimum_line_percent: 0,
+        strict: false,
+        meta: {},
+        fragment_meta: {},
+        formatter: formatter,
+        report_output_dir: report_directory,
+        report_basename: "worker-coverage",
+        shard_total_at_start: 1
+      }
+      ENV["POLYRUN_SHARD_TOTAL"] = "1"
+      with_collector_config(cfg) do
+        allow(Coverage).to receive(:result).and_return({source_path => {lines: [1]}})
+        Polyrun::Coverage::Collector.finish
+      end
+      expect(File).to exist(File.join(report_directory, "worker-coverage.xml"))
+    end
+  end
 end

@@ -26,10 +26,16 @@ module Polyrun
       def merge_fragments(paths)
         return {blob: {}, meta: {}, groups: nil} if paths.empty?
 
-        docs = paths.map { |p| JSON.parse(File.read(p)) }
-        blobs = docs.map { |d| extract_coverage_blob(d) }
+        # Parse one fragment at a time: keep only meta + blob so peak RSS drops after each fold step.
+        metas = []
+        blobs = []
+        paths.each do |path|
+          doc = JSON.parse(File.read(path))
+          metas << extract_doc_meta(doc)
+          blobs << extract_coverage_blob(doc)
+        end
         merged_blob = merge_blob_tree(blobs)
-        merged_meta = merge_fragment_metas(docs)
+        merged_meta = merge_fragment_metas_from_metas(metas)
         merged_blob = apply_track_files_once_after_merge(merged_blob, merged_meta)
         groups_payload = recompute_groups_from_meta(merged_blob, merged_meta)
         {blob: merged_blob, meta: merged_meta, groups: groups_payload}

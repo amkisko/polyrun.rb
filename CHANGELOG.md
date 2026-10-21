@@ -16,6 +16,10 @@
 - Fix SpecQuality `minimum_unique_lines_per_example` gate for thresholds above 1; keep only positive or CPU profile deltas.
 - Align file-granularity timing cost keys with realpath normalization so cost binpack hits under symlink roots.
 - TERM shard workers before draining routed worker output on SIGINT/SIGTERM; skip empty queue leases.
+- Recover interrupted queue claim/ack/reclaim via `intent.json`; age leases by `heartbeat_at`; quarantine poison paths after `POLYRUN_QUEUE_MAX_ATTEMPTS` (default 3).
+- On a failed `run-queue` batch, re-run paths one-by-one and ack successes so a poison path does not requeue neighbors.
+- Spawn shard workers in their own process group and signal the group on timeout/interrupt; abort already-started workers if a later spawn fails.
+- Cache coverage HTML ERB templates; fold merge fragments without retaining full JSON documents; share plan/run-shards timing cost resolution.
 
 ## 2.2.5 (2026-09-24)
 

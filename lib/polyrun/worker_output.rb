@@ -55,20 +55,37 @@ module Polyrun
       out_read, out_write = IO.pipe
       err_read, err_write = IO.pipe
 
-      pid =
-        if hook_cfg.worker_hooks? && !Polyrun::Hooks.disabled?
-          Process.spawn(
-            child_env,
-            "sh",
-            "-c",
-            hook_cfg.build_worker_shell_script(cmd, paths),
-            out: out_write,
-            err: err_write
-          )
-        else
-          # Array(cmd) so a String command is one argv element (not character-splatted).
-          Process.spawn(child_env, *Array(cmd), *Array(paths), out: out_write, err: err_write)
+      begin
+        pid =
+          if hook_cfg.worker_hooks? && !Polyrun::Hooks.disabled?
+            Process.spawn(
+              child_env,
+              "sh",
+              "-c",
+              hook_cfg.build_worker_shell_script(cmd, paths),
+              out: out_write,
+              err: err_write,
+              pgroup: true
+            )
+          else
+            # Array(cmd) so a String command is one argv element (not character-splatted).
+            Process.spawn(
+              child_env,
+              *Array(cmd),
+              *Array(paths),
+              out: out_write,
+              err: err_write,
+              pgroup: true
+            )
+          end
+      rescue StandardError
+        [out_read, out_write, err_read, err_write].each do |io|
+          io.close unless io.closed?
+        rescue IOError
+          nil
         end
+        raise
+      end
 
       out_write.close
       err_write.close

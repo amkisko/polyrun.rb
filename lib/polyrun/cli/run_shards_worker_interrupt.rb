@@ -36,16 +36,21 @@ module Polyrun
       end
 
       def run_shards_signal_workers_term(pids)
-        pids.each do |h|
-          Process.kill(:TERM, h[:pid])
-        rescue Errno::ESRCH
-        end
+        pids.each { |h| run_shards_kill_process_group!(:TERM, h[:pid]) }
       end
 
       def run_shards_signal_workers_kill(pids)
-        pids.each do |h|
-          Process.kill(:KILL, h[:pid])
-        rescue Errno::ESRCH
+        pids.each { |h| run_shards_kill_process_group!(:KILL, h[:pid]) }
+      end
+
+      # Negative PID signals the process group (workers spawn with +pgroup: true+).
+      def run_shards_kill_process_group!(signal, pid)
+        Process.kill(signal, -Integer(pid))
+      rescue Errno::ESRCH, Errno::EPERM
+        begin
+          Process.kill(signal, Integer(pid))
+        rescue Errno::ESRCH, Errno::EPERM
+          nil
         end
       end
 
@@ -71,10 +76,7 @@ module Polyrun
               force_note = true
               Polyrun::Log.orchestration_warn "polyrun run-shards: repeated SIGINT during worker cleanup — SIGKILL to #{pending.size} process(es)"
             end
-            pending.each do |pid|
-              Process.kill(:KILL, pid)
-            rescue Errno::ESRCH
-            end
+            pending.each { |pid| run_shards_kill_process_group!(:KILL, pid) }
           end
         end
       end

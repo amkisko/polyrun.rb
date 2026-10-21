@@ -23,7 +23,7 @@ module Polyrun
         )
         file_list_html = render_html_partial("file_list", file_rows_html: files.map { |file| html_file_list_row(file) }.join("\n"))
         file_sections_html = files.map { |file| render_html_partial("file_section", file: file) }.join("\n")
-        ERB.new(File.read(html_template_path, encoding: Encoding::UTF_8), trim_mode: "-").result_with_hash(
+        html_root_template_erb.result_with_hash(
           title: CGI.escapeHTML(title.to_s),
           generated_label: html_generated_label(generated_at),
           overview_html: overview_html,
@@ -56,8 +56,26 @@ module Polyrun
       end
 
       def render_html_partial(name, locals = {})
-        ERB.new(File.read(html_partial_path(name), encoding: Encoding::UTF_8), trim_mode: "-").result_with_hash(locals)
+        html_partial_erb(name).result_with_hash(locals)
       end
+
+      # rubocop:disable ThreadSafety/ClassInstanceVariable -- template cache keyed by partial name; process-local
+      def html_partial_erb(name)
+        @html_partial_erbs ||= {}
+        @html_partial_erbs[name] ||= ERB.new(
+          File.read(html_partial_path(name), encoding: Encoding::UTF_8),
+          trim_mode: "-"
+        )
+      end
+
+      def html_root_template_erb
+        @html_root_template_erb ||= ERB.new(
+          File.read(html_template_path, encoding: Encoding::UTF_8),
+          trim_mode: "-"
+        )
+      end
+      # rubocop:enable ThreadSafety/ClassInstanceVariable
+      private_class_method :html_partial_erb, :html_root_template_erb
 
       def html_file_payload(path, file, root)
         line_arr = line_array_from_file_entry(file) || []

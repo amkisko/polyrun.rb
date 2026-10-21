@@ -234,7 +234,7 @@ module Polyrun
       end
 
       def run_shards_force_stop_pid_status(pid)
-        Process.kill(:KILL, pid)
+        run_shards_kill_process_group!(:KILL, pid)
         st = nil
         begin
           Process.wait(pid)
@@ -243,7 +243,7 @@ module Polyrun
           # child already reaped
         end
         st
-      rescue Errno::ESRCH
+      rescue Errno::ESRCH, Errno::EPERM
         begin
           Process.wait(pid)
           $?

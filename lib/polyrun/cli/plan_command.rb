@@ -167,35 +167,16 @@ module Polyrun
       end
 
       def plan_load_costs_and_strategy(timing_path, strategy, timing_granularity, strategy_explicit: false)
-        strategy = strategy.to_s
-        if timing_path
-          if strategy_explicit && strategy == "round_robin"
-            return [nil, strategy]
-          end
+        costs, resolved, err = partition_resolve_costs_and_strategy(
+          timing_path,
+          strategy,
+          timing_granularity,
+          strategy_explicit: strategy_explicit,
+          log_prefix: "polyrun plan"
+        )
+        return nil if err
 
-          costs = Polyrun::Partition::Plan.load_timing_costs(
-            File.expand_path(timing_path.to_s, Dir.pwd),
-            granularity: timing_granularity
-          )
-          if costs.empty?
-            Polyrun::Log.warn "polyrun plan: timing file missing or has no entries: #{timing_path}"
-            return nil
-          end
-          if Polyrun::Partition::Plan.timing_load_strategy?(strategy)
-            return [costs, strategy]
-          end
-          unless strategy_explicit
-            Polyrun::Log.warn "polyrun plan: using cost_binpack (timing data present)" if @verbose
-            return [costs, "cost_binpack"]
-          end
-
-          [nil, strategy]
-        elsif Polyrun::Partition::Plan.cost_strategy?(strategy) || Polyrun::Partition::Plan.lazy_robin_strategy?(strategy)
-          Polyrun::Log.warn "polyrun plan: --timing or partition.timing_file required for strategy #{strategy}"
-          nil
-        else
-          [nil, strategy]
-        end
+        [costs, resolved]
       end
     end
   end

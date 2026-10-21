@@ -2,13 +2,13 @@
 
 ## Decisions
 
-Confirm and ship smallest credible fixes for high-certainty correctness and operability bugs found by four parallel model audits (core CLI/database, concurrency/queue, hot-path/coverage, tests/ownership). Defer structural work that needs a journal, process-group rewrite, or CLI command-object split to follow-up issues.
+Confirm and ship smallest credible fixes for high-certainty correctness and operability bugs found by four parallel model audits (core CLI/database, concurrency/queue, hot-path/coverage, tests/ownership). Follow-up batch implements deferred queue durability, worker process groups, coverage merge/HTML, cost-loader dedupe, and collector finish public specs. Full CLI mixin command-object rewrite stays deferred (large ownership change, low immediate danger).
 
 ## Effects
 
-Audit agents: Claude Sonnet (core), GPT (concurrency), Grok (hot-path), Gemini (tests/ownership). Findings fact-checked against lib/ and specs before implementation.
+Audit agents: Claude Sonnet (core), GPT (concurrency), Grok (hot-path), Gemini (tests/ownership). Findings fact-checked against lib/ and specs before implementation. Follow-up batch fact-checked again ([deferred fixes](c617f93e-04d5-453f-8c26-51929d015b84)) before coding.
 
-Confirmed for this release (observed in code, then fixed):
+Confirmed for 2.2.6 first pass (observed in code, then fixed):
 
 1. start argv parser ignores --workers=N while run-shards OptionParser accepts it, so shard DB count can disagree with worker count.
 2. Implicit path run treated path-like tokens after -- as suite paths and appended --paths-file after --, so the worker command was emptied or ignored the paths file.
@@ -25,23 +25,27 @@ Confirmed for this release (observed in code, then fixed):
 13. FileStore#claim! writes an empty lease when pending is drained.
 14. Coverage::Rails and SpecQuality::Config YAML loaders disagree with Config.load on aliases/symbols.
 
-Deferred (documented, not fixed here):
+Follow-up batch (this session):
 
-- FileStore multi-file claim/ack without write-ahead recovery.
-- Lease reclaim by claimed_at without heartbeat (active work can be stolen).
-- Batch-level ack re-runs successful paths after poison failure.
-- Process group for worker trees; mid-spawn rescue for partial worker sets.
-- CLI mixin flat namespace and duplicated cost/strategy loaders.
-- HTML merge N+1 ERB compile; merge fragment peak retention.
-- Futile private .send unit specs cleanup.
+15. FileStore claim/ack/reclaim write intent.json (fsync) and recover incomplete ops under flock; ack writes done.jsonl before dropping the lease.
+16. Lease reclaim ages heartbeat_at (fallback claimed_at); heartbeat! refreshes active work; path_attempts.json + failed.jsonl quarantine after POLYRUN_QUEUE_MAX_ATTEMPTS (default 3).
+17. WorkerLoop keeps one-shot successful batches; on failure re-runs paths one-by-one with ack_paths! so passing paths are not requeued with a poison neighbor.
+18. Worker Process.spawn uses pgroup: true; TERM/KILL targets the process group with pid fallback; mid-spawn StandardError/ScriptError terminates already-started workers; WorkerOutput closes pipes if spawn raises.
+19. HTML merge caches ERB templates; merge_fragments extracts meta then blobs without retaining full JSON documents through the tree fold.
+20. plan and run-shards share partition_resolve_costs_and_strategy; collector_finish_unit_spec (.send) replaced by public Collector.finish in-process examples.
+
+Still deferred:
+
+- Full CLI mixin flat-namespace rewrite into per-command objects (ownership only; behavior covered elsewhere).
 
 ## Next
 
-- Ship 2.2.6 with the confirmed fixes and changelog.
-- Open follow-ups for queue journal + lease heartbeat and worker process groups if operators hit those paths.
-- Replace collector_finish_unit_spec .send examples with public Collector.finish coverage when touching that area.
+- Keep VERSION/CHANGELOG on 2.2.6 until tagged; include follow-up bullets in the 2.2.6 notes.
+- Tag and publish when the tree is clean and usr/bin/release.rb checks pass.
+- Revisit CLI command-object split only if mixin coupling blocks a concrete change.
 
 ## Source
 
-- Multi-model audit session on polyrun.rb at VERSION 2.2.5 (Unreleased already held non-Postgres CloneShards notes).
+- Multi-model audit session on polyrun.rb at VERSION 2.2.5; follow-up on patch/engineering-audit-fixes.
 - Prior related notes: docs/issues/20260928121826_non-postgres-clone-shards-on-start.md, docs/issues/20260907141000_engineering-and-dependency-audit.md.
+- Engineering changelog: docs/changelogs/20261021191449_engineering-audit-fixes.md

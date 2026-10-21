@@ -40,6 +40,31 @@ RSpec.describe Polyrun::Queue::WorkerLoop do
       end
     end
 
+    it "acks passing paths when a multi-path batch fails then isolates" do
+      Dir.mktmpdir do |dir|
+        store = Polyrun::Queue::FileStore.new(dir)
+        store.init!(%w[ok.rb fail.rb])
+        # Fail only when both paths are passed together; succeed on single-path re-runs for ok.rb.
+        script = <<~'RUBY'
+          names = ARGV.map { |p| File.basename(p) }
+          exit 1 if names.size > 1
+          exit(names.any? { |n| n.include?("fail") } ? 1 : 0)
+        RUBY
+        result = described_class.run(
+          store: store,
+          worker_id: "w1",
+          batch: 2,
+          cmd: [RbConfig.ruby, "-e", script],
+          on_failure: "exit"
+        )
+        expect(result[:exit_code]).to eq(1)
+        expect(store.status["done"]).to eq(1)
+        expect(store.status["leases"]).to eq(1)
+        details = store.status(detailed: true)["lease_details"]
+        expect(details.first["paths_count"]).to eq(1)
+      end
+    end
+
     it "reclaims the lease and stops when on_failure is requeue" do
       Dir.mktmpdir do |dir|
         store = Polyrun::Queue::FileStore.new(dir)

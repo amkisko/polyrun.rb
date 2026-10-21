@@ -24,49 +24,55 @@ module Polyrun
 
         pids = []
         Polyrun::WorkerOutput.prepare_log_dir! if Polyrun::WorkerOutput.routing_enabled?
-        workers.times do |shard|
-          paths = plan.shard(shard)
-          if paths.empty?
-            Polyrun::Log.warn "polyrun run-shards: shard #{shard} skipped (no paths)" if @verbose || parallel
-            next
+        begin
+          workers.times do |shard|
+            paths = plan.shard(shard)
+            if paths.empty?
+              Polyrun::Log.warn "polyrun run-shards: shard #{shard} skipped (no paths)" if @verbose || parallel
+              next
+            end
+
+            env_shard = ENV.to_h.merge(
+              "POLYRUN_HOOK_ORCHESTRATOR" => "1",
+              "POLYRUN_SHARD_INDEX" => shard.to_s,
+              "POLYRUN_SHARD_TOTAL" => workers.to_s
+            )
+            code = hook_cfg.run_phase_if_enabled(:before_shard, env_shard)
+            if code != 0
+              run_shards_terminate_children!(pids)
+              return [pids, code]
+            end
+
+            child_env = shard_child_env(
+              cfg: cfg,
+              workers: workers,
+              shard: shard,
+              matrix_index: mx,
+              matrix_total: mt,
+              failure_fragments: ctx[:merge_failures],
+              spec_quality_fragments: ctx[:merge_spec_quality]
+            )
+            child_env = child_env.merge("POLYRUN_HOOK_ORCHESTRATOR" => "0")
+            child_env = hook_cfg.merge_worker_ruby_env(child_env)
+
+            ping_path = run_shards_prepare_worker_ping!(ctx, child_env, shard)
+
+            Polyrun::Log.warn "polyrun run-shards: shard #{shard} → #{paths.size} file(s)" if @verbose
+            spawned_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+            pid = run_shards_spawn_one_worker(child_env, cmd, paths, hook_cfg)
+            pids << {pid: pid, shard: shard, spawned_at: spawned_at, ping_path: ping_path}
+            Polyrun::Debug.log("[parent pid=#{$$}] run-shards: Process.spawn shard=#{shard} child_pid=#{pid} spec_files=#{paths.size}")
+            Polyrun::Log.warn "polyrun run-shards: started shard #{shard} pid=#{pid} (#{paths.size} file(s))" if parallel
+            if Polyrun::WorkerOutput.routing_enabled? && parallel
+              Polyrun::Log.warn "polyrun run-shards: shard #{shard} log → #{Polyrun::WorkerOutput.log_path_for(shard)}"
+            end
           end
-
-          env_shard = ENV.to_h.merge(
-            "POLYRUN_HOOK_ORCHESTRATOR" => "1",
-            "POLYRUN_SHARD_INDEX" => shard.to_s,
-            "POLYRUN_SHARD_TOTAL" => workers.to_s
-          )
-          code = hook_cfg.run_phase_if_enabled(:before_shard, env_shard)
-          if code != 0
-            run_shards_terminate_children!(pids)
-            return [pids, code]
-          end
-
-          child_env = shard_child_env(
-            cfg: cfg,
-            workers: workers,
-            shard: shard,
-            matrix_index: mx,
-            matrix_total: mt,
-            failure_fragments: ctx[:merge_failures],
-            spec_quality_fragments: ctx[:merge_spec_quality]
-          )
-          child_env = child_env.merge("POLYRUN_HOOK_ORCHESTRATOR" => "0")
-          child_env = hook_cfg.merge_worker_ruby_env(child_env)
-
-          ping_path = run_shards_prepare_worker_ping!(ctx, child_env, shard)
-
-          Polyrun::Log.warn "polyrun run-shards: shard #{shard} → #{paths.size} file(s)" if @verbose
-          spawned_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          pid = run_shards_spawn_one_worker(child_env, cmd, paths, hook_cfg)
-          pids << {pid: pid, shard: shard, spawned_at: spawned_at, ping_path: ping_path}
-          Polyrun::Debug.log("[parent pid=#{$$}] run-shards: Process.spawn shard=#{shard} child_pid=#{pid} spec_files=#{paths.size}")
-          Polyrun::Log.warn "polyrun run-shards: started shard #{shard} pid=#{pid} (#{paths.size} file(s))" if parallel
-          if Polyrun::WorkerOutput.routing_enabled? && parallel
-            Polyrun::Log.warn "polyrun run-shards: shard #{shard} log → #{Polyrun::WorkerOutput.log_path_for(shard)}"
-          end
+          [pids, nil]
+        rescue StandardError, ScriptError => e
+          Polyrun::Log.warn "polyrun run-shards: spawn failed (#{e.class}: #{e.message}); stopping #{pids.size} worker(s)"
+          run_shards_terminate_children!(pids)
+          [pids, 1]
         end
-        [pids, nil]
       end
       # rubocop:enable Metrics/AbcSize
 
@@ -85,13 +91,20 @@ module Polyrun
         path
       end
 
+      # Workers start in their own process group so TERM/KILL can reach hook shell grandchildren.
       def run_shards_spawn_one_worker(child_env, cmd, paths, hook_cfg)
         return Polyrun::WorkerOutput.spawn_worker(child_env, cmd, paths, hook_cfg) if Polyrun::WorkerOutput.routing_enabled?
 
         if hook_cfg.worker_hooks? && !Polyrun::Hooks.disabled?
-          Process.spawn(child_env, "sh", "-c", hook_cfg.build_worker_shell_script(cmd, paths))
+          Process.spawn(
+            child_env,
+            "sh",
+            "-c",
+            hook_cfg.build_worker_shell_script(cmd, paths),
+            pgroup: true
+          )
         else
-          Process.spawn(child_env, *cmd, *paths)
+          Process.spawn(child_env, *cmd, *paths, pgroup: true)
         end
       end
     end

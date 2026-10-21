@@ -77,35 +77,13 @@ module Polyrun
       end
 
       def run_shards_resolve_costs(timing_path, strategy, timing_granularity, strategy_explicit: false)
-        strategy = strategy.to_s
-        if timing_path
-          if strategy_explicit && strategy == "round_robin"
-            return [nil, strategy, nil]
-          end
-
-          costs = Polyrun::Partition::Plan.load_timing_costs(
-            File.expand_path(timing_path.to_s, Dir.pwd),
-            granularity: timing_granularity
-          )
-          if costs.empty?
-            Polyrun::Log.warn "polyrun run-shards: timing file missing or empty: #{timing_path}"
-            return [nil, nil, 2]
-          end
-          if Polyrun::Partition::Plan.timing_load_strategy?(strategy)
-            return [costs, strategy, nil]
-          end
-          unless strategy_explicit
-            Polyrun::Log.warn "polyrun run-shards: using cost_binpack (timing data present)" if @verbose
-            return [costs, "cost_binpack", nil]
-          end
-
-          [nil, strategy, nil]
-        elsif Polyrun::Partition::Plan.cost_strategy?(strategy) || Polyrun::Partition::Plan.lazy_robin_strategy?(strategy)
-          Polyrun::Log.warn "polyrun run-shards: --timing or partition.timing_file required for strategy #{strategy}"
-          [nil, nil, 2]
-        else
-          [nil, strategy, nil]
-        end
+        partition_resolve_costs_and_strategy(
+          timing_path,
+          strategy,
+          timing_granularity,
+          strategy_explicit: strategy_explicit,
+          log_prefix: "polyrun run-shards"
+        )
       end
 
       def run_shards_make_plan(items, workers, strategy, seed, costs, constraints, timing_granularity, stable_assignment = nil, shard_weights: nil)

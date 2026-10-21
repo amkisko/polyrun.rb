@@ -46,14 +46,24 @@ module Polyrun
           batch = take_pending_batch!(meta, batch_size)
           unless batch.empty?
             lease_id = SecureRandom.uuid
+            now = Time.now.utc.iso8601
+            write_intent!(
+              "op" => "claim",
+              "lease_id" => lease_id,
+              "worker_id" => worker_id.to_s,
+              "paths" => batch
+            )
             leases = read_leases
             leases[lease_id] = {
               "worker_id" => worker_id.to_s,
               "paths" => batch,
-              "claimed_at" => Time.now.utc.iso8601
+              "claimed_at" => now,
+              "heartbeat_at" => now,
+              "attempts" => 0
             }
             write_meta!(meta)
             write_leases!(leases)
+            clear_intent!
             append_ledger(
               "CLAIM" => lease_id,
               "worker_id" => worker_id.to_s,
@@ -75,15 +85,69 @@ module Polyrun
             raise Polyrun::Error, "lease worker mismatch"
           end
 
-          leases.delete(lease_id)
-          write_leases!(leases)
-
           paths = lease["paths"] || []
+          write_intent!(
+            "op" => "ack",
+            "lease_id" => lease_id,
+            "worker_id" => worker_id.to_s,
+            "paths" => paths
+          )
+          # done.jsonl before removing the lease so a crash still has durable completion evidence.
+          append_done_lines!(paths)
           meta = load_meta!
           meta["done_count"] = Integer(meta["done_count"]) + paths.size
-          append_done_lines!(paths)
           write_meta!(meta)
+          leases.delete(lease_id)
+          write_leases!(leases)
+          clear_intent!
           append_ledger("ACK" => lease_id, "worker_id" => worker_id.to_s, "paths" => paths)
+        end
+        true
+      end
+
+      # Marks a subset of a lease's paths done; removes the lease when none remain.
+      def ack_paths!(lease_id:, worker_id:, paths:)
+        paths = Array(paths).map(&:to_s)
+        raise Polyrun::Error, "ack_paths! requires at least one path" if paths.empty?
+
+        with_lock do
+          leases = read_leases
+          lease = leases[lease_id]
+          raise Polyrun::Error, "unknown lease: #{lease_id}" unless lease
+
+          if lease["worker_id"].to_s != worker_id.to_s
+            raise Polyrun::Error, "lease worker mismatch"
+          end
+
+          held = Array(lease["paths"]).map(&:to_s)
+          unknown = paths - held
+          raise Polyrun::Error, "ack_paths! paths not on lease: #{unknown.join(", ")}" unless unknown.empty?
+
+          write_intent!(
+            "op" => "ack_paths",
+            "lease_id" => lease_id,
+            "worker_id" => worker_id.to_s,
+            "paths" => paths
+          )
+          apply_ack_side_effects!(leases, lease_id, lease, paths, worker_id)
+          clear_intent!
+        end
+        true
+      end
+
+      def heartbeat!(lease_id:, worker_id:)
+        with_lock do
+          leases = read_leases
+          lease = leases[lease_id]
+          raise Polyrun::Error, "unknown lease: #{lease_id}" unless lease
+
+          if lease["worker_id"].to_s != worker_id.to_s
+            raise Polyrun::Error, "lease worker mismatch"
+          end
+
+          lease["heartbeat_at"] = Time.now.utc.iso8601
+          leases[lease_id] = lease
+          write_leases!(leases)
         end
         true
       end
@@ -114,13 +178,23 @@ module Polyrun
           leases.each do |lease_id, lease|
             if reclaim_lease?(lease, older_than: older_than, worker_id: worker_id)
               paths = lease["paths"] || []
-              return_paths_to_pending!(meta, paths)
+              bumped = lease.merge("attempts" => Integer(lease["attempts"] || 0) + 1)
+              write_intent!(
+                "op" => "reclaim",
+                "lease_id" => lease_id,
+                "worker_id" => lease["worker_id"],
+                "paths" => paths,
+                "attempts" => bumped["attempts"]
+              )
+              quarantine_or_return_paths!(meta, paths, bumped)
               reclaimed_paths += paths.size
               append_ledger(
                 "RECLAIM" => lease_id,
                 "worker_id" => lease["worker_id"],
-                "paths" => paths
+                "paths" => paths,
+                "attempts" => bumped["attempts"]
               )
+              clear_intent!
             else
               keep[lease_id] = lease
             end
@@ -138,14 +212,28 @@ module Polyrun
           lease = leases[lease_id]
           return 0 unless lease
 
+          paths = lease["paths"] || []
+          bumped = lease.merge("attempts" => Integer(lease["attempts"] || 0) + 1)
+          write_intent!(
+            "op" => "reclaim_lease",
+            "lease_id" => lease_id,
+            "worker_id" => lease["worker_id"],
+            "paths" => paths,
+            "attempts" => bumped["attempts"]
+          )
           leases.delete(lease_id)
           write_leases!(leases)
           meta = load_meta!
-          paths = lease["paths"] || []
-          return_paths_to_pending!(meta, paths)
+          quarantine_or_return_paths!(meta, paths, bumped)
           write_meta!(meta)
           reclaimed = paths.size
-          append_ledger("RECLAIM" => lease_id, "worker_id" => lease["worker_id"], "paths" => paths)
+          append_ledger(
+            "RECLAIM" => lease_id,
+            "worker_id" => lease["worker_id"],
+            "paths" => paths,
+            "attempts" => bumped["attempts"]
+          )
+          clear_intent!
         end
         reclaimed
       end
@@ -157,8 +245,10 @@ module Polyrun
           return false
         end
         if older_than
-          claimed = Time.parse(lease["claimed_at"].to_s)
-          return (Time.now - claimed) >= older_than
+          stamp = lease["heartbeat_at"].to_s
+          stamp = lease["claimed_at"].to_s if stamp.empty?
+          touched = Time.parse(stamp)
+          return (Time.now - touched) >= older_than
         end
         !!worker_id
       rescue ArgumentError
@@ -168,13 +258,16 @@ module Polyrun
       def lease_details(leases)
         now = Time.now
         leases.map do |lease_id, lease|
-          claimed = Time.parse(lease["claimed_at"].to_s)
+          stamp = lease["heartbeat_at"].to_s
+          stamp = lease["claimed_at"].to_s if stamp.empty?
+          touched = Time.parse(stamp)
           {
             "lease_id" => lease_id,
             "worker_id" => lease["worker_id"],
             "paths_count" => (lease["paths"] || []).size,
             "claimed_at" => lease["claimed_at"],
-            "age_seconds" => (now - claimed).round(1)
+            "heartbeat_at" => lease["heartbeat_at"],
+            "age_seconds" => (now - touched).round(1)
           }
         rescue ArgumentError
           {
@@ -182,6 +275,7 @@ module Polyrun
             "worker_id" => lease["worker_id"],
             "paths_count" => (lease["paths"] || []).size,
             "claimed_at" => lease["claimed_at"],
+            "heartbeat_at" => lease["heartbeat_at"],
             "age_seconds" => nil
           }
         end
@@ -231,6 +325,7 @@ module Polyrun
         FileUtils.mkdir_p(@root)
         File.open(lock_path, File::CREAT | File::RDWR) do |f|
           f.flock(File::LOCK_EX)
+          recover_intent!
           yield
         end
       end
@@ -300,9 +395,13 @@ module Polyrun
         File.open(ledger_path, "a") { |f| f.write(line) }
       end
 
-      def atomic_write(path, body)
+      def atomic_write(path, body, fsync: false)
         tmp = "#{path}.tmp.#{$$}"
-        File.write(tmp, body)
+        File.open(tmp, File::WRONLY | File::CREAT | File::TRUNC) do |io|
+          io.write(body)
+          io.flush
+          io.fsync if fsync
+        end
         File.rename(tmp, path)
       end
     end
@@ -310,4 +409,5 @@ module Polyrun
 end
 
 require_relative "file_store_pending"
+require_relative "file_store_intent"
 # rubocop:enable Polyrun/FileLength, Metrics/ClassLength

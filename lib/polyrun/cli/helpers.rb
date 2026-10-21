@@ -11,6 +11,46 @@ module Polyrun
         Polyrun::Config::Resolver.env_int(name, fallback)
       end
 
+      # Shared timing → costs/strategy resolution for +plan+ and +run-shards+.
+      # @return [Array] +[costs, strategy, error_code]+ where +error_code+ is nil on success
+      def partition_resolve_costs_and_strategy(
+        timing_path,
+        strategy,
+        timing_granularity,
+        strategy_explicit: false,
+        log_prefix: "polyrun"
+      )
+        strategy = strategy.to_s
+        if timing_path
+          if strategy_explicit && strategy == "round_robin"
+            return [nil, strategy, nil]
+          end
+
+          costs = Polyrun::Partition::Plan.load_timing_costs(
+            File.expand_path(timing_path.to_s, Dir.pwd),
+            granularity: timing_granularity
+          )
+          if costs.empty?
+            Polyrun::Log.warn "#{log_prefix}: timing file missing or empty: #{timing_path}"
+            return [nil, nil, 2]
+          end
+          if Polyrun::Partition::Plan.timing_load_strategy?(strategy)
+            return [costs, strategy, nil]
+          end
+          unless strategy_explicit
+            Polyrun::Log.warn "#{log_prefix}: using cost_binpack (timing data present)" if @verbose
+            return [costs, "cost_binpack", nil]
+          end
+
+          [nil, strategy, nil]
+        elsif Polyrun::Partition::Plan.cost_strategy?(strategy) || Polyrun::Partition::Plan.lazy_robin_strategy?(strategy)
+          Polyrun::Log.warn "#{log_prefix}: --timing or partition.timing_file required for strategy #{strategy}"
+          [nil, nil, 2]
+        else
+          [nil, strategy, nil]
+        end
+      end
+
       # Per-worker wall clock (from spawn) for run-shards / ci-shard fan-out; unset or invalid means no limit.
       def env_worker_timeout_sec
         s = ENV["POLYRUN_WORKER_TIMEOUT_SEC"].to_s.strip

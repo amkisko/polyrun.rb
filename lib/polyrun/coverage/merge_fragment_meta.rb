@@ -4,7 +4,12 @@ module Polyrun
       module_function
 
       def merge_fragment_metas(docs)
-        metas = docs.map { |d| extract_doc_meta(d) }
+        merge_fragment_metas_from_metas(docs.map { |d| extract_doc_meta(d) })
+      end
+
+      def merge_fragment_metas_from_metas(metas)
+        return {} if metas.empty?
+
         base = metas.first.dup
         roots = metas.map { |m| m["polyrun_coverage_root"] }.compact
         grs = metas.map { |m| m["polyrun_coverage_groups"] }.compact
