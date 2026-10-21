@@ -28,9 +28,10 @@ module Polyrun
           end
           stale = cost_keys.reject { |k| item_keys_set.include?(k) }
         else
+          item_keys_set = item_keys.to_set
           known = item_keys.count { |k| costs&.key?(k) }
           missing = item_keys.reject { |k| costs&.key?(k) }
-          stale = cost_keys.reject { |k| item_keys.include?(k) }
+          stale = cost_keys.reject { |k| item_keys_set.include?(k) }
         end
         total = item_keys.size
 

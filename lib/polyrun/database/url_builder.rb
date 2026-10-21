@@ -48,7 +48,9 @@ module Polyrun
       end
 
       def template_prepare_env_shell_log(databases_hash)
-        template_prepare_env(databases_hash).sort.map { |k, v| "#{k}=#{Shellwords.escape(v.to_s)}" }.join(" ")
+        template_prepare_env(databases_hash).sort.map do |k, v|
+          "#{k}=#{Shellwords.escape(redact_url_userinfo_password(v.to_s))}"
+        end.join(" ")
       end
 
       def unique_template_migrate_urls(databases_hash)
@@ -120,10 +122,30 @@ module Polyrun
             dh["shard_db_pattern"] || dh[:shard_db_pattern]
           end
         pattern ||= "app_test_%{shard}"
+        validate_shard_db_pattern!(pattern)
 
         dbname = pattern.to_s.gsub("%{shard}", Integer(shard_index).to_s).gsub("%<shard>d", format("%d", Integer(shard_index)))
+        template_name = template_database_name_for(dh, connection: connection)
+        if !template_name.to_s.empty? && dbname == template_name.to_s
+          raise Polyrun::Error,
+            "databases.shard_db_pattern resolves to template_db #{template_name.inspect} for shard #{shard_index}"
+        end
         Connection.build_database_url(dbname, conn)
       end
+
+      def validate_shard_db_pattern!(pattern)
+        p = pattern.to_s
+        return if p.include?("%{shard}") || p.include?("%<shard>d")
+
+        raise Polyrun::Error, "databases.shard_db_pattern must include %{shard} or %<shard>d (got #{p.inspect})"
+      end
+      private_class_method :validate_shard_db_pattern!
+
+      def redact_url_userinfo_password(url)
+        s = url.to_s
+        s.sub(%r{\A([a-z][a-z0-9+.-]*://[^:/?#]+:)[^@/?#]+(@)}i, '\1***\2')
+      end
+      private_class_method :redact_url_userinfo_password
 
       def env_exports_for_databases(databases_hash, shard_index:)
         dh = databases_hash.is_a?(Hash) ? databases_hash : {}

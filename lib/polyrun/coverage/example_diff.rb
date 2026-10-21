@@ -131,14 +131,13 @@ module Polyrun
       end
 
       def collect_diff_paths(before_blob, after_blob, filter: nil)
-        keys = before_blob.keys.dup
-        after_blob.each_key do |path|
-          string_path = path.to_s
-          keys << string_path unless keys.include?(string_path)
-        end
-        return keys unless filter
+        keys = {}
+        before_blob.each_key { |path| keys[path.to_s] = true }
+        after_blob.each_key { |path| keys[path.to_s] = true }
+        list = keys.keys
+        return list unless filter
 
-        keys.select { |path| filter.include_path?(path) }
+        list.select { |path| filter.include_path?(path) }
       end
 
       def accumulate_line_delta(before_entry, after_lines)

@@ -104,6 +104,10 @@ module Polyrun
             w = Integer(head[i + 1], exception: false)
             workers = w if w && w >= 1
             i += 2
+          elsif head[i].start_with?("--workers=")
+            w = Integer(head[i].split("=", 2).last, exception: false)
+            workers = w if w && w >= 1
+            i += 1
           else
             i += 1
           end

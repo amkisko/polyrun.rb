@@ -39,25 +39,28 @@ module Polyrun
         batch_size = Integer(batch_size)
         raise Polyrun::Error, "batch_size must be >= 1" if batch_size < 1
 
-        lease_id = SecureRandom.uuid
+        lease_id = nil
         batch = []
         with_lock do
           meta = load_meta!
           batch = take_pending_batch!(meta, batch_size)
-          leases = read_leases
-          leases[lease_id] = {
-            "worker_id" => worker_id.to_s,
-            "paths" => batch,
-            "claimed_at" => Time.now.utc.iso8601
-          }
-          write_meta!(meta)
-          write_leases!(leases)
-          append_ledger(
-            "CLAIM" => lease_id,
-            "worker_id" => worker_id.to_s,
-            "paths" => batch,
-            "pending_remaining" => meta["pending_count"]
-          )
+          unless batch.empty?
+            lease_id = SecureRandom.uuid
+            leases = read_leases
+            leases[lease_id] = {
+              "worker_id" => worker_id.to_s,
+              "paths" => batch,
+              "claimed_at" => Time.now.utc.iso8601
+            }
+            write_meta!(meta)
+            write_leases!(leases)
+            append_ledger(
+              "CLAIM" => lease_id,
+              "worker_id" => worker_id.to_s,
+              "paths" => batch,
+              "pending_remaining" => meta["pending_count"]
+            )
+          end
         end
         {"lease_id" => lease_id, "paths" => batch}
       end

@@ -43,6 +43,14 @@ module Polyrun
         end.parse!(head)
 
         workers ||= env_int("POLYRUN_WORKERS", Polyrun::Config::DEFAULT_PARALLEL_WORKERS)
+        unless workers.is_a?(Integer) && workers.between?(1, Polyrun::Config::MAX_PARALLEL_WORKERS)
+          Polyrun::Log.warn "polyrun run-queue: --workers must be between 1 and #{Polyrun::Config::MAX_PARALLEL_WORKERS}"
+          return 2
+        end
+        unless batch.is_a?(Integer) && batch >= 1
+          Polyrun::Log.warn "polyrun run-queue: --batch must be >= 1"
+          return 2
+        end
         paths_file ||= pc["paths_file"] || pc[:paths_file]
         unless paths_file
           Polyrun::Log.warn "polyrun run-queue: need --paths-file or partition.paths_file"
@@ -87,7 +95,8 @@ module Polyrun
             result = Polyrun::Queue::WorkerLoop.run(
               store: store, worker_id: wid, batch: batch, cmd: cmd, on_failure: on_failure
             )
-            exit result[:exit_code]
+            # exit! skips parent at_exit hooks (Coverage finish, RSpec autorun) loaded in this process.
+            exit! result[:exit_code]
           end
           pids << {pid: pid, worker_id: wid}
         end

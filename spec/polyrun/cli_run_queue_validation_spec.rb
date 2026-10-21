@@ -28,5 +28,20 @@ RSpec.describe Polyrun::CLI do
         end
       end
     end
+
+    it "exits 2 when --workers is zero" do
+      Dir.mktmpdir do |dir|
+        with_chdir(dir) do
+          list = File.join(dir, "paths.txt")
+          File.write(list, "a.rb\n")
+          out, st = polyrun(
+            "run-queue", "--workers", "0", "--batch", "1", "--dir", ".rq",
+            "--paths-file", list, "--", "true"
+          )
+          expect(st.exitstatus).to eq(2)
+          expect(out).to include("--workers must be between")
+        end
+      end
+    end
   end
 end

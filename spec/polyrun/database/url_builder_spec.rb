@@ -154,4 +154,28 @@ RSpec.describe Polyrun::Database::UrlBuilder do
     expect(u).to eq("sqlite3:db/app_test_2.sqlite3")
     expect(described_class.extract_db_name(u)).to eq("db/app_test_2.sqlite3")
   end
+
+  it "rejects shard_db_pattern without a shard placeholder" do
+    bad = dh.merge("shard_db_pattern" => "app_fixed")
+    expect do
+      described_class.url_for_shard(bad, shard_index: 0)
+    end.to raise_error(Polyrun::Error, /must include %\{shard\}/)
+  end
+
+  it "rejects when resolved shard name equals template_db" do
+    bad = dh.merge("template_db" => "myapp_test_0")
+    expect do
+      described_class.url_for_shard(bad, shard_index: 0)
+    end.to raise_error(Polyrun::Error, /resolves to template_db/)
+  end
+
+  it "redacts password in template_prepare_env_shell_log" do
+    with_pw = dh.merge(
+      "postgresql" => {"host" => "localhost", "port" => "5432", "username" => "postgres", "password" => "s3cret"}
+    )
+    log = described_class.template_prepare_env_shell_log(with_pw)
+    expect(log).not_to include("s3cret")
+    expect(log).to include("postgres://postgres:")
+    expect(log).to include("@localhost:5432/app_tpl")
+  end
 end

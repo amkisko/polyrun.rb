@@ -60,8 +60,12 @@ module Polyrun
       end
 
       def dispatch_implicit_parallel_targets!(argv, config_path)
-        path_tokens = argv.select { |a| cli_implicit_path_token?(a) }
-        head = argv.reject { |a| cli_implicit_path_token?(a) }
+        # Only tokens before `--` are suite paths; everything from `--` onward is the worker command.
+        sep = argv.index("--")
+        before = sep ? argv[0...sep] : argv
+        after = sep ? argv[sep..] : []
+        path_tokens = before.select { |a| cli_implicit_path_token?(a) }
+        head = before.reject { |a| cli_implicit_path_token?(a) }
         expanded = expand_implicit_target_paths(path_tokens)
         if expanded.empty?
           Polyrun::Log.warn "polyrun: no files matched path arguments"
@@ -82,7 +86,8 @@ module Polyrun
         begin
           tmp.write(expanded.join("\n") + "\n")
           tmp.close
-          combined = head + ["--paths-file", tmp.path]
+          # Keep --paths-file before `--` so OptionParser sees it; after `--` it becomes a worker argv token.
+          combined = head + ["--paths-file", tmp.path] + after
           case suite
           when :rspec
             cmd_start(combined, config_path)

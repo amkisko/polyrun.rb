@@ -87,6 +87,15 @@ RSpec.describe Polyrun::SpecQuality::Report do
     expect(violations.join(" ")).to include("examples_below_minimum_unique_lines")
   end
 
+  it "gate_violations counts examples below minimum_unique_lines_per_example above zero" do
+    violations = described_class.gate_violations(
+      merged,
+      {"minimum_unique_lines_per_example" => 3}
+    )
+    # empty (0), slow (1), heavy (2) are all below 3
+    expect(violations.join(" ")).to match(/examples_below_minimum_unique_lines=3/)
+  end
+
   it "emit_warnings! logs churn rows" do
     expect(Polyrun::Log).to receive(:warn).with(include("spec/heavy_spec.rb:5"))
     described_class.emit_warnings!(merged, {"min_line_churn" => 50})

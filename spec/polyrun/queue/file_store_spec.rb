@@ -27,6 +27,8 @@ RSpec.describe Polyrun::Queue::FileStore do
       s.claim!(worker_id: "w1", batch_size: 5)
       r = s.claim!(worker_id: "w2", batch_size: 5)
       expect(r["paths"]).to eq([])
+      expect(r["lease_id"]).to be_nil
+      expect(s.status(detailed: true)["leases"]).to eq(1)
     end
   end
 

@@ -160,7 +160,9 @@ module Polyrun
 
         min_unique = cfg["minimum_unique_lines_per_example"]
         if min_unique
-          bad = analysis[:zero_hit].keys
+          threshold = min_unique.to_i
+          examples = merged["examples"] || {}
+          bad = examples.select { |_loc, row| row["unique_lines"].to_i < threshold }.keys
           if bad.size.positive?
             violations << "examples_below_minimum_unique_lines=#{bad.size} minimum=#{min_unique}"
           end

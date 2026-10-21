@@ -12,14 +12,19 @@ module Polyrun
     attr_reader :path, :raw
 
     def self.load(path: nil)
-      path = resolve_path(path)
+      explicit = path && !path.to_s.strip.empty?
+      resolved = resolve_path(path)
+      if explicit && !(resolved && File.file?(resolved))
+        raise Polyrun::Error, "polyrun config not found: #{path}"
+      end
+
       raw =
-        if path && File.file?(path)
-          YAML.safe_load_file(path, permitted_classes: [Symbol], aliases: true) || {}
+        if resolved && File.file?(resolved)
+          YAML.safe_load_file(resolved, permitted_classes: [Symbol], aliases: true) || {}
         else
           {}
         end
-      new(path: path, raw: raw)
+      new(path: resolved, raw: raw)
     end
 
     def self.resolve_path(explicit)

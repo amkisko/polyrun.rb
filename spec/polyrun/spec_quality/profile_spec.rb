@@ -26,6 +26,15 @@ RSpec.describe Polyrun::SpecQuality::Profile do
     expect(delta["gc_allocated"]).to eq(150)
   end
 
+  it "diff keeps non-positive cpu deltas and drops non-positive non-cpu deltas" do
+    before = {"cpu_user" => 2.0, "gc_heap_live" => 500, "gc_allocated" => 100}
+    after = {"cpu_user" => 1.5, "gc_heap_live" => 400, "gc_allocated" => 150}
+    delta = described_class.diff(before, after)
+    expect(delta["cpu_user"]).to eq(-0.5)
+    expect(delta["gc_allocated"]).to eq(50)
+    expect(delta).not_to have_key("gc_heap_live")
+  end
+
   it "slice_profile keeps only requested dimensions" do
     diff = {"wall" => 1.2, "cpu_user" => 0.1, "gc_allocated" => 50, "io_read_bytes" => 10}
     sliced = described_class.slice_profile(diff, %w[wall cpu mem])

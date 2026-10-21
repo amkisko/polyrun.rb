@@ -67,7 +67,7 @@ module Polyrun
         path = File.expand_path(path)
         return {} unless File.file?(path)
 
-        data = YAML.load_file(path)
+        data = YAML.safe_load_file(path, permitted_classes: [Symbol], aliases: true)
         data.is_a?(Hash) ? stringify_keys(data) : {}
       end
 

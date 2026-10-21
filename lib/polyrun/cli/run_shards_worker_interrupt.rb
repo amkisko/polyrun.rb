@@ -19,20 +19,20 @@ module Polyrun
       # Best-effort worker teardown then exit. Does not return.
       def run_shards_shutdown_on_signal!(pids, code)
         run_shards_log_interrupt_workers(pids, nil)
-        Polyrun::WorkerOutput.shutdown_all!
         run_shards_terminate_children!(pids)
         exit(code)
       rescue Interrupt
         run_shards_signal_workers_kill(pids)
         run_shards_reap_worker_pids_interruptible(pids.map { |h| h[:pid] })
+        Polyrun::WorkerOutput.shutdown_all!
         exit(code)
       end
 
-      # Send SIGTERM to each worker PID and wait so Ctrl+C / SIGTERM does not leave orphans.
+      # Signal workers first so pipe readers see EOF; join forwarders only after children exit.
       def run_shards_terminate_children!(pids)
-        Polyrun::WorkerOutput.shutdown_all!
         run_shards_signal_workers_term(pids)
         run_shards_reap_worker_pids_interruptible(pids.map { |h| h[:pid] })
+        Polyrun::WorkerOutput.shutdown_all!
       end
 
       def run_shards_signal_workers_term(pids)

@@ -53,9 +53,9 @@ RSpec.describe Polyrun::CLI::RunShardsWorkerInterrupt do
   end
 
   describe "#run_shards_shutdown_on_signal!" do
-    it "logs, shuts down worker output, and exits with the requested code" do
+    it "logs, terminates children (drain after TERM), and exits with the requested code" do
       expect(handler).to receive(:run_shards_log_interrupt_workers)
-      expect(Polyrun::WorkerOutput).to receive(:shutdown_all!)
+      # terminate_children! signals workers first, then WorkerOutput.shutdown_all!
       expect(handler).to receive(:run_shards_terminate_children!)
       allow(Kernel).to receive(:exit).with(130) { raise SystemExit, 130 }
       expect { handler.send(:run_shards_shutdown_on_signal!, [], 130) }.to raise_error(SystemExit)

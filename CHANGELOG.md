@@ -2,9 +2,20 @@
 
 ## Unreleased
 
+## 2.2.6 (2026-10-21)
+
 - Fix `polyrun start` auto database provision when `databases:` uses a non-Postgres adapter (`mysql2`, trilogy, …): skip CloneShards with a clear warning (or exit 1 if `start.databases: true`); keep `template_db` / `shard_db_pattern` for URL shaping.
 - Fail `db:clone-shards` / `db:setup-shard` before `psql` when the inferred adapter is not PostgreSQL.
 - Pass `postgresql:` host, port, username, and password from `polyrun.yml` into `psql` during shard provision (password via child `PGPASSWORD`).
+- Fix implicit path runs so tokens after `--` stay the worker command, and `--paths-file` is passed before `--`.
+- Accept `polyrun start --workers=N` (equals form) so shard DB provision matches worker count.
+- Reject `databases.shard_db_pattern` without `%{shard}` / `%<shard>d`, and refuse patterns that resolve to `template_db`.
+- Redact database passwords in `db:*` / CloneShards dry-run shell logs.
+- Raise when an explicit `-c` / `POLYRUN_CONFIG` path is missing; map `Polyrun::Error` to exit 2.
+- Validate `run-queue --workers` (1..max) and exit forked queue workers with `exit!`.
+- Fix SpecQuality `minimum_unique_lines_per_example` gate for thresholds above 1; keep only positive or CPU profile deltas.
+- Align file-granularity timing cost keys with realpath normalization so cost binpack hits under symlink roots.
+- TERM shard workers before draining routed worker output on SIGINT/SIGTERM; skip empty queue leases.
 
 ## 2.2.5 (2026-09-24)
 

@@ -41,7 +41,6 @@ module Polyrun
 
           delta = numeric(a) - numeric(b)
           out[k] = delta if delta.positive? || k.start_with?("cpu")
-          out[k] = delta
         end
         out
       end

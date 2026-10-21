@@ -108,6 +108,9 @@ module Polyrun
       )
 
       dispatch_cli_command(command, argv, config_path)
+    rescue Polyrun::Error => e
+      Polyrun::Log.warn "polyrun: #{e.message}"
+      2
     end
 
     private

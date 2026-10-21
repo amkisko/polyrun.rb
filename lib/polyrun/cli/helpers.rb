@@ -97,12 +97,7 @@ module Polyrun
       # {Partition::Plan#default_weight} semantics: mean of known timing costs for missing paths.
       def queue_weight_for(path, costs, default_weight = nil, granularity: :file)
         g = Polyrun::Partition::TimingKeys.normalize_granularity(granularity)
-        key =
-          if g == :example
-            Polyrun::Partition::TimingKeys.normalize_locator(path.to_s, Dir.pwd, :example)
-          else
-            File.expand_path(path.to_s, Dir.pwd)
-          end
+        key = Polyrun::Partition::TimingKeys.normalize_locator(path.to_s, Dir.pwd, g)
         return costs[key] if costs.key?(key)
 
         unless default_weight.nil?

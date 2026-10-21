@@ -249,5 +249,26 @@ RSpec.describe Polyrun::Partition::Plan do
       expect(plan.shard(0)).to include(sys_rel)
     end
   end
+
+  it "matches file-granularity timing costs when root path has a symlink segment" do
+    Dir.mktmpdir do |outer|
+      real = File.join(outer, "real")
+      FileUtils.mkdir_p(File.join(real, "spec"))
+      File.write(File.join(real, "spec", "a_spec.rb"), "")
+      link = File.join(outer, "link")
+      File.symlink(real, link)
+      timing = File.join(real, "timing.json")
+      File.write(timing, JSON.dump({"spec/a_spec.rb" => 4.5}))
+      costs = described_class.load_timing_costs(timing, granularity: :file, root: link)
+      plan = described_class.new(
+        items: %w[spec/a_spec.rb],
+        total_shards: 1,
+        strategy: "cost_binpack",
+        costs: costs,
+        root: link
+      )
+      expect(plan.shard_weight_totals).to eq([4.5])
+    end
+  end
 end
 # rubocop:enable Polyrun/FileLength

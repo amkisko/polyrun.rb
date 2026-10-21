@@ -110,11 +110,9 @@ module Polyrun
       end
 
       def default_weight
-        vals = @costs&.values || []
-        if vals.empty?
-          1.0
-        else
-          vals.sum / vals.size
+        @default_weight ||= begin
+          vals = @costs&.values || []
+          vals.empty? ? 1.0 : vals.sum / vals.size
         end
       end
 
@@ -193,13 +191,7 @@ module Polyrun
 
         out = {}
         map.each do |k, v|
-          key =
-            if @timing_granularity == :example
-              TimingKeys.normalize_locator(k.to_s, @root, :example)
-            else
-              File.expand_path(k.to_s, @root)
-            end
-          out[key] = Integer(v)
+          out[TimingKeys.normalize_locator(k.to_s, @root, @timing_granularity)] = Integer(v)
         end
         out
       end
@@ -209,13 +201,7 @@ module Polyrun
 
         c = {}
         costs.each do |k, v|
-          key =
-            if @timing_granularity == :example
-              TimingKeys.normalize_locator(k.to_s, @root, :example)
-            else
-              File.expand_path(k.to_s, @root)
-            end
-          c[key] = v.to_f
+          c[TimingKeys.normalize_locator(k.to_s, @root, @timing_granularity)] = v.to_f
         end
         c
       end
@@ -243,11 +229,7 @@ module Polyrun
       end
 
       def cost_lookup_key(path)
-        if @timing_granularity == :example
-          TimingKeys.normalize_locator(path, @root, :example)
-        else
-          File.expand_path(path, @root)
-        end
+        TimingKeys.normalize_locator(path, @root, @timing_granularity)
       end
 
       def cost_shards
