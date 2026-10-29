@@ -87,7 +87,7 @@ RSpec.describe Polyrun::CLI do
         expect(out).to include("parallel worker")
         expect(out).to include("pid=")
         expect(out).to include("interleaved")
-        expect(out).to include("not a total across shards")
+        expect(out).to include("RSpec summary counts apply to individual shards")
         expect(out).to include("merge-coverage")
         expect(out).to include("polyrun-fragment")
       end
