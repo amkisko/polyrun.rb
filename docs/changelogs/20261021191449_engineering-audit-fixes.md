@@ -1,5 +1,9 @@
 # Engineering audit fixes for 2.2.6
 
+## Participants
+
+Andrei Makarov (@amkisko)
+
 ## Decisions
 
 Ship the confirmed high-certainty fixes from the multi-model engineering audit; leave queue journal, lease heartbeat, and process-group work for follow-up.
@@ -17,7 +21,7 @@ Ship the confirmed high-certainty fixes from the multi-model engineering audit; 
 
 ## Next
 
-- Tag and publish 2.2.6 when the working tree is clean and `usr/bin/release.rb` checks pass.
+- Cut recorded in `docs/changelogs/20261029102014_release-2-2-6.md`. Push `main` and run `make release` for tag and RubyGems publish.
 - Follow-ups listed in docs/issues/20261021190812_engineering-audit-multi-model.md.
 
 ## Source

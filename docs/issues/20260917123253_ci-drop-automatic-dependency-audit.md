@@ -2,7 +2,7 @@ Trunk Check failed markdownlint MD013 on pray-managed AGENTS.md lines. Dependenc
 
 ## Participants
 
-- amkisko
+Andrei Makarov (@amkisko)
 
 ## Decisions
 

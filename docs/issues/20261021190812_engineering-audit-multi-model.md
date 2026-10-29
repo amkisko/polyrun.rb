@@ -1,5 +1,9 @@
 # Engineering audit (multi-model) for polyrun.rb
 
+## Participants
+
+Andrei Makarov (@amkisko)
+
 ## Decisions
 
 Confirm and ship smallest credible fixes for high-certainty correctness and operability bugs found by four parallel model audits (core CLI/database, concurrency/queue, hot-path/coverage, tests/ownership). Follow-up batch implements deferred queue durability, worker process groups, coverage merge/HTML, cost-loader dedupe, and collector finish public specs. Full CLI mixin command-object rewrite stays deferred (large ownership change, low immediate danger).
@@ -40,9 +44,9 @@ Still deferred:
 
 ## Next
 
-- Keep VERSION/CHANGELOG on 2.2.6 until tagged; include follow-up bullets in the 2.2.6 notes.
-- Tag and publish when the tree is clean and usr/bin/release.rb checks pass.
-- Revisit CLI command-object split only if mixin coupling blocks a concrete change.
+- Shipped in 2.2.6: first-pass audit fixes and deferred queue/worker/coverage batch; release prep lint splits and EOF guard.
+- Still open after 2.2.6: full CLI mixin command-object rewrite (optional; revisit only if mixin coupling blocks a concrete change).
+- Publish: push `main`, then `make release` (see `docs/changelogs/20261029102014_release-2-2-6.md`).
 
 ## Source
 

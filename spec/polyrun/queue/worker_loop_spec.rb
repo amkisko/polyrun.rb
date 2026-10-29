@@ -45,7 +45,7 @@ RSpec.describe Polyrun::Queue::WorkerLoop do
         store = Polyrun::Queue::FileStore.new(dir)
         store.init!(%w[ok.rb fail.rb])
         # Fail only when both paths are passed together; succeed on single-path re-runs for ok.rb.
-        script = <<~'RUBY'
+        script = <<~RUBY
           names = ARGV.map { |p| File.basename(p) }
           exit 1 if names.size > 1
           exit(names.any? { |n| n.include?("fail") } ? 1 : 0)

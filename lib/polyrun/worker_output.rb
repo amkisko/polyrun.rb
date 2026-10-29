@@ -78,7 +78,7 @@ module Polyrun
               pgroup: true
             )
           end
-      rescue StandardError
+      rescue
         [out_read, out_write, err_read, err_write].each do |io|
           io.close unless io.closed?
         rescue IOError

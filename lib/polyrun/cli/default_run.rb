@@ -60,12 +60,7 @@ module Polyrun
       end
 
       def dispatch_implicit_parallel_targets!(argv, config_path)
-        # Only tokens before `--` are suite paths; everything from `--` onward is the worker command.
-        sep = argv.index("--")
-        before = sep ? argv[0...sep] : argv
-        after = sep ? argv[sep..] : []
-        path_tokens = before.select { |a| cli_implicit_path_token?(a) }
-        head = before.reject { |a| cli_implicit_path_token?(a) }
+        path_tokens, head, after = split_implicit_arguments(argv)
         expanded = expand_implicit_target_paths(path_tokens)
         if expanded.empty?
           Polyrun::Log.warn "polyrun: no files matched path arguments"
@@ -106,6 +101,16 @@ module Polyrun
             # already removed
           end
         end
+      end
+
+      def split_implicit_arguments(argv)
+        # Only tokens before `--` are suite paths; everything from `--` onward is the worker command.
+        sep = argv.index("--")
+        before = sep ? argv[0...sep] : argv
+        after = sep ? argv[sep..] : []
+        path_tokens = before.select { |a| cli_implicit_path_token?(a) }
+        head = before.reject { |a| cli_implicit_path_token?(a) }
+        [path_tokens, head, after]
       end
 
       def expand_implicit_target_paths(path_tokens)

@@ -1,5 +1,9 @@
 # Suite selection vs paths_file
 
+## Participants
+
+Andrei Makarov (@amkisko)
+
 ## Decisions
 
 Bare `polyrun` resolves the parallel runner from `partition.suite` when set, else from `partition.paths_file` contents, else filesystem auto-detect (`spec/**/*_spec.rb` before `test/**/*_test.rb`, then Quick). `run-shards` exits 2 when path list and a recognizable RSpec/Minitest/Quick command disagree. `parallel-minitest` and `parallel-quick` are registered CLI subcommands.

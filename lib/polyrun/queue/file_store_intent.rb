@@ -144,7 +144,7 @@ module Polyrun
         return 3 if raw.empty?
 
         n = Integer(raw, exception: false)
-        n && n >= 1 ? n : 3
+        (n && n >= 1) ? n : 3
       end
 
       def path_attempts_path

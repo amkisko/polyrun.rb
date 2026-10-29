@@ -41,7 +41,6 @@ spec/polyrun/config_spec.rb
 spec/polyrun/coverage/cobertura_zero_lines_spec.rb
 spec/polyrun/coverage/collector_finish_in_process_spec.rb
 spec/polyrun/coverage/collector_finish_spec.rb
-spec/polyrun/coverage/collector_finish_unit_spec.rb
 spec/polyrun/coverage/collector_fragments_spec.rb
 spec/polyrun/coverage/collector_gate_spec.rb
 spec/polyrun/coverage/collector_spec.rb
@@ -94,6 +93,7 @@ spec/polyrun/prepare/artifacts_spec.rb
 spec/polyrun/prepare/assets_spec.rb
 spec/polyrun/process_stdio_spec.rb
 spec/polyrun/queue/duration_spec.rb
+spec/polyrun/queue/file_store_recovery_spec.rb
 spec/polyrun/queue/file_store_spec.rb
 spec/polyrun/queue/worker_loop_spec.rb
 spec/polyrun/quick/matchers_spec.rb
@@ -128,3 +128,4 @@ spec/polyrun/timing/summary_spec.rb
 spec/polyrun/timing/variance_report_spec.rb
 spec/polyrun/worker_output_spec.rb
 spec/polyrun/worker_ping_spec.rb
+spec/release_spec.rb

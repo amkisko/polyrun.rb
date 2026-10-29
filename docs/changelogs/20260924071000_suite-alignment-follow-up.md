@@ -1,5 +1,9 @@
 # Suite selection follow-up fixes
 
+## Participants
+
+Andrei Makarov (@amkisko)
+
 ## Decisions
 
 `parallel-minitest` and `parallel-quick` match `parallel-rspec`: run-shards plus merge-coverage only. Prepare and database bootstrap stay on `polyrun start` and bare `polyrun` default dispatch. Legacy `spec/spec_paths.txt` is skipped when `partition.suite` is `minitest` or `quick`. Suite inference strips `path:line` locators. Mixed path lists are rejected only when the command after `--` is a known single-suite runner. Command detection uses runner basenames (`bin/rails`) and compact `-Itest`.

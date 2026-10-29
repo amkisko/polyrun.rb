@@ -113,15 +113,7 @@ module Polyrun
       def url_for_shard(databases_hash, shard_index:, connection: nil)
         dh = databases_hash.is_a?(Hash) ? databases_hash : {}
         conn = Connection.resolve_connection(dh)
-        pattern =
-          if connection
-            conns = dh["connections"] || dh[:connections] || []
-            c = Array(conns).find { |x| (x["name"] || x[:name]).to_s == connection.to_s }
-            (c && (c["shard_db_pattern"] || c[:shard_db_pattern])) || dh["shard_db_pattern"]
-          else
-            dh["shard_db_pattern"] || dh[:shard_db_pattern]
-          end
-        pattern ||= "app_test_%{shard}"
+        pattern = shard_pattern(dh, connection)
         validate_shard_db_pattern!(pattern)
 
         dbname = pattern.to_s.gsub("%{shard}", Integer(shard_index).to_s).gsub("%<shard>d", format("%d", Integer(shard_index)))
@@ -132,6 +124,20 @@ module Polyrun
         end
         Connection.build_database_url(dbname, conn)
       end
+
+      def shard_pattern(dh, connection)
+        pattern =
+          if connection
+            conns = dh["connections"] || dh[:connections] || []
+            c = Array(conns).find { |x| (x["name"] || x[:name]).to_s == connection.to_s }
+            (c && (c["shard_db_pattern"] || c[:shard_db_pattern])) || dh["shard_db_pattern"]
+          else
+            dh["shard_db_pattern"] || dh[:shard_db_pattern]
+          end
+        pattern ||= "app_test_%{shard}"
+        pattern
+      end
+      private_class_method :shard_pattern
 
       def validate_shard_db_pattern!(pattern)
         p = pattern.to_s

@@ -16,8 +16,9 @@ module Polyrun
         item_keys = items.map { |p| lookup_key(p, root, g) }
         cost_keys = costs&.keys || []
 
+        item_keys_set = item_keys.to_set
+        stale = cost_keys.reject { |k| item_keys_set.include?(k) }
         if g == :example
-          item_keys_set = item_keys.to_set
           cost_keys_set = cost_keys.to_set
           cost_file_keys_set = cost_keys.map { |k| file_from_locator(k) }.uniq.to_set
           known = item_keys.count do |ik|
@@ -26,12 +27,9 @@ module Polyrun
           missing = item_keys.reject do |ik|
             cost_keys_set.include?(ik) || cost_file_keys_set.include?(file_from_locator(ik))
           end
-          stale = cost_keys.reject { |k| item_keys_set.include?(k) }
         else
-          item_keys_set = item_keys.to_set
           known = item_keys.count { |k| costs&.key?(k) }
           missing = item_keys.reject { |k| costs&.key?(k) }
-          stale = cost_keys.reject { |k| item_keys_set.include?(k) }
         end
         total = item_keys.size
 

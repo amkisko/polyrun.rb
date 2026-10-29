@@ -1,5 +1,9 @@
 # Non-Postgres databases: CloneShards on start
 
+## Participants
+
+Andrei Makarov (@amkisko)
+
 ## Decisions
 
 Skip auto CloneShards on polyrun start when the inferred databases adapter is not PostgreSQL, and warn that apps must provision shards themselves. Exit 1 when start.databases is explicitly true with a non-Postgres adapter. Fail db:clone-shards and db:setup-shard before psql with an explicit PostgreSQL-only error. Pass postgresql connection fields from polyrun.yml into Provision psql calls.

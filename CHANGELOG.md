@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 2.2.6 (2026-10-21)
+## 2.2.6 (2026-10-29)
 
 - Fix `polyrun start` auto database provision when `databases:` uses a non-Postgres adapter (`mysql2`, trilogy, …): skip CloneShards with a clear warning (or exit 1 if `start.databases: true`); keep `template_db` / `shard_db_pattern` for URL shaping.
 - Fail `db:clone-shards` / `db:setup-shard` before `psql` when the inferred adapter is not PostgreSQL.
@@ -20,6 +20,7 @@
 - On a failed `run-queue` batch, re-run paths one-by-one and ack successes so a poison path does not requeue neighbors.
 - Spawn shard workers in their own process group and signal the group on timeout/interrupt; abort already-started workers if a later spawn fails.
 - Cache coverage HTML ERB templates; fold merge fragments without retaining full JSON documents; share plan/run-shards timing cost resolution.
+- Clarify `run-shards` interleaved-output notice: RSpec summary counts apply to individual shards (no false per-worker total).
 
 ## 2.2.5 (2026-09-24)
 

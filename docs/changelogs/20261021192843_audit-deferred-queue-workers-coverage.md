@@ -1,5 +1,9 @@
 # Audit deferred follow-up: queue, workers, coverage
 
+## Participants
+
+Andrei Makarov (@amkisko)
+
 ## Decisions
 
 Implement the deferred items from docs/issues/20261021190812_engineering-audit-multi-model.md except the full CLI mixin command-object rewrite. Prefer smallest durable fixes (intent file, heartbeat age, isolate-on-failure, pgroup, ERB cache, shared cost helper).
@@ -14,8 +18,8 @@ Implement the deferred items from docs/issues/20261021190812_engineering-audit-m
 
 ## Next
 
-- Tag 2.2.6 when ready
-- CLI command-object split remains optional
+- Cut recorded in `docs/changelogs/20261029102014_release-2-2-6.md`. Push `main` and run `make release`.
+- CLI command-object split remains optional.
 
 ## Source
 

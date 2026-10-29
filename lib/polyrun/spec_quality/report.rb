@@ -158,6 +158,19 @@ module Polyrun
           violations << "zero_hit_examples=#{analysis[:zero_hit].size} max=#{max_zero}"
         end
 
+        violations.concat(minimum_unique_line_violations(merged, cfg))
+
+        max_hot = cfg["max_hot_line_overlap"]
+        if max_hot
+          over = analysis[:hot_lines].count { |_k, h| h["example_count"].to_i > max_hot.to_i }
+          violations << "hot_line_overlap_count=#{over} max=#{max_hot}" if over.positive?
+        end
+
+        violations
+      end
+
+      def minimum_unique_line_violations(merged, cfg)
+        violations = []
         min_unique = cfg["minimum_unique_lines_per_example"]
         if min_unique
           threshold = min_unique.to_i
@@ -166,12 +179,6 @@ module Polyrun
           if bad.size.positive?
             violations << "examples_below_minimum_unique_lines=#{bad.size} minimum=#{min_unique}"
           end
-        end
-
-        max_hot = cfg["max_hot_line_overlap"]
-        if max_hot
-          over = analysis[:hot_lines].count { |_k, h| h["example_count"].to_i > max_hot.to_i }
-          violations << "hot_line_overlap_count=#{over} max=#{max_hot}" if over.positive?
         end
 
         violations

@@ -127,7 +127,7 @@ module Polyrun
         return if Polyrun::WorkerOutput.routing_enabled?
 
         Polyrun::Log.warn "polyrun run-shards: #{pid_count} children running; RSpec output below may be interleaved."
-        Polyrun::Log.warn "polyrun run-shards: each worker prints its own summary line; the last \"N examples\" line is not a total across shards."
+        Polyrun::Log.warn "polyrun run-shards: RSpec summary counts apply to individual shards."
       end
 
       def run_shards_merge_or_hint_coverage(ctx)
