@@ -1,4 +1,5 @@
 spec/benchmark_profile_spec.rb
+spec/performance/benchmark_config_resolve_spec.rb
 spec/performance/benchmark_merge_spec.rb
 spec/performance/benchmark_spec.rb
 spec/performance/profiling_spec.rb
@@ -10,10 +11,14 @@ spec/polyrun/cli_ci_shard_in_process_spec.rb
 spec/polyrun/cli_ci_shard_rspec_spec.rb
 spec/polyrun/cli_ci_shard_run_spec.rb
 spec/polyrun/cli_config_spec.rb
+spec/polyrun/cli_coverage_config_spec.rb
 spec/polyrun/cli_database_spec.rb
 spec/polyrun/cli_default_run_spec.rb
+spec/polyrun/cli_doctor_spec.rb
 spec/polyrun/cli_env_spec.rb
 spec/polyrun/cli_hooks_spec.rb
+spec/polyrun/cli_init_prepare_task_spec.rb
+spec/polyrun/cli_init_rails_template_spec.rb
 spec/polyrun/cli_merge_coverage_spec.rb
 spec/polyrun/cli_merge_failures_spec.rb
 spec/polyrun/cli_parallel_rspec_start_spec.rb
@@ -30,13 +35,17 @@ spec/polyrun/cli_run_queue_validation_spec.rb
 spec/polyrun/cli_run_shards_coverage_workers_spec.rb
 spec/polyrun/cli_run_shards_worker_output_spec.rb
 spec/polyrun/cli_run_shards_worker_timeouts_spec.rb
+spec/polyrun/cli_skip_env_spec.rb
 spec/polyrun/cli_spec_quality_spec.rb
 spec/polyrun/cli_start_prepare_spec.rb
 spec/polyrun/cli_subcommand_registry_spec.rb
 spec/polyrun/cli_suite_alignment_spec.rb
+spec/polyrun/cli_suite_spec.rb
+spec/polyrun/cli_validate_spec.rb
 spec/polyrun/config/dotted_path_spec.rb
 spec/polyrun/config/effective_spec.rb
 spec/polyrun/config/resolver_spec.rb
+spec/polyrun/config/suite_spec.rb
 spec/polyrun/config_spec.rb
 spec/polyrun/coverage/cobertura_zero_lines_spec.rb
 spec/polyrun/coverage/collector_finish_in_process_spec.rb
@@ -44,6 +53,7 @@ spec/polyrun/coverage/collector_finish_spec.rb
 spec/polyrun/coverage/collector_fragments_spec.rb
 spec/polyrun/coverage/collector_gate_spec.rb
 spec/polyrun/coverage/collector_spec.rb
+spec/polyrun/coverage/config_resolve_spec.rb
 spec/polyrun/coverage/example_diff_spec.rb
 spec/polyrun/coverage/file_stats_report_spec.rb
 spec/polyrun/coverage/filter_spec.rb
