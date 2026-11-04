@@ -17,6 +17,7 @@ Ship host-glue DX contracts in two passes: first coverage resolve, YAML workers,
 - Canonical skip env: `POLYRUN_SKIP_PREPARE` / `POLYRUN_SKIP_DATABASES`; legacy `POLYRUN_START_SKIP_*` still works with a deprecation warning.
 - `polyrun init --profile rails-prepare-task` writes `lib/tasks/polyrun_prepare.rake`.
 - Benchmark (reps=2000, Ruby 4.0.2): Effective.build ~0.014ms/op; ConfigResolve file ~0.11ms/op; inline ~0.076ms/op; Suite.merge ~0.006ms/op.
+- Cut into 2.2.8.
 
 ## Next
 

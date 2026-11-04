@@ -1,10 +1,11 @@
 # CHANGELOG
 
-## Unreleased
+## 2.2.8 (2026-11-04)
 
 - Honor top-level `workers:` in `polyrun.yml` when `POLYRUN_WORKERS` is unset (CLI / `polyrun config workers` / Effective).
 - Resolve coverage settings from `config/polyrun_coverage.yml` when present, else inline `coverage:` in `polyrun.yml`; map `formats` / directory `output_path` to report keys.
-- Add `polyrun validate` for unknown top-level keys.
+- Apply selected suite and explicit `-c` / `POLYRUN_CONFIG` to coverage collection, merge gate, and `polyrun doctor`.
+- Add `polyrun validate` for unknown top-level keys and non-mapping YAML roots.
 - Align Rails `polyrun init` template with live host shape (`version`, `start`, empty `hooks`, `merge_failures` commentary).
 - Add named `suites:` overlays selected with `--suite` / `POLYRUN_SUITE` (partition membership, workers, and related top-level merges).
 - Add `polyrun doctor` for effective config summary (file, suite, start gates, DB adapter/shards, coverage source).

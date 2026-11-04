@@ -24,7 +24,7 @@ Audit modes run: contracts, resource and budget (config resolve / Effective.buil
 
 - Engine-with-dummy init profile; optional `polyrun.<name>.yml` auto-discovery; nested `polyrun help debug`.
 
-Done: coverage resolve, YAML workers, rails init shape, `polyrun validate`, named `suites:` / `--suite`, `polyrun doctor`, `rails-prepare-task` init profile, skip-env collapse (`POLYRUN_SKIP_*` canonical). Benchmarks under `tmp/benchmarks/`.
+Done: coverage resolve, YAML workers, rails init shape, `polyrun validate`, named `suites:` / `--suite`, `polyrun doctor`, `rails-prepare-task` init profile, skip-env collapse (`POLYRUN_SKIP_*` canonical). Benchmarks under `tmp/benchmarks/`. Cut into 2.2.8 (`docs/changelogs/20261104181846_release-2-2-8.md`).
 
 ## Source
 
