@@ -89,24 +89,10 @@ module Polyrun
         [abs]
       end
 
-      # Same rounding/strict semantics as {Polyrun::Coverage::Collector} for +config/polyrun_coverage.yml+.
-      def coverage_minimum_line_gate_from_polyrun_coverage_yml
-        path = File.join(Dir.pwd, "config", "polyrun_coverage.yml")
-        return nil unless File.file?(path)
-
-        data = YAML.safe_load_file(path, permitted_classes: [Symbol], aliases: true)
-        return nil unless data.is_a?(Hash)
-
-        min = data["minimum_line_percent"] || data[:minimum_line_percent]
-        return nil if min.nil?
-
-        sv = data["strict"] if data.key?("strict")
-        sv = data[:strict] if !data.key?("strict") && data.key?(:strict)
-        strict = sv.nil? || sv
-
-        {minimum: min.to_f, strict: strict != false}
-      rescue Psych::SyntaxError, ArgumentError, TypeError
-        nil
+      # Same rounding/strict semantics as {Polyrun::Coverage::Collector}; see {Coverage::ConfigResolve}.
+      def coverage_minimum_line_gate_from_polyrun_coverage_yml(config_path: nil)
+        require_relative "../coverage/config_resolve"
+        Polyrun::Coverage::ConfigResolve.minimum_line_gate(root: Dir.pwd, polyrun_config_path: config_path)
       end
 
       def load_partition_constraints(pc, constraints_path)

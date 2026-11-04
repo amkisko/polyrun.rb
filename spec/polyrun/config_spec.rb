@@ -32,4 +32,32 @@ RSpec.describe Polyrun::Config do
       expect(c.prepare["recipe"]).to eq("default")
     end
   end
+
+  describe ".load with suite" do
+    it "applies --suite / POLYRUN_SUITE overlay from YAML" do
+      Dir.mktmpdir do |dir|
+        with_chdir(dir) do
+          File.write("polyrun.yml", <<~YAML)
+            workers: 5
+            partition:
+              shard_total: 8
+              paths_build:
+                all_glob: spec/**/*_spec.rb
+            suites:
+              system:
+                workers: 3
+                partition:
+                  shard_total: 1
+                  paths_build:
+                    all_glob: spec/system/**/*_spec.rb
+          YAML
+          cfg = described_class.load(suite: "system")
+          expect(cfg.suite).to eq("system")
+          expect(cfg.raw["workers"]).to eq(3)
+          expect(cfg.partition["shard_total"]).to eq(1)
+          expect(cfg.partition.dig("paths_build", "all_glob")).to eq("spec/system/**/*_spec.rb")
+        end
+      end
+    end
+  end
 end

@@ -8,8 +8,8 @@ module Polyrun
       private
 
       # @return [:fail, Integer] | [:ok, Hash, Array<String>]
-      def run_shards_plan_phase_a(head, cmd, pc)
-        o = run_shards_plan_options(head, pc)
+      def run_shards_plan_phase_a(head, cmd, pc, cfg = nil)
+        o = run_shards_plan_options(head, pc, cfg: cfg)
         code = Polyrun::Partition::PathsBuild.apply!(partition: pc, cwd: Dir.pwd)
         return [:fail, code] if code != 0
 

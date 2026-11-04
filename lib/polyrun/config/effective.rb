@@ -49,7 +49,8 @@ module Polyrun
           )
           base["partition"] = part
 
-          base["workers"] = r.parallel_worker_count_default(env)
+          base["workers"] = r.parallel_worker_count(cfg, env)
+          base["suite"] = cfg.suite if cfg.respond_to?(:suite) && cfg.suite
 
           base
         end

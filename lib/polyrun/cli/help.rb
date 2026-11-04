@@ -9,6 +9,7 @@ module Polyrun
 
           global:
             -c, --config PATH    polyrun.yml path (or POLYRUN_CONFIG)
+            --suite NAME         apply suites.NAME overlay from polyrun.yml (or POLYRUN_SUITE)
             -v, --verbose
             -h, --help
 
@@ -18,11 +19,13 @@ module Polyrun
           Hooks shell output: POLYRUN_HOOKS_VERBOSE=1 or -v / POLYRUN_VERBOSE=1 (or DEBUG); failures always print
           Merge profiling (stderr): POLYRUN_PROFILE_MERGE=1 (or verbose / DEBUG)
           Post-merge formats (run-shards): POLYRUN_MERGE_FORMATS (default: json,lcov,cobertura,console,html,csv,markdown)
-          Start skips: POLYRUN_SKIP_BUILD_SPEC_PATHS=1, POLYRUN_START_SKIP_PREPARE=1, POLYRUN_START_SKIP_DATABASES=1
+          Start skips: POLYRUN_SKIP_PREPARE=1, POLYRUN_SKIP_DATABASES=1 (legacy aliases: POLYRUN_START_SKIP_PREPARE, POLYRUN_START_SKIP_DATABASES); POLYRUN_SKIP_BUILD_SPEC_PATHS=1
           Paths build skip: POLYRUN_SKIP_PATHS_BUILD=1
+          Named suite: --suite NAME or POLYRUN_SUITE (see suites: in polyrun.yml)
           Slow merge warning (seconds, default 10; 0 disables): POLYRUN_MERGE_SLOW_WARN_SECONDS
           Failure merge: run-shards --merge-failures (enable failure fragments in test setup); POLYRUN_MERGE_FAILURES=1, POLYRUN_FAILURE_FRAGMENT_DIR, POLYRUN_MERGED_FAILURES_OUT
-          Parallel workers: POLYRUN_WORKERS default 5, max 10 (run-shards / parallel-rspec / start). CI local processes per job: POLYRUN_SHARD_PROCESSES or ci-shard --shard-processes (not POLYRUN_WORKERS)
+          Parallel workers: POLYRUN_WORKERS, else top-level workers: in polyrun.yml, else default 5, max 10 (run-shards / parallel-rspec / start). CI local processes per job: POLYRUN_SHARD_PROCESSES or ci-shard --shard-processes (not POLYRUN_WORKERS)
+          Coverage config: config/polyrun_coverage.yml overlays inline coverage: in polyrun.yml (formats -> report_formats; directory output_path -> report_output_dir)
           Per-worker wall timeout: --worker-timeout SEC or POLYRUN_WORKER_TIMEOUT_SEC. Exit 124; parent stops remaining workers.
           Per-worker idle timeout: --worker-idle-timeout SEC or POLYRUN_WORKER_IDLE_TIMEOUT_SEC after a progress ping (POLYRUN_WORKER_PING_FILE). Enable pings in test setup. Exit 125. Optional periodic pings: POLYRUN_WORKER_PING_THREAD=1 (POLYRUN_WORKER_PING_INTERVAL_SEC).
           Worker output routing (opt-in): POLYRUN_WORKER_OUTPUT_ROUTING=1 or POLYRUN_WORKER_LOG_DIR; per-shard logs under tmp/polyrun/workers (POLYRUN_WORKER_OUTPUT_PREFIX=0 for log-only)
@@ -61,6 +64,8 @@ module Polyrun
             merge-spec-quality   merge polyrun-spec-quality-fragment-*.jsonl shards
             report-spec-quality  spec quality report from merged JSON (text/json/csv/markdown)
             config               print effective config by dotted path (loaded YAML plus merged prepare.env, resolved partition shard fields, workers)
+            validate             check polyrun.yml top-level keys (unknown keys exit 1)
+            doctor               print effective config summary (file, suite, start gates, DBs, coverage)
             env                  print shard + database env (see polyrun.yml databases)
             db:setup-template    migrate template DB (PostgreSQL)
             db:setup-shard       CREATE DATABASE shard FROM template (one POLYRUN_SHARD_INDEX)

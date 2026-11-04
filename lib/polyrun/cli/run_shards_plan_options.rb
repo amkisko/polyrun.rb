@@ -5,17 +5,17 @@ module Polyrun
     module RunShardsPlanOptions
       private
 
-      def run_shards_plan_options(head, pc)
-        st = run_shards_plan_options_state(pc)
+      def run_shards_plan_options(head, pc, cfg: nil)
+        st = run_shards_plan_options_state(pc, cfg: cfg)
         run_shards_plan_options_parse!(head, st)
         st[:paths_file] ||= pc["paths_file"] || pc[:paths_file]
         st[:timing_granularity] = resolve_partition_timing_granularity(pc, st[:timing_granularity])
         st
       end
 
-      def run_shards_plan_options_state(pc)
+      def run_shards_plan_options_state(pc, cfg: nil)
         {
-          workers: env_int("POLYRUN_WORKERS", Polyrun::Config::DEFAULT_PARALLEL_WORKERS),
+          workers: Polyrun::Config::Resolver.parallel_worker_count(cfg),
           paths_file: nil,
           strategy: (pc["strategy"] || pc[:strategy] || "round_robin").to_s,
           strategy_explicit: !!(pc["strategy"] || pc[:strategy]),

@@ -9,9 +9,9 @@ module Polyrun
     DEFAULT_PARALLEL_WORKERS = 5
     MAX_PARALLEL_WORKERS = 10
 
-    attr_reader :path, :raw
+    attr_reader :path, :raw, :suite
 
-    def self.load(path: nil)
+    def self.load(path: nil, suite: nil)
       explicit = path && !path.to_s.strip.empty?
       resolved = resolve_path(path)
       if explicit && !(resolved && File.file?(resolved))
@@ -20,11 +20,16 @@ module Polyrun
 
       raw =
         if resolved && File.file?(resolved)
-          YAML.safe_load_file(resolved, permitted_classes: [Symbol], aliases: true) || {}
+          YAML.safe_load_file(resolved, permitted_classes: [Symbol], aliases: true)
         else
           {}
         end
-      new(path: resolved, raw: raw)
+      raw = {} if raw.nil?
+      raise Polyrun::Error, "polyrun config root must be a mapping" unless raw.is_a?(Hash)
+
+      suite_name = (suite.nil? || suite.to_s.strip.empty?) ? ENV["POLYRUN_SUITE"] : suite
+      merged, applied = Suite.merge(raw, suite_name)
+      new(path: resolved, raw: merged, suite: applied)
     end
 
     def self.resolve_path(explicit)
@@ -37,8 +42,9 @@ module Polyrun
       nil
     end
 
-    def initialize(path:, raw:)
+    def initialize(path:, raw:, suite: nil)
       @path = path
+      @suite = suite
       @raw = raw.freeze
     end
 
@@ -76,8 +82,14 @@ module Polyrun
     def reporting
       raw["reporting"] || raw[:reporting] || {}
     end
+
+    def suites
+      raw["suites"] || raw[:suites] || {}
+    end
   end
 end
 
+require_relative "config/suite"
 require_relative "config/resolver"
 require_relative "config/effective"
+require_relative "config/schema"

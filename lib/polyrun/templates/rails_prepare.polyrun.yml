@@ -3,6 +3,8 @@
 # Gate per-worker duplicate work in application code when POLYRUN_SHARD_TOTAL > 1.
 # See: docs/SETUP_PROFILE.md
 
+version: 1
+
 partition:
   paths_file: spec/spec_paths.txt
   shard_total: 5
@@ -17,8 +19,19 @@ prepare:
   rails_root: .
   command: bundle exec ruby bin/test_prepare.rb
 
+start:
+  prepare: true
+  databases: true
+
+# Optional suite hooks (uncomment and set commands):
+# hooks:
+#   before_suite: bundle exec ruby script/polyrun_before_suite.rb
+#   after_suite: bundle exec ruby script/polyrun_after_suite.rb
+hooks: {}
+
 # Optional reporting (see docs/SPEC_QUALITY.md):
 # reporting:
+#   merge_failures: true
 #   merge_spec_quality: true
 #   merge_spec_quality_output: coverage/polyrun-spec-quality.json
 

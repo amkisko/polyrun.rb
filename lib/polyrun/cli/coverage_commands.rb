@@ -100,7 +100,7 @@ module Polyrun
         code = merge_coverage_after_shards_run_merge(files, output, format_list, config_path)
         return code unless code == 0
 
-        merge_coverage_after_shards_strict_gate(output, code)
+        merge_coverage_after_shards_strict_gate(output, code, config_path: config_path)
       rescue JSON::ParserError => e
         Polyrun::Log.warn "polyrun run-shards: merged coverage JSON parse failed: #{e.message}"
         1
@@ -126,8 +126,8 @@ module Polyrun
         end
       end
 
-      def merge_coverage_after_shards_strict_gate(output, code)
-        gate = coverage_minimum_line_gate_from_polyrun_coverage_yml
+      def merge_coverage_after_shards_strict_gate(output, code, config_path: nil)
+        gate = coverage_minimum_line_gate_from_polyrun_coverage_yml(config_path: config_path)
         Polyrun::Debug.log_kv(
           coverage_gate_config: "polyrun_coverage.yml",
           gate: gate.inspect

@@ -37,6 +37,23 @@ RSpec.describe Polyrun::Config::Resolver do
     end
   end
 
+  describe ".parallel_worker_count" do
+    it "uses YAML workers when env is unset" do
+      cfg = Polyrun::Config.new(path: nil, raw: {"workers" => 9})
+      expect(described_class.parallel_worker_count(cfg, {})).to eq(9)
+    end
+
+    it "prefers POLYRUN_WORKERS over YAML" do
+      cfg = Polyrun::Config.new(path: nil, raw: {"workers" => 9})
+      expect(described_class.parallel_worker_count(cfg, {"POLYRUN_WORKERS" => "4"})).to eq(4)
+    end
+
+    it "falls back to default when YAML workers is missing" do
+      cfg = Polyrun::Config.new(path: nil, raw: {})
+      expect(described_class.parallel_worker_count(cfg, {})).to eq(Polyrun::Config::DEFAULT_PARALLEL_WORKERS)
+    end
+  end
+
   describe ".resolve_shard_processes" do
     it "uses POLYRUN_SHARD_PROCESSES when set" do
       pc = {"shard_processes" => 9}

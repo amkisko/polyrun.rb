@@ -42,7 +42,7 @@ module Polyrun
           plan_command_register_partition_options!(opts, ctx)
         end.parse!(head)
 
-        workers ||= env_int("POLYRUN_WORKERS", Polyrun::Config::DEFAULT_PARALLEL_WORKERS)
+        workers ||= Polyrun::Config::Resolver.parallel_worker_count(cfg)
         unless workers.is_a?(Integer) && workers.between?(1, Polyrun::Config::MAX_PARALLEL_WORKERS)
           Polyrun::Log.warn "polyrun run-queue: --workers must be between 1 and #{Polyrun::Config::MAX_PARALLEL_WORKERS}"
           return 2

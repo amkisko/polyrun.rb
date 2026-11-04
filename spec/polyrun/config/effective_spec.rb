@@ -29,6 +29,32 @@ RSpec.describe Polyrun::Config::Effective do
         end
       end
     end
+
+    it "honors top-level YAML workers when POLYRUN_WORKERS is unset" do
+      Dir.mktmpdir do |dir|
+        with_chdir(dir) do
+          File.write("polyrun.yml", <<~YAML)
+            workers: 8
+            partition:
+              shard_total: 2
+          YAML
+          cfg = Polyrun::Config.load(path: File.join(dir, "polyrun.yml"))
+          h = described_class.build(cfg, env: {})
+          expect(h["workers"]).to eq(8)
+        end
+      end
+    end
+
+    it "lets POLYRUN_WORKERS override YAML workers" do
+      Dir.mktmpdir do |dir|
+        with_chdir(dir) do
+          File.write("polyrun.yml", "workers: 8\n")
+          cfg = Polyrun::Config.load(path: File.join(dir, "polyrun.yml"))
+          h = described_class.build(cfg, env: {"POLYRUN_WORKERS" => "2"})
+          expect(h["workers"]).to eq(2)
+        end
+      end
+    end
   end
 
   describe ".dig" do

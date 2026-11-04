@@ -7,6 +7,7 @@ module Polyrun
       INIT_PROFILES = {
         "gem" => "minimal_gem.polyrun.yml",
         "rails" => "rails_prepare.polyrun.yml",
+        "rails-prepare-task" => "rails_prepare_task.rake",
         "ci-matrix" => "ci_matrix.polyrun.yml",
         "spec-quality" => "polyrun_spec_quality.yml",
         "doc" => "POLYRUN.md"
@@ -98,6 +99,7 @@ module Polyrun
         case profile
         when "doc" then "POLYRUN.md"
         when "spec-quality" then "config/polyrun_spec_quality.yml"
+        when "rails-prepare-task" then "lib/tasks/polyrun_prepare.rake"
         else "polyrun.yml"
         end
       end

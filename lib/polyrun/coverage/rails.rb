@@ -2,13 +2,15 @@ require "yaml"
 
 require_relative "collector"
 require_relative "formatter"
+require_relative "config_resolve"
 
 module Polyrun
   module Coverage
-    # Rails integration entry point for {Collector.start!}: optional +config/polyrun_coverage.yml+ under the project
-    # root, root inference from +spec_helper.rb+ / +rails_helper.rb+ / +test_helper.rb+, and +report_formats+ for
-    # {Formatter.multi}. Call at the **top** of +spec/spec_helper.rb+ (before +require "rails"+) so stdlib
-    # +Coverage+ sees application code.
+    # Rails integration entry point for {Collector.start!}: coverage settings from
+    # +config/polyrun_coverage.yml+ and/or inline +coverage:+ in +polyrun.yml+ (see {ConfigResolve}),
+    # root inference from +spec_helper.rb+ / +rails_helper.rb+ / +test_helper.rb+, and +report_formats+
+    # for {Formatter.multi}. Call at the **top** of +spec/spec_helper.rb+ (before +require "rails"+) so
+    # stdlib +Coverage+ sees application code.
     #
     #   require "polyrun/coverage/rails"
     #   Polyrun::Coverage::Rails.start!
@@ -16,10 +18,10 @@ module Polyrun
     module Rails
       module_function
 
-      DEFAULT_CONFIG_RELATIVE = File.join("config", "polyrun_coverage.yml").freeze
+      DEFAULT_CONFIG_RELATIVE = ConfigResolve::DEFAULT_FILE
 
       # @param root [String, nil] project root (default: infer from caller, or +Rails.root+ when already loaded)
-      # @param config_path [String, nil] YAML path (default: +<root>/config/polyrun_coverage.yml+ if present)
+      # @param config_path [String, nil] YAML path (default: resolve via {ConfigResolve})
       # @param overrides [Hash] merged over YAML; keys match {Collector.start!} (+report_formats+ builds +formatter+)
       def start!(root: nil, config_path: nil, **overrides)
         return if Collector.disabled?
@@ -29,6 +31,7 @@ module Polyrun
         cfg = load_config(root, config_path)
         merged = deep_merge_hashes(cfg, stringify_keys(overrides))
         merged["root"] = root
+        ConfigResolve::META_KEYS.each { |k| merged.delete(k) }
 
         report_formats = merged.delete("report_formats")
         unless merged.key?("formatter") || report_formats.nil?
@@ -63,12 +66,7 @@ module Polyrun
       end
 
       def load_config(root, config_path)
-        path = config_path || File.join(root, DEFAULT_CONFIG_RELATIVE)
-        path = File.expand_path(path)
-        return {} unless File.file?(path)
-
-        data = YAML.safe_load_file(path, permitted_classes: [Symbol], aliases: true)
-        data.is_a?(Hash) ? stringify_keys(data) : {}
+        ConfigResolve.load(root: root, config_path: config_path)
       end
 
       def build_formatter(formats, root, merged)

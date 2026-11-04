@@ -34,6 +34,12 @@ RSpec.configure do |config|
     ENV.delete("POLYRUN_SHARD_INDEX")
     ENV.delete("POLYRUN_SHARD_TOTAL")
     ENV.delete("POLYRUN_SHARD_PROCESSES")
+    ENV.delete("POLYRUN_SUITE")
+    ENV.delete("POLYRUN_SKIP_PREPARE")
+    ENV.delete("POLYRUN_SKIP_DATABASES")
+    ENV.delete("POLYRUN_START_SKIP_PREPARE")
+    ENV.delete("POLYRUN_START_SKIP_DATABASES")
+
     # So partition shard_index/total resolve from YAML in tests, not the host CI runner.
     ENV.delete("CI_NODE_INDEX")
     ENV.delete("CI_NODE_TOTAL")

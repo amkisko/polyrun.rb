@@ -1,4 +1,4 @@
-# rubocop:disable Polyrun/FileLength -- CLI dispatch + require wiring
+# rubocop:disable Polyrun/FileLength, Metrics/ClassLength -- CLI dispatch + require wiring
 require "optparse"
 
 require_relative "cli/helpers"
@@ -20,6 +20,8 @@ require_relative "cli/quick_command"
 require_relative "cli/ci_shard_run_parse"
 require_relative "cli/ci_shard_run_command"
 require_relative "cli/config_command"
+require_relative "cli/validate_command"
+require_relative "cli/doctor_command"
 require_relative "cli/default_run"
 require_relative "cli/hooks_command"
 require_relative "cli/help"
@@ -35,7 +37,7 @@ module Polyrun
     DISPATCH_SUBCOMMAND_NAMES = %w[
       plan prepare merge-coverage merge-failures merge-spec-quality report-coverage report-junit report-timing report-spec-quality report-benchmark bench
       env config merge-timing db:setup-template db:setup-shard db:clone-shards
-      run-shards parallel-rspec parallel-minitest parallel-quick start build-paths init queue run-queue quick hook
+      run-shards parallel-rspec parallel-minitest parallel-quick start build-paths init queue run-queue quick hook validate doctor
     ].freeze
 
     # First argv token that is a normal subcommand (not a path); if argv[0] is not here but looks like paths, run implicit parallel.
@@ -62,6 +64,8 @@ module Polyrun
     include CiShardRunParse
     include CiShardRunCommand
     include ConfigCommand
+    include ValidateCommand
+    include DoctorCommand
     include DefaultRun
     include HooksCommand
     include Help
@@ -71,9 +75,13 @@ module Polyrun
     end
 
     def run(argv)
+      original_suite = ENV["POLYRUN_SUITE"]
+      original_config = ENV["POLYRUN_CONFIG"]
       argv = argv.dup
       config_path = parse_global_cli!(argv)
       return config_path if config_path.is_a?(Integer)
+
+      ENV["POLYRUN_CONFIG"] = File.expand_path(config_path) if config_path
 
       if argv.empty?
         Polyrun::Debug.log_kv(
@@ -111,6 +119,9 @@ module Polyrun
     rescue Polyrun::Error => e
       Polyrun::Log.warn "polyrun: #{e.message}"
       2
+    ensure
+      ENV["POLYRUN_SUITE"] = original_suite
+      ENV["POLYRUN_CONFIG"] = original_config
     end
 
     private
@@ -123,6 +134,18 @@ module Polyrun
         when "-c", "--config"
           argv.shift
           config_path = argv.shift or break
+        when "--suite"
+          argv.shift
+          name = argv.shift
+          raise Polyrun::Error, "--suite requires a name" if name.nil? || name.strip.empty? || name.start_with?("-")
+
+          ENV["POLYRUN_SUITE"] = name
+        when /\A--suite=(.*)\z/
+          name = Regexp.last_match(1)
+          raise Polyrun::Error, "--suite requires a name" if name.strip.empty?
+
+          ENV["POLYRUN_SUITE"] = name
+          argv.shift
         when "-v", "--verbose"
           @verbose = true
           ENV["POLYRUN_VERBOSE"] = "1"
@@ -170,6 +193,10 @@ module Polyrun
         cmd_env(argv, config_path)
       when "config"
         cmd_config(argv, config_path)
+      when "validate"
+        cmd_validate(argv, config_path)
+      when "doctor"
+        cmd_doctor(argv, config_path)
       when "merge-timing"
         cmd_merge_timing(argv)
       when "merge-spec-quality"
@@ -223,4 +250,4 @@ module Polyrun
     end
   end
 end
-# rubocop:enable Polyrun/FileLength
+# rubocop:enable Polyrun/FileLength, Metrics/ClassLength

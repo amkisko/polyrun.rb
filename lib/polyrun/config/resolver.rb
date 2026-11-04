@@ -73,6 +73,33 @@ module Polyrun
       def parallel_worker_count_default(env = ENV)
         env_int("POLYRUN_WORKERS", Polyrun::Config::DEFAULT_PARALLEL_WORKERS, env)
       end
+
+      # +POLYRUN_WORKERS+ then top-level YAML +workers:+ then {Config::DEFAULT_PARALLEL_WORKERS}.
+      def parallel_worker_count(cfg = nil, env = ENV)
+        s = env["POLYRUN_WORKERS"]
+        unless s.nil? || s.empty?
+          i = Integer(s, exception: false)
+          return i unless i.nil?
+        end
+
+        yaml_workers = yaml_top_level_workers(cfg)
+        return yaml_workers unless yaml_workers.nil?
+
+        Polyrun::Config::DEFAULT_PARALLEL_WORKERS
+      end
+
+      def yaml_top_level_workers(cfg)
+        return nil unless cfg
+
+        raw = cfg.respond_to?(:raw) ? cfg.raw : cfg
+        return nil unless raw.is_a?(Hash)
+
+        v = raw["workers"] || raw[:workers]
+        return nil if v.nil? || v.to_s.empty?
+
+        Integer(v, exception: false)
+      end
+      private_class_method :yaml_top_level_workers
     end
   end
 end

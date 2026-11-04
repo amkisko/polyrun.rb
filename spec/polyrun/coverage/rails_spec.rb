@@ -63,5 +63,25 @@ RSpec.describe Polyrun::Coverage::Rails do
         )
       end
     end
+
+    it "loads inline coverage from polyrun.yml when coverage file is absent" do
+      Dir.mktmpdir do |dir|
+        File.write(File.join(dir, "polyrun.yml"), <<~YAML)
+          coverage:
+            minimum_line_percent: 66
+            formats:
+              - json
+            output_path: coverage
+        YAML
+
+        expect(Polyrun::Coverage::Collector).to receive(:start!) do |kwargs|
+          expect(kwargs[:minimum_line_percent]).to eq(66)
+          expect(kwargs[:formatter]).to be_a(Polyrun::Coverage::Formatter::MultiFormatter)
+          expect(kwargs[:report_output_dir]).to eq(File.join(dir, "coverage"))
+        end
+
+        described_class.start!(root: dir)
+      end
+    end
   end
 end

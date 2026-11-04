@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Honor top-level `workers:` in `polyrun.yml` when `POLYRUN_WORKERS` is unset (CLI / `polyrun config workers` / Effective).
+- Resolve coverage settings from `config/polyrun_coverage.yml` when present, else inline `coverage:` in `polyrun.yml`; map `formats` / directory `output_path` to report keys.
+- Add `polyrun validate` for unknown top-level keys.
+- Align Rails `polyrun init` template with live host shape (`version`, `start`, empty `hooks`, `merge_failures` commentary).
+- Add named `suites:` overlays selected with `--suite` / `POLYRUN_SUITE` (partition membership, workers, and related top-level merges).
+- Add `polyrun doctor` for effective config summary (file, suite, start gates, DB adapter/shards, coverage source).
+- Prefer `POLYRUN_SKIP_PREPARE` / `POLYRUN_SKIP_DATABASES`; keep `POLYRUN_START_SKIP_*` as deprecated aliases with a warning.
+- Add `polyrun init --profile rails-prepare-task` writing `lib/tasks/polyrun_prepare.rake`.
+
 ## 2.2.7 (2026-11-04)
 
 - Fix `Polyrun::Coverage::Collector` finish raising `uninitialized constant Polyrun::VERSION` when only `polyrun/coverage/rails` (or `polyrun/coverage/collector`) is required.

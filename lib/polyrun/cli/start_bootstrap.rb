@@ -1,3 +1,5 @@
+require_relative "skip_env"
+
 module Polyrun
   class CLI
     # +polyrun start+ only: run +prepare+ and/or Postgres template+shard DBs before parallel RSpec.
@@ -5,14 +7,14 @@ module Polyrun
       private
 
       def start_bootstrap!(cfg, argv, config_path)
-        if start_run_prepare?(cfg) && !truthy_env?("POLYRUN_START_SKIP_PREPARE")
+        if start_run_prepare?(cfg) && !SkipEnv.skip_prepare?
           recipe = cfg.prepare["recipe"] || cfg.prepare[:recipe] || "default"
           Polyrun::Log.warn "polyrun start: running prepare (recipe=#{recipe})" if @verbose
           code = cmd_prepare([], config_path)
           return code if code != 0
         end
 
-        return 0 unless start_databases_provision_wanted?(cfg) && !truthy_env?("POLYRUN_START_SKIP_DATABASES")
+        return 0 unless start_databases_provision_wanted?(cfg) && !SkipEnv.skip_databases?
 
         dh = cfg.databases
         adapter = Polyrun::Database::UrlBuilder::ConnectionInfer.infer_adapter_name(dh)
@@ -20,7 +22,7 @@ module Polyrun
           return start_non_postgresql_databases_outcome(cfg, adapter)
         end
 
-        workers = parse_workers_from_start_argv(argv)
+        workers = parse_workers_from_start_argv(argv, cfg)
         Polyrun::Log.warn "polyrun start: provisioning test DBs (template + shards 0..#{workers - 1})" if @verbose
         begin
           Polyrun::Database::CloneShards.provision!(
@@ -94,10 +96,10 @@ module Polyrun
         0
       end
 
-      def parse_workers_from_start_argv(argv)
+      def parse_workers_from_start_argv(argv, cfg = nil)
         sep = argv.index("--")
         head = sep ? argv[0...sep] : argv
-        workers = env_int("POLYRUN_WORKERS", Polyrun::Config::DEFAULT_PARALLEL_WORKERS)
+        workers = Polyrun::Config::Resolver.parallel_worker_count(cfg)
         i = 0
         while i < head.size
           if head[i] == "--workers" && head[i + 1]

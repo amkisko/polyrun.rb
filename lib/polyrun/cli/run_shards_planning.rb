@@ -16,7 +16,7 @@ module Polyrun
         return boot if boot.size == 2
 
         run_t0, head, cmd, cfg, pc = boot
-        phase = run_shards_plan_phase_a(head, cmd, pc)
+        phase = run_shards_plan_phase_a(head, cmd, pc, cfg)
         return [phase[1], nil] if phase[0] == :fail
 
         _tag, o, cmd = phase
