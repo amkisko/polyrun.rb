@@ -2,6 +2,7 @@ require "coverage"
 require "fileutils"
 require "json"
 
+require_relative "../version"
 require_relative "cobertura_zero_lines"
 require_relative "filter"
 require_relative "formatter"

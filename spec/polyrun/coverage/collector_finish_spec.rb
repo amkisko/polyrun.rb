@@ -4,6 +4,38 @@ require "tmpdir"
 require "rbconfig"
 
 RSpec.describe "Polyrun::Coverage::Collector finish" do
+  it "loads Polyrun::VERSION when only coverage/rails is required" do
+    # Path gemspec loads version.rb under bundle exec; strip Bundler so the child
+    # matches a RubyGems consumer that only requires polyrun/coverage/rails.
+    Dir.mktmpdir do |dir|
+      lib = File.join(dir, "lib")
+      FileUtils.mkdir_p(lib)
+      File.write(File.join(lib, "x.rb"), "x = 1\n")
+      out = File.join(dir, "coverage", "frag.json")
+      script = <<~RUBY
+        $LOAD_PATH.unshift #{File.expand_path("../../../lib", __dir__).inspect}
+        require "polyrun/coverage/rails"
+        abort("VERSION missing") unless Polyrun.const_defined?(:VERSION)
+        ENV.delete("POLYRUN_COVERAGE_DISABLE")
+        ENV["POLYRUN_SHARD_TOTAL"] = "1"
+        Polyrun::Coverage::Collector.start!(
+          root: #{dir.inspect},
+          output_path: #{out.inspect},
+          track_under: ["lib"],
+          minimum_line_percent: 0,
+          strict: false
+        )
+        load File.join(#{dir.inspect}, "lib", "x.rb")
+      RUBY
+      stdout, status = Bundler.with_unbundled_env {
+        Open3.capture2e(RbConfig.ruby, "-e", script)
+      }
+      expect(status.success?).to be(true), stdout
+      payload = JSON.parse(File.read(out))
+      expect(payload.dig("meta", "polyrun_version")).to eq(Polyrun::VERSION)
+    end
+  end
+
   it "writes a fragment and applies reject_patterns" do
     Dir.mktmpdir do |dir|
       lib = File.join(dir, "lib", "polyrun")
@@ -15,7 +47,7 @@ RSpec.describe "Polyrun::Coverage::Collector finish" do
       File.write(dropped, "def dropped\n  1\nend\n")
       out = File.join(dir, "coverage", "frag.json")
       script = <<~RUBY
-        $LOAD_PATH.unshift #{File.expand_path("../../lib", __dir__).inspect}
+        $LOAD_PATH.unshift #{File.expand_path("../../../lib", __dir__).inspect}
         require "polyrun/coverage/collector"
         ENV.delete("POLYRUN_COVERAGE_DISABLE")
         ENV["POLYRUN_SHARD_TOTAL"] = "1"
@@ -46,7 +78,7 @@ RSpec.describe "Polyrun::Coverage::Collector finish" do
       File.write(File.join(lib, "x.rb"), "x = 1\n")
       out = File.join(dir, "coverage", "frag.json")
       script = <<~RUBY
-        $LOAD_PATH.unshift #{File.expand_path("../../lib", __dir__).inspect}
+        $LOAD_PATH.unshift #{File.expand_path("../../../lib", __dir__).inspect}
         require "polyrun/coverage/collector"
         ENV.delete("POLYRUN_COVERAGE_DISABLE")
         ENV["POLYRUN_SHARD_INDEX"] = "0"
@@ -74,7 +106,7 @@ RSpec.describe "Polyrun::Coverage::Collector finish" do
       File.write(File.join(lib, "x.rb"), "x = 1\n")
       out = File.join(dir, "coverage", "frag.json")
       script = <<~RUBY
-        $LOAD_PATH.unshift #{File.expand_path("../../lib", __dir__).inspect}
+        $LOAD_PATH.unshift #{File.expand_path("../../../lib", __dir__).inspect}
         require "polyrun/coverage/collector"
         ENV.delete("POLYRUN_COVERAGE_DISABLE")
         ENV["POLYRUN_SHARD_TOTAL"] = "1"
@@ -106,7 +138,7 @@ RSpec.describe "Polyrun::Coverage::Collector finish" do
       File.write(unloaded, "y = 2\n")
       out = File.join(dir, "coverage", "frag.json")
       script = <<~RUBY
-        $LOAD_PATH.unshift #{File.expand_path("../../lib", __dir__).inspect}
+        $LOAD_PATH.unshift #{File.expand_path("../../../lib", __dir__).inspect}
         require "polyrun/coverage/collector"
         ENV.delete("POLYRUN_COVERAGE_DISABLE")
         ENV["POLYRUN_SHARD_INDEX"] = "0"

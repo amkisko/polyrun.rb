@@ -8,7 +8,7 @@ RSpec.describe "Polyrun::Coverage::Collector minimum_line_percent gate" do
       lib = File.join(dir, "lib")
       FileUtils.mkdir_p(lib)
       script = <<~RUBY
-        $LOAD_PATH.unshift #{File.expand_path("../../lib", __dir__).inspect}
+        $LOAD_PATH.unshift #{File.expand_path("../../../lib", __dir__).inspect}
         require "polyrun/coverage/collector"
         ENV.delete("POLYRUN_COVERAGE_DISABLE")
         ENV["POLYRUN_SHARD_TOTAL"] = "1"
@@ -28,7 +28,7 @@ RSpec.describe "Polyrun::Coverage::Collector minimum_line_percent gate" do
       lib = File.join(dir, "lib")
       FileUtils.mkdir_p(lib)
       script = <<~RUBY
-        $LOAD_PATH.unshift #{File.expand_path("../../lib", __dir__).inspect}
+        $LOAD_PATH.unshift #{File.expand_path("../../../lib", __dir__).inspect}
         require "polyrun/coverage/collector"
         ENV.delete("POLYRUN_COVERAGE_DISABLE")
         ENV["POLYRUN_SHARD_TOTAL"] = "2"

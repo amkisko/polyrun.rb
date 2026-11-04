@@ -1,6 +1,8 @@
 require "cgi"
 require "pathname"
 
+require_relative "../../version"
+
 module Polyrun
   module Coverage
     module Merge

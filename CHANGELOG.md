@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 2.2.7 (2026-11-04)
+
+- Fix `Polyrun::Coverage::Collector` finish raising `uninitialized constant Polyrun::VERSION` when only `polyrun/coverage/rails` (or `polyrun/coverage/collector`) is required.
+
 ## 2.2.6 (2026-10-29)
 
 - Fix `polyrun start` auto database provision when `databases:` uses a non-Postgres adapter (`mysql2`, trilogy, …): skip CloneShards with a clear warning (or exit 1 if `start.databases: true`); keep `template_db` / `shard_db_pattern` for URL shaping.
