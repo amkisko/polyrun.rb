@@ -2,29 +2,34 @@
 
 ## Decisions
 
-Promote three repeated host-glue signals into core contracts: coverage config resolution (file vs inline), top-level YAML `workers:`, and Rails init template alignment with the live Rails archetype. Defer named suites, doctor, prepare rake generator, and CI fragments to later issues.
+Promote repeated host-glue into core contracts: coverage resolution (dedicated file, then inline), top-level YAML `workers:`, Rails init alignment, named `suites:`, `polyrun validate`, `polyrun doctor`, the `rails-prepare-task` init profile, and canonical `POLYRUN_SKIP_*` names.
+
+The opening pass named only coverage resolve, YAML workers, and Rails init alignment, and left the rest for later issues. Before the 2.2.8 cut this issue also took named suites, doctor, the prepare-task profile, and skip-env collapse.
 
 ## Effects
 
-The iterative diff audit reproduced and fixed seven config, coverage, validation, and diagnostic defects. Evidence and validation commands: `docs/reviews/20261104181000_diff-engineering-audit.md`.
+The diff audit reproduced and fixed seven config, coverage, validation, and diagnostic defects. Evidence and commands: `docs/reviews/20261104181000_diff-engineering-audit.md`.
 
-Fact-check of `docs/plan/20261104145000_host-config-patterns-core-dx.md` against this tree:
+Opening fact-check of `docs/plan/20261104145000_host-config-patterns-core-dx.md`, then the 2.2.8 result:
 
-- Config already auto-resolves `polyrun.yml` / `config/polyrun.yml` and `POLYRUN_CONFIG`; worker clamp 1..10 already lives in core. Plan item 1 is mostly documentation and optional one-liner binstub, not a missing load path.
-- Named `suites:` / `--suite` for partition membership overrides is absent. Existing `partition.suite` only selects rspec / minitest / quick runners.
-- Rails init template lacks `start:`, hooks stubs, and `reporting.merge_failures` commentary; multi-DB `connections` already appear in comments. No engine-with-dummy profile.
-- `Coverage::Rails` loads only `config/polyrun_coverage.yml`. Inline `coverage:` on `polyrun.yml` is readable via `Config#coverage` but unused. Gate helper likewise ignores inline coverage. Host key aliases `formats` / `output_path` are not normalized to `report_formats` / `report_output_dir`.
-- Top-level YAML `workers:` is overwritten by `Config::Effective` and never consulted by `run-shards` / `start` defaults (ENV or hard default only).
-- No `polyrun validate` / `doctor`. `polyrun config` requires a dotted path.
-- Skip env names: start uses `POLYRUN_START_SKIP_*`; paths build uses `POLYRUN_SKIP_*`. Confirmed dual vocabulary; collapse deferred.
+- Config already resolved `polyrun.yml` / `config/polyrun.yml` and `POLYRUN_CONFIG`. The worker clamp 1..10 already lived in core. Plan item 1 remains documentation and an optional one-line binstub.
+- `suites:` with `--suite` / `POLYRUN_SUITE` deep-merges partition membership and related keys. `partition.suite` still selects the rspec, minitest, or quick runner.
+- The Rails init template includes `version`, `start`, empty `hooks`, and `merge_failures` commentary. Multi-DB `connections` were already in comments.
+- Coverage resolution uses `config/polyrun_coverage.yml` when that file is present, and otherwise inline `coverage:`. Aliases `formats` and `output_path` map to `report_formats` and `report_output_dir`. The line gate uses the same resolution.
+- Top-level YAML `workers:` feeds `start`, `run-shards`, `run-queue`, and `polyrun config workers` when `POLYRUN_WORKERS` is unset.
+- `polyrun validate` rejects unknown top-level keys and a non-mapping root. `polyrun doctor` prints the effective summary. `polyrun config` still requires a dotted path.
+- Canonical skip names are `POLYRUN_SKIP_PREPARE` and `POLYRUN_SKIP_DATABASES`. Legacy `POLYRUN_START_SKIP_*` still runs and warns.
 
-Audit modes run: contracts, resource and budget (config resolve / Effective.build hot path), trace and identification (skip: no new person identifiers), product-surface (CLI templates and validate messages), security (skip new trust boundary; YAML already trusted from cwd). Boundary and control skipped (library, no plant). Privacy / learned-systems / lineage skipped (no matching surface).
+Audit modes run: contracts, resource and budget (config resolve and Effective.build), trace and identification (no new person identifiers), product-surface (CLI templates and validate messages), security (YAML stays trusted from the working directory; no new trust boundary). Boundary and control covers CLI commands and child-process feedback; this library has no physical plant. Privacy, learned-systems, and lineage had no matching surface.
 
 ## Next
 
-- Engine-with-dummy init profile; optional `polyrun.<name>.yml` auto-discovery; nested `polyrun help debug`.
+- Engine-with-dummy init profile.
+- Optional `polyrun.<name>.yml` auto-discovery.
+- Nested `polyrun help debug`.
+- CI workflow fragments, archetype required-key sets, and a worked partition example.
 
-Done: coverage resolve, YAML workers, rails init shape, `polyrun validate`, named `suites:` / `--suite`, `polyrun doctor`, `rails-prepare-task` init profile, skip-env collapse (`POLYRUN_SKIP_*` canonical). Benchmarks under `tmp/benchmarks/`. Cut into 2.2.8 (`docs/changelogs/20261104181846_release-2-2-8.md`).
+Release note: `docs/changelogs/20261104181846_release-2-2-8.md`. Benchmarks under `tmp/benchmarks/`.
 
 ## Source
 

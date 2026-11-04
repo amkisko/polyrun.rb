@@ -2,15 +2,15 @@
 
 ## 2.2.8 (2026-11-04)
 
-- Honor top-level `workers:` in `polyrun.yml` when `POLYRUN_WORKERS` is unset (CLI / `polyrun config workers` / Effective).
-- Resolve coverage settings from `config/polyrun_coverage.yml` when present, else inline `coverage:` in `polyrun.yml`; map `formats` / directory `output_path` to report keys.
-- Apply selected suite and explicit `-c` / `POLYRUN_CONFIG` to coverage collection, merge gate, and `polyrun doctor`.
-- Add `polyrun validate` for unknown top-level keys and non-mapping YAML roots.
-- Align Rails `polyrun init` template with live host shape (`version`, `start`, empty `hooks`, `merge_failures` commentary).
-- Add named `suites:` overlays selected with `--suite` / `POLYRUN_SUITE` (partition membership, workers, and related top-level merges).
-- Add `polyrun doctor` for effective config summary (file, suite, start gates, DB adapter/shards, coverage source).
-- Prefer `POLYRUN_SKIP_PREPARE` / `POLYRUN_SKIP_DATABASES`; keep `POLYRUN_START_SKIP_*` as deprecated aliases with a warning.
-- Add `polyrun init --profile rails-prepare-task` writing `lib/tasks/polyrun_prepare.rake`.
+- Honor top-level `workers:` in `polyrun.yml` when `POLYRUN_WORKERS` is unset (`polyrun config workers`, `start`, `run-shards`, `run-queue`, `doctor`).
+- Resolve coverage from `config/polyrun_coverage.yml` when that file is present, and otherwise from inline `coverage:` in `polyrun.yml`. Map `formats` and a directory `output_path` to the report keys.
+- Apply the selected suite and an explicit `-c` or `POLYRUN_CONFIG` to coverage collection, the merge gate, and `polyrun doctor`.
+- Add `polyrun validate` for unknown top-level keys and a non-mapping YAML root.
+- Add `version`, `start`, empty `hooks`, and `merge_failures` commentary to the Rails `polyrun init` template.
+- Add named `suites:` overlays selected with `--suite` or `POLYRUN_SUITE` (partition membership, workers, and related top-level keys).
+- Add `polyrun doctor` for the effective config summary (file, suite, start gates, database adapter and shards, coverage source).
+- Accept `POLYRUN_SKIP_PREPARE` and `POLYRUN_SKIP_DATABASES` as the skip switches. Keep `POLYRUN_START_SKIP_*` working, with a deprecation warning.
+- Add `polyrun init --profile rails-prepare-task`, which writes `lib/tasks/polyrun_prepare.rake`.
 
 ## 2.2.7 (2026-11-04)
 

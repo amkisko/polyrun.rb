@@ -2,15 +2,15 @@
 
 ## Decisions
 
-Ship host-glue DX contracts in two passes: first coverage resolve, YAML workers, Rails init alignment, and validate; then named suites, doctor, prepare-task init profile, and skip-env collapse.
+Ship the host-glue contracts in two passes. The first pass covers coverage resolve, YAML workers, Rails init alignment, and validate. The second pass covers named suites, doctor, the prepare-task init profile, and skip-env collapse.
 
 ## Effects
 
 - Honor the selected suite and explicit config throughout coverage collection and merging; restore invocation settings and correct validate/doctor diagnostics. Replication and fix evidence: `docs/reviews/20261104181000_diff-engineering-audit.md`.
 
 - `Polyrun::Coverage::ConfigResolve` feeds `Coverage::Rails` and the merge coverage line gate.
-- `Config::Resolver.parallel_worker_count` used by Effective, run-shards, start, and run-queue.
-- `polyrun validate` exits 1 on unknown top-level keys (e.g. typo `path_build`).
+- `Config::Resolver.parallel_worker_count` is used by Effective, run-shards, start, and run-queue.
+- `polyrun validate` exits 1 on unknown top-level keys, for example a typo `path_build`.
 - Rails init template includes `version`, `start.prepare` / `start.databases`, `hooks: {}`, and `merge_failures` commentary.
 - `suites:` map + `--suite` / `POLYRUN_SUITE` deep-merges partition (and optional workers / prepare / start / hooks / reporting / coverage / databases) via `Config::Suite`.
 - `polyrun doctor` prints config path, active suite, workers, start gates, DB adapter and shard names (Postgres) or URL-shaping-only (other adapters), coverage source, and matrix+workers warning.

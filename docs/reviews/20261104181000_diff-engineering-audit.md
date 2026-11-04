@@ -2,11 +2,11 @@
 
 ## Decisions
 
-Review the working-tree diff, including new Ruby files and specs, against HEAD. Accept only findings reproduced by failing executable specs. Apply each fix after replication and verify it before the next iteration. Severity describes the demonstrated result; unreplicated suspicions are excluded.
+Review the working-tree diff, including new Ruby files and specs, against HEAD. Accept a finding only after a failing executable spec reproduces it. Apply each fix after that replication, and verify the fix before the next iteration. Severity describes the demonstrated result.
 
 ## Effects
 
-Seven confirmed findings were fixed: three medium and four low. All have high confidence and observed evidence. No critical or high impact was demonstrated.
+Seven findings were fixed: three medium and four low. Each one has observed evidence and high confidence. The runs demonstrated no critical or high impact.
 
 ### F01: Selected suite coverage ignored
 
@@ -21,7 +21,7 @@ Seven confirmed findings were fixed: three medium and four low. All have high co
 
 - Severity: medium. Category: contract. Stage: CLI -> worker -> coverage gate.
 - Location: `CLI.run`, `CoverageCommands.merge_coverage_after_shards_strict_gate`, `Helpers.coverage_minimum_line_gate_from_polyrun_coverage_yml`.
-- Evidence: `bundle exec rspec spec/polyrun/cli_coverage_config_spec.rb` first reproduced a merged gate returning exit 0 for 50 percent coverage despite a selected 99 percent minimum. Worker probes then returned the root minimum, 10, instead of the selected 90 in both `run-shards` and `ci-shard-run`.
+- Evidence: `bundle exec rspec spec/polyrun/cli_coverage_config_spec.rb` reproduced a merged gate returning exit 0 for 50 percent coverage when the selected minimum was 99 percent. Worker probes then returned 10, the root minimum, in both `run-shards` and `ci-shard-run`. The selected suite required 90.
 - Impact: the explicit file's coverage policy did not reach workers or the parent gate.
 - Smallest fix applied: scope an absolute `POLYRUN_CONFIG` to the CLI invocation so all child paths inherit it, restore the caller's value afterward, and pass the explicit path into the merged gate.
 - Guard: three integration examples in `spec/polyrun/cli_coverage_config_spec.rb`.
@@ -30,7 +30,7 @@ Seven confirmed findings were fixed: three medium and four low. All have high co
 
 - Severity: medium. Category: state isolation. Stage: CLI -> config.
 - Location: `CLI.run`.
-- Evidence: `bundle exec rspec spec/polyrun/cli_suite_spec.rb` failed the same-process invocation example. A later call without `--suite` returned two workers instead of the root value, five.
+- Evidence: `bundle exec rspec spec/polyrun/cli_suite_spec.rb` failed the same-process invocation example. A later call with no `--suite` returned two workers. The root value is five.
 - Impact: a completed invocation changed the configuration of the next invocation.
 - Smallest fix applied: restore `POLYRUN_SUITE` in `ensure`, including error returns.
 - Guard: same-process CLI example in `spec/polyrun/cli_suite_spec.rb`.
@@ -48,7 +48,7 @@ Seven confirmed findings were fixed: three medium and four low. All have high co
 
 - Severity: low. Category: CLI contract. Stage: argv -> dispatch.
 - Location: `CLI.parse_global_cli!`.
-- Evidence: `bundle exec rspec spec/polyrun/cli_suite_spec.rb` failed both missing-name examples. `--suite` and `--suite=` reported that no tests existed instead of rejecting the missing name.
+- Evidence: `bundle exec rspec spec/polyrun/cli_suite_spec.rb` failed both missing-name examples. `--suite` and `--suite=` reported that no tests existed. The contract is to reject the missing name.
 - Impact: argument errors entered default dispatch. The fixture did not demonstrate preparation or worker side effects, so severity is limited to the observed routing and diagnostic defect.
 - Smallest fix applied: reject missing or blank names before dispatch.
 - Guard: both missing-name examples in `spec/polyrun/cli_suite_spec.rb`.
@@ -59,7 +59,7 @@ Seven confirmed findings were fixed: three medium and four low. All have high co
 - Location: `DoctorCommand.doctor_lines`, `Coverage::ConfigResolve.load`.
 - Evidence: `bundle exec rspec spec/polyrun/cli_doctor_spec.rb` failed one of four examples. `--config selected.yml doctor` printed `coverage.source: none` despite coverage in the selected file.
 - Impact: the diagnostic command misidentified the active policy source.
-- Smallest fix applied: resolve coverage using the loaded config path and label the actual selected file. A winning dedicated coverage file is resolved without loading discarded inline settings.
+- Smallest fix applied: resolve coverage using the loaded config path and label the actual selected file. When the dedicated coverage file is the selected source, resolution reads that file alone.
 - Guard: explicit-source example in `spec/polyrun/cli_doctor_spec.rb`.
 
 ### F07: Doctor exceeded the start worker limit
@@ -83,17 +83,17 @@ Seven confirmed findings were fixed: three medium and four low. All have high co
 
 ### Resource, trace, and surface assessment
 
-Runtime: Ruby 4.0.2 on arm64 Darwin. The existing 2000-iteration config benchmark passed its less-than-five-second budget for each operation: Effective.build 0.0274s, file coverage resolution 0.0785s, inline resolution 0.1591s, suite merge 0.0128s. Command: `/usr/bin/time -l env POLYRUN_BENCH=1 bundle exec rspec spec/performance/benchmark_config_resolve_spec.rb --tag benchmark`. RSpec passed one example; the wrapper exited 1 because the sandbox denied its clock-rate query. It reported 0.44 user and 0.18 system CPU seconds, used here as an energy proxy. RSS and joules were not measured; no reduction claim is made.
+Runtime: Ruby 4.0.2 on arm64 Darwin. The existing 2000-iteration config benchmark passed its less-than-five-second budget for each operation: Effective.build 0.0274s, file coverage resolution 0.0785s, inline resolution 0.1591s, suite merge 0.0128s. Command: `/usr/bin/time -l env POLYRUN_BENCH=1 bundle exec rspec spec/performance/benchmark_config_resolve_spec.rb --tag benchmark`. RSpec passed one example; the wrapper exited 1 because the sandbox denied its clock-rate query. It reported 0.44 user and 0.18 system CPU seconds, used here as an energy proxy. RSS and joules were not measured, so this note claims no energy reduction.
 
 Trace review followed config paths, selected suite names, synthetic database names, stdout/stderr, child environments, and local coverage files. The changed diagnostics print explicitly requested local configuration. This review demonstrated no new tracking identifier or network telemetry and did not inspect retention outside the changed paths.
 
-The person-facing surface is the CLI: config values, validate diagnostics, doctor summaries, and missing-argument errors. Captured runs cover normal, empty/no-config, and error results. Labels and exit status let the caller distinguish success from refusal. The doctor database summary is bounded to ten names. Physical narrow-terminal wrapping, screen-reader behavior, and generated task execution in a real Rails application were not assessed. These are coverage limits, not findings.
+The person-facing surface is the CLI: config values, validate diagnostics, doctor summaries, and missing-argument errors. Captured runs cover a normal result, an empty or missing config, and error results. Labels and exit status separate success from refusal. The doctor database summary lists at most ten names. Narrow-terminal wrapping, screen-reader behavior, and generated task execution in a real Rails application remain unassessed coverage limits.
 
 Contract, lineage, performance, resource/budget, trace/identification, terminal presentation, local input/child-process boundaries, and generated-source checks apply. Boundary/control review covers CLI commands and child-process feedback; there is no physical plant. HTTP identity, browser/native bridges, cloud deployment, message protocols, multi-principal data isolation, personal-data collection, and learned-systems modes have no changed surface. No dependency graph change or advisory signal was encountered; no dependency audit was opened.
 
 ## Next
 
-Ruby 3.4 and Linux remain CI checks; this session used Ruby 4.0.2 on macOS. No reproduced finding remains unfixed.
+Ruby 3.4 and Linux remain CI checks. This session used Ruby 4.0.2 on macOS. Every reproduced finding is fixed.
 
 ## Source
 

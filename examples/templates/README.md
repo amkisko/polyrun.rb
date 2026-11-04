@@ -1,10 +1,10 @@
 # Polyrun template pack (for `polyrun init`)
 
-Source files ship in the gem under `lib/polyrun/templates/` so `polyrun init` works from a RubyGems install, not only from a git checkout.
+Source files ship in the gem under `lib/polyrun/templates/`, so `polyrun init` works from a RubyGems install.
 
 | Profile | `--profile` | Output file (default) | Use case |
 |---------|-------------|------------------------|----------|
-| Minimal gem | `gem` | `polyrun.yml` | Library / no Rails `prepare` / optional coverage collector only |
+| Minimal gem | `gem` | `polyrun.yml` | Library, with an optional coverage collector |
 | Rails + prepare | `rails` | `polyrun.yml` | `prepare.recipe: shell` + placeholder `prepare.command`; optional `databases:` commented |
 | Rails prepare rake | `rails-prepare-task` | `lib/tasks/polyrun_prepare.rake` | Thin rake wrapper around `polyrun prepare`; honors `POLYRUN_SKIP_PREPARE` |
 | CI matrix | `ci-matrix` | `polyrun.yml` | Partition-only YAML; document matrix and `merge-coverage` job separately |
