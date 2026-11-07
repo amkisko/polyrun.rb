@@ -3,6 +3,7 @@ spec/performance/benchmark_config_resolve_spec.rb
 spec/performance/benchmark_merge_spec.rb
 spec/performance/benchmark_spec.rb
 spec/performance/profiling_spec.rb
+spec/polyrun/benchmark/pressure_spec.rb
 spec/polyrun/benchmark/report_spec.rb
 spec/polyrun/cli/run_shards_worker_interrupt_spec.rb
 spec/polyrun/cli_basics_spec.rb
