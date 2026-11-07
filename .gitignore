@@ -4,6 +4,7 @@
 /polyrun_timing_examples.json
 # run-shards worker ping timestamps: tmp/polyrun/worker-ping-*.txt
 /tmp/
+/benchmarks/output/
 *.gem
 
 /examples/**/Gemfile.lock
