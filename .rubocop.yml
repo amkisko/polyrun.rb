@@ -21,6 +21,7 @@ AllCops:
   Exclude:
     - bin/**/*
     - benchmark/**/*
+    - benchmarks/**/*
     - examples/**/*
     - tmp/**/*
     - vendor/**/*

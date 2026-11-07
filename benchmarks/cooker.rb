@@ -56,9 +56,9 @@ module Polyrun
         path = File.join(OUTPUT, "#{Time.now.utc.strftime("%Y%m%d%H%M%S")}_cooker_#{scenario}.json")
         FileUtils.mkdir_p(OUTPUT)
         File.write(path, JSON.pretty_generate(result))
-        puts JSON.pretty_generate(result.is_a?(Hash) && result["report"] ? {"report" => result["report"], "pass" => result["pass"]} : result)
+        puts JSON.pretty_generate((result.is_a?(Hash) && result["report"]) ? {"report" => result["report"], "pass" => result["pass"]} : result)
         puts "wrote #{path}"
-        exit(result.is_a?(Hash) && result.key?("pass") && result["pass"] == false ? 1 : 0)
+        exit((result.is_a?(Hash) && result.key?("pass") && result["pass"] == false) ? 1 : 0)
       end
 
       def calibrate!
