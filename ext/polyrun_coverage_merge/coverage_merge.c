@@ -16,12 +16,12 @@ static ID id_coverage;
 static ID id_relevant;
 static ID id_covered;
 static ID id_sort_branches_for_native;
+static ID id_keys;
+static ID id_plus;
+static ID id_gt;
 
-static VALUE
-ignored_string(void)
-{
-    return rb_str_new_cstr("ignored");
-}
+static VALUE str_ignored;
+static VALUE ary_empty_lines;
 
 static int
 ignored_hit_p(VALUE value)
@@ -67,7 +67,7 @@ line_hit_positive_p(VALUE value)
         return 0;
     }
 
-    VALUE comparison = rb_funcall(as_int, rb_intern(">"), 1, LONG2FIX(0));
+    VALUE comparison = rb_funcall(as_int, id_gt, 1, LONG2FIX(0));
     return RTEST(comparison);
 }
 
@@ -75,7 +75,7 @@ static VALUE
 coerce_line_array(VALUE value)
 {
     if (NIL_P(value)) {
-        return rb_ary_new();
+        return ary_empty_lines;
     }
     if (!RB_TYPE_P(value, T_ARRAY)) {
         rb_raise(rb_eTypeError, "lines must be an Array");
@@ -88,7 +88,7 @@ static VALUE
 line_array_for_count(VALUE value)
 {
     if (NIL_P(value) || !RB_TYPE_P(value, T_ARRAY)) {
-        return rb_ary_new();
+        return ary_empty_lines;
     }
 
     return value;
@@ -104,14 +104,17 @@ merge_line_hits(VALUE left, VALUE right)
         return left;
     }
     if (ignored_hit_p(left) || ignored_hit_p(right)) {
-        return ignored_string();
+        return str_ignored;
     }
 
     VALUE left_i = line_hit_to_i(left);
     VALUE right_i = line_hit_to_i(right);
 
     if (!NIL_P(left_i) && !NIL_P(right_i)) {
-        return rb_funcall(left_i, rb_intern("+"), 1, right_i);
+        if (RB_FIXNUM_P(left_i) && RB_FIXNUM_P(right_i)) {
+            return LONG2FIX(FIX2LONG(left_i) + FIX2LONG(right_i));
+        }
+        return rb_funcall(left_i, id_plus, 1, right_i);
     }
     if (NIL_P(left_i) && !NIL_P(right_i)) {
         return right_i;
@@ -134,9 +137,12 @@ merge_line_arrays(VALUE left, VALUE right)
     long max_len = left_len > right_len ? left_len : right_len;
     VALUE out = rb_ary_new2(max_len);
 
+    const VALUE *left_ptr = RARRAY_CONST_PTR(left);
+    const VALUE *right_ptr = RARRAY_CONST_PTR(right);
+
     for (long index = 0; index < max_len; index++) {
-        VALUE left_hit = index < left_len ? rb_ary_entry(left, index) : Qnil;
-        VALUE right_hit = index < right_len ? rb_ary_entry(right, index) : Qnil;
+        VALUE left_hit = index < left_len ? left_ptr[index] : Qnil;
+        VALUE right_hit = index < right_len ? right_ptr[index] : Qnil;
         rb_ary_store(out, index, merge_line_hits(left_hit, right_hit));
     }
 
@@ -185,7 +191,7 @@ static VALUE
 merge_branch_entries(VALUE left, VALUE right)
 {
     VALUE out = rb_hash_dup(left);
-    VALUE sum = rb_funcall(coverage_count(left), rb_intern("+"), 1, coverage_count(right));
+    VALUE sum = rb_funcall(coverage_count(left), id_plus, 1, coverage_count(right));
     rb_hash_aset(out, str_coverage, sum);
 
     return out;
@@ -202,7 +208,7 @@ merge_module_value(void)
 static VALUE
 hash_keys(VALUE hash)
 {
-    return rb_funcall(hash, rb_intern("keys"), 0);
+    return rb_funcall(hash, id_keys, 0);
 }
 
 static VALUE
@@ -395,7 +401,12 @@ merge_two(VALUE module, VALUE left, VALUE right)
         secondary = left;
     }
 
-    VALUE out = rb_hash_new();
+    if (RHASH_SIZE(secondary) == 0) {
+        return rb_hash_dup(primary);
+    }
+
+    long capa = (long)RHASH_SIZE(primary);
+    VALUE out = rb_hash_new_capa(capa > 0 ? capa : 0);
     VALUE primary_keys = hash_keys(primary);
     long primary_length = RARRAY_LEN(primary_keys);
 
@@ -472,18 +483,26 @@ Init_polyrun_coverage_merge(void)
     id_relevant = rb_intern("relevant");
     id_covered = rb_intern("covered");
     id_sort_branches_for_native = rb_intern("sort_branches_for_native");
+    id_keys = rb_intern("keys");
+    id_plus = rb_intern("+");
+    id_gt = rb_intern(">");
     str_lines = rb_obj_freeze(rb_str_new_cstr("lines"));
     str_branches = rb_obj_freeze(rb_str_new_cstr("branches"));
     str_type = rb_obj_freeze(rb_str_new_cstr("type"));
     str_start_line = rb_obj_freeze(rb_str_new_cstr("start_line"));
     str_end_line = rb_obj_freeze(rb_str_new_cstr("end_line"));
     str_coverage = rb_obj_freeze(rb_str_new_cstr("coverage"));
+    str_ignored = rb_obj_freeze(rb_str_new_cstr("ignored"));
+    ary_empty_lines = rb_ary_new();
+    rb_obj_freeze(ary_empty_lines);
     rb_global_variable(&str_lines);
     rb_global_variable(&str_branches);
     rb_global_variable(&str_type);
     rb_global_variable(&str_start_line);
     rb_global_variable(&str_end_line);
     rb_global_variable(&str_coverage);
+    rb_global_variable(&str_ignored);
+    rb_global_variable(&ary_empty_lines);
 
     VALUE module = rb_define_module("PolyrunCoverageMerge");
     rb_define_singleton_method(module, "merge_line_arrays", merge_line_arrays_method, 2);

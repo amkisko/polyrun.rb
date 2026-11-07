@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Polyrun
   module Coverage
     module Merge
@@ -9,6 +11,7 @@ module Polyrun
 
       def merge_fragment_metas_from_metas(metas)
         return {} if metas.empty?
+        return {} if metas.all? { |m| m.nil? || m.empty? }
 
         base = metas.first.dup
         roots = metas.map { |m| m["polyrun_coverage_root"] }.compact
@@ -43,7 +46,10 @@ module Polyrun
       end
 
       def merge_fragment_meta_warn_track_files!(tfs)
-        return if tfs.map { |tf| JSON.generate(normalize_track_files_meta(tf)) }.uniq.size <= 1
+        return if tfs.empty?
+
+        normalized = tfs.map { |tf| normalize_track_files_meta(tf) }
+        return if normalized.uniq.size <= 1
 
         Polyrun::Log.warn "Polyrun merge-coverage: polyrun_track_files differs across fragments; using first."
       end

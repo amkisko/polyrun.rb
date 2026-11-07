@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "json"
 
 module Polyrun
@@ -26,15 +28,15 @@ module Polyrun
       def merge_fragments(paths)
         return {blob: {}, meta: {}, groups: nil} if paths.empty?
 
-        # Parse one fragment at a time: keep only meta + blob so peak RSS drops after each fold step.
+        # Fold one fragment at a time so peak RSS does not retain every blob concurrently.
         metas = []
-        blobs = []
+        merged_blob = nil
         paths.each do |path|
-          doc = JSON.parse(File.read(path))
+          doc = JSON.parse(File.binread(path))
           metas << extract_doc_meta(doc)
-          blobs << extract_coverage_blob(doc)
+          blob = coverage_blob_from_doc(doc)
+          merged_blob = merged_blob.nil? ? blob : merge_two(merged_blob, blob)
         end
-        merged_blob = merge_blob_tree(blobs)
         merged_meta = merge_fragment_metas_from_metas(metas)
         merged_blob = apply_track_files_once_after_merge(merged_blob, merged_meta)
         groups_payload = recompute_groups_from_meta(merged_blob, merged_meta)
@@ -96,13 +98,33 @@ module Polyrun
       end
 
       def parse_file(path)
-        text = File.read(path)
+        text = File.binread(path)
         data = JSON.parse(text)
         extract_coverage_blob(data)
       end
 
       # Picks top-level export `coverage`, merges all suite entries (e.g. RSpec + Minitest),
       # and combines both when present.
+      # Hot path: cooker and worker fragments are { "coverage" => Hash, "meta" => ... } without
+      # nested per-tool suites under extra top-level keys.
+      def coverage_blob_from_doc(doc)
+        return extract_coverage_blob(doc) unless doc.is_a?(Hash)
+
+        top = doc["coverage"]
+        return extract_coverage_blob(doc) unless top.is_a?(Hash)
+
+        doc.each_key do |k|
+          next if k == "coverage"
+
+          v = doc[k]
+          if v.is_a?(Hash) && v["coverage"].is_a?(Hash)
+            return extract_coverage_blob(doc)
+          end
+        end
+
+        top
+      end
+
       def extract_coverage_blob(data)
         return {} unless data.is_a?(Hash)
 
@@ -119,6 +141,11 @@ module Polyrun
           return top if top.is_a?(Hash)
 
           return {}
+        end
+
+        if nested.size == 1
+          only = nested.first
+          return top.is_a?(Hash) ? merge_two(top, only) : only
         end
 
         merged = nested.reduce { |acc, el| merge_two(acc, el) }
