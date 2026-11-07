@@ -1,4 +1,4 @@
-.PHONY: trunk-fmt trunk-check lint native-extension release test test-coverage clean
+.PHONY: trunk-fmt trunk-check lint native-extension release test test-coverage bench-load clean
 
 trunk-fmt:
 	trunk fmt
@@ -21,6 +21,18 @@ test: lint
 	rm -rf coverage
 	POLYRUN_WORKER_OUTPUT_ROUTING=1 POLYRUN_WORKER_OUTPUT_PREFIX=0 \
 		bundle exec polyrun parallel-rspec --workers 5 --merge-failures
+
+bench-load:
+	bundle exec ruby benchmarks/load.rb
+
+bench-calibrate:
+	bundle exec ruby benchmarks/cooker.rb
+
+bench-cooker-propose:
+	SCENARIO=propose bundle exec ruby benchmarks/cooker.rb
+
+bench-cooker-gate:
+	SCENARIO=gate MERGE_FILES=60 MERGE_LINES=80 MERGE_FRAGMENTS=10 bundle exec ruby benchmarks/cooker.rb
 
 clean:
 	-rm -f *.gem

@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## Unreleased
+
+- Coverage merge: `merge_fragments` reads UTF-8 bytes with `File.binread`, fast-paths plain `{coverage: ...}` documents, and trims `track_files` meta-divergence checks without per-call `JSON.generate`. Empty per-fragment `meta` hashes skip `merge_fragment_metas_from_metas` merge work.
+- Native `polyrun_coverage_merge`: pre-sized output hash (`rb_hash_new_capa`), Fixnum line-hit add without `rb_funcall`, cached interned method IDs, frozen shared `"ignored"` string, frozen singleton empty lines array, `RARRAY_CONST_PTR` line-array merge loop, early return when the smaller operand is empty.
+- Pressure cooker harness: shorter fixture paths, memoized frozen path strings, and `JSON.fast_generate` for fragment payloads reduce wall/CPU vs `JSON.generate` at fixed L1 load.
+
+- Add `Polyrun::Benchmark::Pressure` for load benches: wall/CPU/RSS/heap/GC plus optional storage and network byte deltas, with target ceilings for iterative pressure runs.
+- Add `benchmarks/load.rb` and `make bench-load` for coverage-merge pressure matrices; JSON under `benchmarks/output/`.
+
 ## 2.2.8 (2026-11-04)
 
 - Honor top-level `workers:` in `polyrun.yml` when `POLYRUN_WORKERS` is unset (`polyrun config workers`, `start`, `run-shards`, `run-queue`, `doctor`).

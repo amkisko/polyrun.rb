@@ -1,0 +1,21 @@
+{
+  "meta": {
+    "recorded_at": "2026-11-06T15:52:20Z",
+    "propose_basis": "median",
+    "headroom": 1.15,
+    "memory_probe_class": "process_lifetime",
+    "network": "not_in_scope",
+    "load": {
+      "MERGE_FILES": 60,
+      "MERGE_LINES": 80,
+      "MERGE_FRAGMENTS": 10
+    },
+    "tightened_factor": 0.85
+  },
+  "ceilings": {
+    "wall_s": 0.01137614499639312,
+    "cpu_s": 0.013347762499999999,
+    "allocated_objects": 7950.984999999999,
+    "storage_delta_bytes": 128385.82749999998
+  }
+}
