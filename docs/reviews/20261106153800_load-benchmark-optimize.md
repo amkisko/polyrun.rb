@@ -42,8 +42,8 @@ Host-relative; sample `benchmarks/output/20261106153808_load.json` (Ruby 4.0.2).
 
 ## Next
 
-- Profile `merge_files` JSON parse + hash merge under pressure sizes; cut storage_Δ per fragment toward the 0.85 ceiling at hotter load.
-- Sibling gems already consume Pressure via `../../polyrun.rb/lib` until a polyrun release ships the module.
+- Cut into 2.2.9; siblings can depend on the released gem instead of `../../polyrun.rb/lib`.
+- Profile hotter-than-L1 sizes after publish if storage_Δ or wall drifts above ceilings.
 - Re-check RSS with an unrestricted local shell before citing memory numbers externally.
 
 ## Source

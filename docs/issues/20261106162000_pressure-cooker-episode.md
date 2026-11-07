@@ -75,6 +75,10 @@ Primary series named per cycle; one main code change per cycle; prove = gate L1 
 - `lib/polyrun/coverage/merge_fragment_meta.rb` — early exit when all fragment metas are empty.
 - `benchmarks/cooker.rb` — `JSON.fast_generate` for written fragments; short paths + path memoization.
 
+## Release
+
+- Cut into 2.2.9 (`docs/changelogs/20261107102709_release-2-2-9.md`).
+
 ## Tests
 
 - `bundle exec rspec spec/polyrun/coverage/merge_native_spec.rb spec/polyrun/coverage/merge_spec.rb spec/polyrun/coverage/merge_formats_spec.rb` — green after final changes.
