@@ -33,11 +33,11 @@ lint:
       files: [css]
     - name: rubocop
       extra_packages:
-        - standard@1.55.0
+        - standard@1.57.0
         - standard-custom@1.0.2
         - standard-performance@1.9.0
         - rubocop-rspec@3.10.2
-        - rubocop-thread_safety@0.7.3
+        - rubocop-thread_safety@0.8.0
   ignore:
     - linters: [ALL]
       paths:
@@ -53,7 +53,7 @@ lint:
         - usr/docs/**
   enabled:
     - biome@2.3.8
-    - rubocop@1.87.0
+    - rubocop@1.91.0
     - stylelint@16.26.1
     - yamllint@1.37.1
     - gitleaks@8.29.0

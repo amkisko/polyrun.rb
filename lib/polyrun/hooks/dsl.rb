@@ -85,6 +85,10 @@ module Polyrun
         end
       end
 
+      # Load-time constant: `||=` can create two monitors.
+      CACHE_MU = Monitor.new
+      private_constant :CACHE_MU
+
       class << self
         # @return [Registry, nil]
         def load_registry(path)
@@ -94,7 +98,7 @@ module Polyrun
           return nil unless File.file?(full)
 
           mtime = File.mtime(full)
-          cache_mu.synchronize do
+          CACHE_MU.synchronize do
             hit = registry_cache[full]
             return hit[:registry] if hit && hit[:mtime] == mtime
 
@@ -108,16 +112,12 @@ module Polyrun
         end
 
         def clear_cache!
-          cache_mu.synchronize { registry_cache.clear }
+          CACHE_MU.synchronize { registry_cache.clear }
         end
 
         private
 
         # rubocop:disable ThreadSafety/ClassInstanceVariable -- single-threaded hook load; Monitor protects cache
-        def cache_mu
-          @cache_mu ||= Monitor.new
-        end
-
         def registry_cache
           @registry_cache ||= {}
         end

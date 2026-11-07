@@ -28,7 +28,6 @@ RSpec.describe Polyrun::WorkerPing do
 
   it "ensure_interval_ping_thread! starts periodic ping when thread env is set" do
     described_class.instance_variable_set(:@interval_ping_started, nil)
-    described_class.instance_variable_set(:@interval_ping_mx, nil)
     Dir.mktmpdir do |dir|
       path = File.join(dir, "p.txt")
       ENV["POLYRUN_WORKER_PING_FILE"] = path

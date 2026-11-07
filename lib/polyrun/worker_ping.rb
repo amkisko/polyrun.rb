@@ -19,6 +19,10 @@ module Polyrun
   # {#ensure_interval_ping_thread!} once at worker startup if you rely on periodic pings without per-example {#ping!};
   # installers call this so the env toggle works out of the box.
   module WorkerPing
+    # Load-time constant: `||=` can create two mutexes.
+    INTERVAL_PING_MX = Mutex.new
+    private_constant :INTERVAL_PING_MX
+
     class << self
       def ping!(location: nil)
         path = ping_file_path
@@ -46,8 +50,7 @@ module Polyrun
         path = ping_file_path
         return if path.empty?
 
-        @interval_ping_mx ||= Mutex.new
-        @interval_ping_mx.synchronize do
+        INTERVAL_PING_MX.synchronize do
           return if @interval_ping_started
 
           raw = ENV["POLYRUN_WORKER_PING_INTERVAL_SEC"].to_s.strip
