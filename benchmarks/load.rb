@@ -52,7 +52,7 @@ module Polyrun
         path = Polyrun::Benchmark::Pressure.write_results!(results, repository_root: File.expand_path("..", __dir__))
         results.each { |row| puts row["report"] }
         puts "wrote #{path}"
-        exit_code = results.any? { |row| row["pass"] == false } ? 1 : 0
+        exit_code = (results.any? { |row| row["pass"] == false }) ? 1 : 0
         exit exit_code
       end
 

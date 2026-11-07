@@ -56,7 +56,7 @@ module Polyrun
           {
             "label" => label.to_s,
             "ops" => ops,
-            "ops_per_s" => (ops && wall && wall.positive?) ? ops / wall : nil,
+            "ops_per_s" => (ops && wall&.positive?) ? ops / wall : nil,
             "basis" => basis.to_s,
             "n" => samples.length,
             "samples" => samples,
