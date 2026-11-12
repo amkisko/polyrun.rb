@@ -95,6 +95,7 @@ spec/polyrun/partition/hrw_spec.rb
 spec/polyrun/partition/min_heap_spec.rb
 spec/polyrun/partition/paths_build_extra_spec.rb
 spec/polyrun/partition/paths_build_spec.rb
+spec/polyrun/partition/paths_resolve_spec.rb
 spec/polyrun/partition/paths_spec.rb
 spec/polyrun/partition/plan_spec.rb
 spec/polyrun/partition/reports_spec.rb
