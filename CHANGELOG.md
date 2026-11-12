@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 3.0.1 (2026-11-12)
+
+- Stop writing `simplecov_version` from `Polyrun::VERSION` into coverage JSON meta. Keep the key only when a fragment already carried a real SimpleCov value; use `polyrun_version` for Polyrun.
+
 ## 3.0.0 (2026-11-12)
 
 - Rename `Polyrun::RSpec` to `Polyrun::RSpecSupport` and `Polyrun::Minitest` to `Polyrun::MinitestSupport` (requires `polyrun/rspec_support` / `polyrun/minitest_support`). Hard cut: old constants and require paths are removed (RFC-0007).
