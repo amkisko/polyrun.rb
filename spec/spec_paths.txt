@@ -89,7 +89,7 @@ spec/polyrun/hooks_spec.rb
 spec/polyrun/hooks_worker_runner_spec.rb
 spec/polyrun/log_spec.rb
 spec/polyrun/mandatory_parallel_support_spec.rb
-spec/polyrun/minitest_spec.rb
+spec/polyrun/minitest_support_spec.rb
 spec/polyrun/partition/constraints_spec.rb
 spec/polyrun/partition/hrw_spec.rb
 spec/polyrun/partition/min_heap_spec.rb
@@ -108,6 +108,8 @@ spec/polyrun/queue/file_store_recovery_spec.rb
 spec/polyrun/queue/file_store_spec.rb
 spec/polyrun/queue/worker_loop_spec.rb
 spec/polyrun/quick/matchers_spec.rb
+spec/polyrun/quick/reporter_spec.rb
+spec/polyrun/quick_features_config_spec.rb
 spec/polyrun/quick_features_spec.rb
 spec/polyrun/quick_runner_spec.rb
 spec/polyrun/railtie_spec.rb
@@ -115,12 +117,12 @@ spec/polyrun/reporting/failure_merge_spec.rb
 spec/polyrun/reporting/junit_spec.rb
 spec/polyrun/reporting/rspec_junit_spec.rb
 spec/polyrun/require_surface_spec.rb
-spec/polyrun/rspec/active_record_timeout_recovery_spec.rb
-spec/polyrun/rspec/example_debug_instrumentation_spec.rb
-spec/polyrun/rspec/example_debug_spec.rb
-spec/polyrun/rspec/example_debug_timeout_spec.rb
-spec/polyrun/rspec/sharded_formatter_compat_spec.rb
-spec/polyrun/rspec_spec.rb
+spec/polyrun/rspec_support/active_record_timeout_recovery_spec.rb
+spec/polyrun/rspec_support/example_debug_instrumentation_spec.rb
+spec/polyrun/rspec_support/example_debug_spec.rb
+spec/polyrun/rspec_support/example_debug_timeout_spec.rb
+spec/polyrun/rspec_support/sharded_formatter_compat_spec.rb
+spec/polyrun/rspec_support_spec.rb
 spec/polyrun/spec_quality/config_spec.rb
 spec/polyrun/spec_quality/fragment_spec.rb
 spec/polyrun/spec_quality/merge_spec.rb
@@ -132,6 +134,7 @@ spec/polyrun/spec_quality/report_spec.rb
 spec/polyrun/spec_quality/rspec_hook_spec.rb
 spec/polyrun/spec_quality/spec_quality_spec.rb
 spec/polyrun/spec_quality/sql_counter_spec.rb
+spec/polyrun/sus_support_spec.rb
 spec/polyrun/timing/merge_spec.rb
 spec/polyrun/timing/rspec_example_formatter_spec.rb
 spec/polyrun/timing/stats_spec.rb
