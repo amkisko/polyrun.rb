@@ -65,7 +65,7 @@ RSpec.describe Polyrun::Quick do
           end
         RUBY
 
-        Dir.chdir(dir) do
+        with_chdir(dir) do
           out = StringIO.new
           err = StringIO.new
           code = described_class.run(paths: nil, out: out, err: err)

@@ -63,51 +63,74 @@ module Polyrun
       end
 
       def resolve_run_shard_items_glob(cwd:, partition: {})
-        suite = (partition["suite"] || partition[:suite] || "auto").to_s.downcase
-        suite = "auto" if suite.empty?
-
-        base = File.expand_path(cwd)
-        spec = Dir.glob(File.join(base, "spec/**/*_spec.rb")).sort
-        test = Dir.glob(File.join(base, "test/**/*_test.rb")).sort
-        sus = sus_test_paths(base)
-        quick = quick_parallel_default_paths(base)
-
+        suite = partition_suite_name(partition)
+        catalogs = shard_path_catalogs(File.expand_path(cwd))
         case suite
-        when "rspec"
-          return {error: "partition.suite is rspec but no spec/**/*_spec.rb files"} if spec.empty?
-
-          {items: spec, source: "spec/**/*_spec.rb glob"}
-        when "minitest"
-          return {error: "partition.suite is minitest but no test/**/*_test.rb files"} if test.empty?
-
-          {items: test, source: "test/**/*_test.rb glob"}
-        when "sus"
-          return {error: "partition.suite is sus but no test/**/*.rb files"} if sus.empty?
-
-          {items: sus, source: "test/**/*.rb glob (sus)"}
-        when "quick"
-          return {error: "partition.suite is quick but no Polyrun quick files under spec/ or test/"} if quick.empty?
-
-          {items: quick, source: "Polyrun quick glob"}
+        when "rspec", "minitest", "sus", "quick"
+          resolve_named_suite_items(suite, catalogs)
         when "auto"
-          if spec.any?
-            {items: spec, source: "spec/**/*_spec.rb glob"}
-          elsif sus_configured?(base) && sus.any?
-            {items: sus, source: "test/**/*.rb glob (sus)"}
-          elsif test.any?
-            {items: test, source: "test/**/*_test.rb glob"}
-          elsif quick.any?
-            {items: quick, source: "Polyrun quick glob"}
-          else
-            {
-              error: "no spec paths (spec/spec_paths.txt, partition.paths_file, or spec/**/*_spec.rb); " \
-                     "no Sus test/**/*.rb (with config/sus.rb); no test/**/*_test.rb; no Polyrun quick files"
-            }
-          end
+          resolve_auto_suite_items(catalogs)
         else
           {error: "unknown partition.suite: #{suite.inspect} (expected auto, rspec, minitest, sus, quick)"}
         end
       end
+
+      def partition_suite_name(partition)
+        suite = (partition["suite"] || partition[:suite] || "auto").to_s.downcase
+        suite.empty? ? "auto" : suite
+      end
+      private_class_method :partition_suite_name
+
+      def shard_path_catalogs(base)
+        {
+          base: base,
+          spec: Dir.glob(File.join(base, "spec/**/*_spec.rb")).sort,
+          test: Dir.glob(File.join(base, "test/**/*_test.rb")).sort,
+          sus: sus_test_paths(base),
+          quick: quick_parallel_default_paths(base)
+        }
+      end
+      private_class_method :shard_path_catalogs
+
+      def resolve_named_suite_items(suite, catalogs)
+        case suite
+        when "rspec"
+          return {error: "partition.suite is rspec but no spec/**/*_spec.rb files"} if catalogs[:spec].empty?
+
+          {items: catalogs[:spec], source: "spec/**/*_spec.rb glob"}
+        when "minitest"
+          return {error: "partition.suite is minitest but no test/**/*_test.rb files"} if catalogs[:test].empty?
+
+          {items: catalogs[:test], source: "test/**/*_test.rb glob"}
+        when "sus"
+          return {error: "partition.suite is sus but no test/**/*.rb files"} if catalogs[:sus].empty?
+
+          {items: catalogs[:sus], source: "test/**/*.rb glob (sus)"}
+        else
+          return {error: "partition.suite is quick but no Polyrun quick files under spec/ or test/"} if catalogs[:quick].empty?
+
+          {items: catalogs[:quick], source: "Polyrun quick glob"}
+        end
+      end
+      private_class_method :resolve_named_suite_items
+
+      def resolve_auto_suite_items(catalogs)
+        if catalogs[:spec].any?
+          {items: catalogs[:spec], source: "spec/**/*_spec.rb glob"}
+        elsif sus_configured?(catalogs[:base]) && catalogs[:sus].any?
+          {items: catalogs[:sus], source: "test/**/*.rb glob (sus)"}
+        elsif catalogs[:test].any?
+          {items: catalogs[:test], source: "test/**/*_test.rb glob"}
+        elsif catalogs[:quick].any?
+          {items: catalogs[:quick], source: "Polyrun quick glob"}
+        else
+          {
+            error: "no spec paths (spec/spec_paths.txt, partition.paths_file, or spec/**/*_spec.rb); " \
+                   "no Sus test/**/*.rb (with config/sus.rb); no test/**/*_test.rb; no Polyrun quick files"
+          }
+        end
+      end
+      private_class_method :resolve_auto_suite_items
 
       def quick_parallel_default_paths(base)
         require_relative "../quick/runner"
@@ -144,9 +167,7 @@ module Polyrun
       def use_legacy_spec_paths?(cwd, partition)
         return false unless File.file?(File.join(cwd, "spec", "spec_paths.txt"))
 
-        suite = (partition["suite"] || partition[:suite] || "auto").to_s.downcase
-        suite = "auto" if suite.empty?
-        %w[auto rspec].include?(suite)
+        %w[auto rspec].include?(partition_suite_name(partition))
       end
       private_class_method :use_legacy_spec_paths?
     end
