@@ -1,8 +1,6 @@
 require "cgi"
 require "pathname"
 
-require_relative "../../version"
-
 module Polyrun
   module Coverage
     module Merge
@@ -15,7 +13,6 @@ module Polyrun
         if strip_internal_meta
           INTERNAL_META_KEYS.each { |k| meta_out.delete(k) }
         end
-        meta_out["simplecov_version"] ||= Polyrun::VERSION
         g =
           if groups.nil?
             {}

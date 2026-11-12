@@ -36,11 +36,56 @@ RSpec.describe Polyrun::Coverage::Collector do
       root = "/project"
       blob = {
         "/project/lib/a.rb" => {"lines" => [1]},
+        "/project/lib" => {"lines" => [1]},
         "/project/spec/b.rb" => {"lines" => [1]},
         "/other/lib/c.rb" => {"lines" => [1]}
       }
       out = described_class.keep_under_root(blob, root, ["lib"])
+      expect(out.keys).to eq(["/project/lib/a.rb", "/project/lib"])
+    end
+
+    it "returns the blob unchanged when track_under is nil or empty" do
+      blob = {"/project/lib/a.rb" => {"lines" => [1]}}
+      expect(described_class.keep_under_root(blob, "/project", nil)).to eq(blob)
+      expect(described_class.keep_under_root(blob, "/project", [])).to eq(blob)
+    end
+  end
+
+  describe ".normalize_blob_paths" do
+    it "expands relative paths against root" do
+      root = "/project"
+      blob = {"lib/a.rb" => {"lines" => [1]}}
+      out = described_class.normalize_blob_paths(blob, root)
       expect(out.keys).to eq(["/project/lib/a.rb"])
+    end
+  end
+
+  describe ".normalize_groups" do
+    it "returns nil for nil or empty groups" do
+      expect(described_class.normalize_groups(nil)).to be_nil
+      expect(described_class.normalize_groups({})).to be_nil
+      expect(described_class.normalize_groups([])).to be_nil
+    end
+
+    it "stringifies keys and values for a hash" do
+      expect(described_class.normalize_groups(Lib: "{lib}/**/*.rb")).to eq(
+        "Lib" => "{lib}/**/*.rb"
+      )
+    end
+  end
+
+  describe ".result_to_blob string keys" do
+    it "accepts string lines and branches keys" do
+      br = [{"type" => "if", "coverage" => 1}]
+      raw = {"/x.rb" => {"lines" => [nil, 1], "branches" => br}}
+      blob = described_class.result_to_blob(raw)
+      expect(blob["/x.rb"]["lines"]).to eq([nil, 1])
+      expect(blob["/x.rb"]["branches"]).to eq(br)
+    end
+
+    it "skips hashes without a lines array" do
+      raw = {"/x.rb" => {"branches" => []}}
+      expect(described_class.result_to_blob(raw)).to eq({})
     end
   end
 
@@ -226,6 +271,77 @@ RSpec.describe Polyrun::Coverage::Collector do
       ENV.delete("COVERAGE")
       Dir.mktmpdir do |dir|
         expect(described_class.coverage_requested_for_quick?(dir)).to be false
+      end
+    end
+  end
+
+  describe ".start!" do
+    def with_saved_collector_config
+      had_config = described_class.instance_variable_defined?(:@config)
+      saved = had_config ? described_class.instance_variable_get(:@config) : nil
+      yield
+    ensure
+      if had_config
+        described_class.instance_variable_set(:@config, saved)
+      elsif described_class.instance_variable_defined?(:@config)
+        described_class.remove_instance_variable(:@config)
+      end
+    end
+
+    around do |example|
+      old_dis = ENV["POLYRUN_COVERAGE_DISABLE"]
+      old_simple = ENV["SIMPLECOV_DISABLE"]
+      ENV.delete("POLYRUN_COVERAGE_DISABLE")
+      ENV.delete("SIMPLECOV_DISABLE")
+      example.run
+    ensure
+      old_dis ? ENV.store("POLYRUN_COVERAGE_DISABLE", old_dis) : ENV.delete("POLYRUN_COVERAGE_DISABLE")
+      old_simple ? ENV.store("SIMPLECOV_DISABLE", old_simple) : ENV.delete("SIMPLECOV_DISABLE")
+    end
+
+    it "defaults strict to true when a minimum is set and starts Coverage when idle" do
+      Dir.mktmpdir do |dir|
+        with_saved_collector_config do
+          allow(Coverage).to receive(:running?).and_return(false)
+          allow(Coverage).to receive(:start)
+          described_class.start!(root: dir, minimum_line_percent: 80, track_under: ["lib"])
+          expect(Coverage).to have_received(:start).with(lines: true, branches: false)
+          cfg = described_class.instance_variable_get(:@config)
+          expect(cfg[:strict]).to be true
+          expect(cfg[:minimum_line_percent]).to eq(80)
+          expect(described_class).to be_started
+        end
+      end
+    end
+
+    it "sets strict false when no minimum is given" do
+      Dir.mktmpdir do |dir|
+        with_saved_collector_config do
+          allow(Coverage).to receive(:running?).and_return(true)
+          described_class.start!(root: dir, track_under: ["lib"])
+          cfg = described_class.instance_variable_get(:@config)
+          expect(cfg[:strict]).to be false
+          expect(cfg[:minimum_line_percent]).to be_nil
+        end
+      end
+    end
+
+    it "honors strict: false when a minimum is set" do
+      Dir.mktmpdir do |dir|
+        with_saved_collector_config do
+          allow(Coverage).to receive(:running?).and_return(true)
+          described_class.start!(root: dir, minimum_line_percent: 50, strict: false)
+          expect(described_class.instance_variable_get(:@config)[:strict]).to be false
+        end
+      end
+    end
+
+    it "is a no-op when coverage is disabled" do
+      with_saved_collector_config do
+        ENV["POLYRUN_COVERAGE_DISABLE"] = "1"
+        described_class.remove_instance_variable(:@config) if described_class.instance_variable_defined?(:@config)
+        described_class.start!(root: Dir.pwd, minimum_line_percent: 99)
+        expect(described_class.instance_variable_defined?(:@config) && described_class.instance_variable_get(:@config)).to be_falsy
       end
     end
   end

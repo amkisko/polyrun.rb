@@ -141,6 +141,15 @@ RSpec.describe Polyrun::Coverage::Merge do
       expect(out["groups"]).to eq({})
     end
 
+    it "does not invent simplecov_version from Polyrun::VERSION" do
+      out = described_class.to_simplecov_json(
+        {"/a.rb" => {"lines" => [1]}},
+        meta: {"polyrun_version" => Polyrun::VERSION}
+      )
+      expect(out["meta"]).not_to have_key("simplecov_version")
+      expect(out["meta"]["polyrun_version"]).to eq(Polyrun::VERSION)
+    end
+
     it "embeds group stats when provided" do
       g = {"Models" => {"lines" => {"covered_percent" => 88.5}}}
       out = described_class.to_simplecov_json({"/a.rb" => {"lines" => [1]}}, groups: g)
