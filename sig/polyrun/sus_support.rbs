@@ -1,7 +1,7 @@
 module Polyrun
-  module Minitest
+  module SusSupport
     def self.install_parallel_provisioning!: () -> void
-
+    def self.install_coverage!: (?root: String, **untyped) -> void
     def self.install_worker_ping!: () -> void
   end
 end

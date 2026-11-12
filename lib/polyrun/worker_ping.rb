@@ -7,11 +7,11 @@ module Polyrun
   #
   # Prefer framework installs (call from helpers *after* loading the runner):
   #
-  #   require "polyrun/rspec"
-  #   Polyrun::RSpec.install_worker_ping!
+  #   require "polyrun/rspec_support"
+  #   Polyrun::RSpecSupport.install_worker_ping!
   #
-  #   require "polyrun/minitest"
-  #   Polyrun::Minitest.install_worker_ping!
+  #   require "polyrun/minitest_support"
+  #   Polyrun::MinitestSupport.install_worker_ping!
   #
   # Polyrun Quick runs +ping!+ automatically when requiring the Quick stack.
   #

@@ -15,7 +15,7 @@ Polyrun ships optional helpers for **parallel test processes** (same model as `r
 **[simple/simple_demo](simple/simple_demo/README.md)** wires:
 
 - **`spec/support/polyrun_parallel_data.rb`** — `ParallelProvisioning.configure` (empty hooks you can fill).
-- **`spec/rails_helper.rb`** — `require "polyrun/rspec"` + **`Polyrun::RSpec.install_parallel_provisioning!(config)`** so hooks run in **`before(:suite)`**. For Minitest, `require "polyrun/minitest"` and call **`Polyrun::Minitest.install_parallel_provisioning!`** from **`test/test_helper.rb`** after configuration (or call **`ParallelProvisioning.run_suite_hooks!`** directly).
+- **`spec/rails_helper.rb`** — `require "polyrun/rspec_support"` + **`Polyrun::RSpecSupport.install_parallel_provisioning!(config)`** so hooks run in **`before(:suite)`**. For Minitest, `require "polyrun/minitest_support"` and call **`Polyrun::MinitestSupport.install_parallel_provisioning!`** from **`test/test_helper.rb`** after configuration (or call **`ParallelProvisioning.run_suite_hooks!`** directly).
 - **`spec/polyrun/polyrun_data_optimizations_spec.rb`** — **`CachedFixtures`** memoization example.
 
 Run:

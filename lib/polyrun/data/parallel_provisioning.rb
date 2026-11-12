@@ -12,8 +12,8 @@ module Polyrun
     #   # In spec_helper after configure:
     #   Polyrun::Data::ParallelProvisioning.run_suite_hooks!
     #
-    # Or use {Polyrun::RSpec.install_parallel_provisioning!} (+before(:suite)+) or {Polyrun::Minitest.install_parallel_provisioning!}
-    # (+require+ +polyrun/minitest+ from +test/test_helper.rb+).
+    # Or use {Polyrun::RSpecSupport.install_parallel_provisioning!} (+before(:suite)+) or {Polyrun::MinitestSupport.install_parallel_provisioning!}
+    # (+require+ +polyrun/minitest_support+ from +test/test_helper.rb+).
     module ParallelProvisioning
       class Configuration
         attr_accessor :serial_hook, :parallel_worker_hook

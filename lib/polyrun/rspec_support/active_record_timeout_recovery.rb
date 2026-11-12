@@ -1,5 +1,5 @@
 module Polyrun
-  module RSpec
+  module RSpecSupport
     # Drops pooled connections after per-example Timeout interrupts database I/O.
     # Uses only ActiveRecord connection-pool APIs (PostgreSQL, MySQL, SQLite, SQL Server, etc.).
     module ActiveRecordTimeoutRecovery

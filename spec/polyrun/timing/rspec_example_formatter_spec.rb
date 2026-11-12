@@ -74,7 +74,7 @@ RSpec.describe "Polyrun example timing" do
     end
   end
 
-  describe "Polyrun::RSpec.install_example_timing!" do
+  describe "Polyrun::RSpecSupport.install_example_timing!" do
     it "writes per-example timing JSON in a subprocess" do
       root = File.expand_path("../..", __dir__)
       lib = File.join(root, "lib")
@@ -82,8 +82,8 @@ RSpec.describe "Polyrun example timing" do
         timing_out = File.join(dir, "timing.json")
         spec = File.join(dir, "one_spec.rb")
         File.write(spec, <<~RUBY)
-          require "polyrun/rspec"
-          Polyrun::RSpec.install_example_timing!(output_path: #{timing_out.inspect})
+          require "polyrun/rspec_support"
+          Polyrun::RSpecSupport.install_example_timing!(output_path: #{timing_out.inspect})
           RSpec.describe "timing" do
             it "runs" do
               expect(1).to eq(1)

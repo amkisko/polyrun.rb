@@ -1,8 +1,9 @@
 require_relative "errors"
+require_relative "matchers_predicates"
 
 module Polyrun
   module Quick
-    # Minimal +expect(x).to …+ chain (RSpec-ish) without RSpec.
+    # Minimal +expect(x).to …+ / +expect { }.to …+ chain without external gems.
     class Expectation
       def initialize(actual)
         @actual = actual
@@ -22,8 +23,10 @@ module Polyrun
     end
 
     module Matchers
-      def expect(actual)
-        Expectation.new(actual)
+      include MatchersPredicates
+
+      def expect(actual = nil, &block)
+        Expectation.new(block_given? ? block : actual)
       end
 
       def eq(expected)

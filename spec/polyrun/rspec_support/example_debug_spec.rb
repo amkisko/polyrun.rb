@@ -1,9 +1,9 @@
 require "logger"
 require "stringio"
 require "spec_helper"
-require "polyrun/rspec/example_debug"
+require "polyrun/rspec_support/example_debug"
 
-RSpec.describe Polyrun::RSpec::ExampleDebug do
+RSpec.describe Polyrun::RSpecSupport::ExampleDebug do
   describe ".enabled?" do
     around do |example|
       old = ENV["POLYRUN_EXAMPLE_DEBUG"]

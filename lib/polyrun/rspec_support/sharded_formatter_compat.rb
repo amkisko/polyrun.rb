@@ -1,5 +1,5 @@
 module Polyrun
-  module RSpec
+  module RSpecSupport
     # Formatter tweaks for progress formatters under +POLYRUN_SHARD_*+ workers.
     module ShardedFormatterCompat
       TextFormatterSilencer = Module.new do

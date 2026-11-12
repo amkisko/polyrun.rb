@@ -1,20 +1,22 @@
-# rubocop:disable Polyrun/FileLength -- quick runner + spec quality wiring
+# rubocop:disable Polyrun/FileLength -- quick runner + suite config + coverage wiring
 require "pathname"
 
 require_relative "assertions"
+require_relative "config"
 require_relative "errors"
 require_relative "example_group"
 require_relative "example_runner"
 require_relative "reporter"
 
 module Polyrun
-  # Micro test runner: nested +describe+, +it+ / +test+, +before+ / +after+, +let+ / +let!+,
-  # +expect().to+ matchers, optional +Polyrun::Quick.capybara!+ when the +capybara+ gem is loaded.
+  # Micro test runner: nested +describe+ / +with+, +it+ / +test+, +before+ / +after+ / +around+,
+  # +let+ / +let!+ / +subject+, +expect().to+ matchers, optional +Polyrun::Quick.capybara!+.
   #
   # Run: +polyrun quick+ or +polyrun quick spec/foo.rb+
+  # Optional suite file: +config/polyrun_quick.rb+ (+before_suite+, +after_suite+, +add_load_path+).
   #
-  # Coverage: when +POLYRUN_COVERAGE=1+ or (+config/polyrun_coverage.yml+ and +POLYRUN_QUICK_COVERAGE=1+), starts
-  # {Polyrun::Coverage::Rails} before loading quick files so stdlib +Coverage+ records them.
+  # Coverage: when +POLYRUN_COVERAGE=1+, Covered-style +COVERAGE+, or (+config/polyrun_coverage.yml+ and
+  # +POLYRUN_QUICK_COVERAGE=1+), starts {Polyrun::Coverage::Rails} before loading quick files.
   module Quick
     module DSL
       def describe(name, &block)
@@ -103,6 +105,10 @@ module Polyrun
 
       def run(paths)
         Quick.reset_capybara_flag!
+        config = Config.load!(root: Dir.pwd)
+        config.apply_load_paths!(root: Dir.pwd)
+        status = 2
+        suite_hooks = false
 
         files = expand_paths(paths)
         if files.empty?
@@ -110,18 +116,27 @@ module Polyrun
           return 2
         end
 
-        quick_start_coverage_if_configured!
-        quick_start_spec_quality_if_configured!
+        begin
+          config.run_before_suite!
+          suite_hooks = true
+          quick_start_coverage_if_configured!
+          quick_start_spec_quality_if_configured!
 
-        collector = load_quick_files!(files)
-        return 1 unless collector
+          collector = load_quick_files!(files)
+          unless collector
+            status = 1
+            return 1
+          end
 
-        reporter = Reporter.new(@out, @err, @verbose)
-        run_examples!(collector, reporter)
-        reporter.summary
-      ensure
-        Quick.collector = nil
-        Quick.reset_capybara_flag!
+          reporter = Reporter.new(@out, @err, @verbose)
+          run_examples!(collector, reporter)
+          status = reporter.summary
+          status
+        ensure
+          config.run_after_suite!(status) if suite_hooks
+          Quick.collector = nil
+          Quick.reset_capybara_flag!
+        end
       end
 
       def load_quick_files!(files)
@@ -200,7 +215,6 @@ module Polyrun
         Runner.parallel_default_paths(Dir.pwd)
       end
 
-      # Omit RSpec/Minitest files and common helpers so +polyrun quick+ with no args does not load normal suites.
       def default_quick_exclude?(path, base)
         Runner.quick_path_excluded?(path, base)
       end

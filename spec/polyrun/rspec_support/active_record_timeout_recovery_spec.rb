@@ -1,7 +1,7 @@
 require "spec_helper"
-require "polyrun/rspec/active_record_timeout_recovery"
+require "polyrun/rspec_support/active_record_timeout_recovery"
 
-RSpec.describe Polyrun::RSpec::ActiveRecordTimeoutRecovery do
+RSpec.describe Polyrun::RSpecSupport::ActiveRecordTimeoutRecovery do
   describe ".disconnect_all_connection_pools!" do
     it "is a no-op when ActiveRecord is not loaded" do
       hide_const("ActiveRecord::Base") if defined?(ActiveRecord::Base)

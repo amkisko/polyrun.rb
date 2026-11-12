@@ -1,8 +1,8 @@
 require_relative "../polyrun"
 
 module Polyrun
-  # Optional RSpec wiring (require +polyrun/rspec+ explicitly).
-  module RSpec
+  # Optional RSpec wiring (require +polyrun/rspec_support+ explicitly).
+  module RSpecSupport
     module_function
 
     # Registers +before(:suite)+ to run {Data::ParallelProvisioning.run_suite_hooks!}.
@@ -74,31 +74,31 @@ module Polyrun
     end
 
     def install_example_debug!(rspec_config: nil)
-      require_relative "rspec/example_debug"
-      Polyrun::RSpec::ExampleDebug.install!(rspec_config: rspec_config || fetch_rspec_configuration!)
+      require_relative "rspec_support/example_debug"
+      Polyrun::RSpecSupport::ExampleDebug.install!(rspec_config: rspec_config || fetch_rspec_configuration!)
     end
 
     def install_example_timeout!(rspec_config: nil, seconds: ENV.fetch("RSPEC_EXAMPLE_TIMEOUT_SEC", "30").to_f)
-      require_relative "rspec/example_debug"
-      Polyrun::RSpec::ExampleDebug.install_example_timeout!(
+      require_relative "rspec_support/example_debug"
+      Polyrun::RSpecSupport::ExampleDebug.install_example_timeout!(
         rspec_config || fetch_rspec_configuration!,
         seconds: seconds
       )
     end
 
     def install_example_rails_logging!(rspec_config: nil)
-      require_relative "rspec/example_debug"
-      Polyrun::RSpec::ExampleDebug.install_rails_logging!(rspec_config: rspec_config || fetch_rspec_configuration!)
+      require_relative "rspec_support/example_debug"
+      Polyrun::RSpecSupport::ExampleDebug.install_rails_logging!(rspec_config: rspec_config || fetch_rspec_configuration!)
     end
 
     def install_example_prosopite!(rspec_config: nil)
-      require_relative "rspec/example_debug"
-      Polyrun::RSpec::ExampleDebug.install_prosopite!(rspec_config: rspec_config || fetch_rspec_configuration!)
+      require_relative "rspec_support/example_debug"
+      Polyrun::RSpecSupport::ExampleDebug.install_prosopite!(rspec_config: rspec_config || fetch_rspec_configuration!)
     end
 
     def install_sharded_formatter_compat!(rspec_config: nil)
-      require_relative "rspec/sharded_formatter_compat"
-      Polyrun::RSpec::ShardedFormatterCompat.install!(rspec_config: rspec_config || fetch_rspec_configuration!)
+      require_relative "rspec_support/sharded_formatter_compat"
+      Polyrun::RSpecSupport::ShardedFormatterCompat.install!(rspec_config: rspec_config || fetch_rspec_configuration!)
     end
 
     def fetch_rspec_configuration!

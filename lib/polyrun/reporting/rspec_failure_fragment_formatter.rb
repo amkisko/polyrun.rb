@@ -4,7 +4,7 @@ require "fileutils"
 module Polyrun
   module Reporting
     # RSpec formatter: appends one JSON object per failed example to the shard fragment file.
-    # Enable via +Polyrun::RSpec.install_failure_fragments!+ and +POLYRUN_FAILURE_FRAGMENTS=1+ (set by run-shards --merge-failures).
+    # Enable via +Polyrun::RSpecSupport.install_failure_fragments!+ and +POLYRUN_FAILURE_FRAGMENTS=1+ (set by run-shards --merge-failures).
     #
     # Output: +tmp/polyrun_failures/polyrun-failure-fragment-<workerN|shardM-workerN>.jsonl+
     # (same basename rules as {Coverage::CollectorFragmentMeta}.)

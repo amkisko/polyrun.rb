@@ -1,12 +1,12 @@
 require_relative "../polyrun"
 
 module Polyrun
-  # Optional Minitest-oriented wiring (require +polyrun/minitest+ explicitly).
+  # Optional Minitest-oriented wiring (require +polyrun/minitest_support+ explicitly).
   #
   # Does not load the +minitest+ gem. Call {install_parallel_provisioning!} from +test/test_helper.rb+
   # after Rails / DB configuration (same timing as a direct call to
   # {Data::ParallelProvisioning.run_suite_hooks!}).
-  module Minitest
+  module MinitestSupport
     module WorkerPingTestHook
       def setup
         Polyrun::WorkerPing.ping!(location: polyrun_minitest_location)
@@ -35,12 +35,12 @@ module Polyrun
       Polyrun::Data::ParallelProvisioning.run_suite_hooks!
     end
 
-    # Same ping semantics as {RSpec.install_worker_ping!}: +ping!+ at test +setup+ and +teardown+.
+    # Same ping semantics as {RSpecSupport.install_worker_ping!}: +ping!+ at test +setup+ and +teardown+.
     # Requires +minitest+ to be loaded first (+Minitest::Test+ defined).
     def install_worker_ping!
       require_relative "worker_ping"
       unless defined?(::Minitest::Test)
-        Polyrun::Log.warn "polyrun minitest: install_worker_ping! skipped (load minitest/autorun or minitest/test first)"
+        Polyrun::Log.warn "polyrun minitest_support: install_worker_ping! skipped (load minitest/autorun or minitest/test first)"
         return
       end
 

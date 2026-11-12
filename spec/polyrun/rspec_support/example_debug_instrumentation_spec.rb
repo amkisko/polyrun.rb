@@ -1,8 +1,8 @@
 require "spec_helper"
 require "stringio"
-require "polyrun/rspec/example_debug_instrumentation"
+require "polyrun/rspec_support/example_debug_instrumentation"
 
-RSpec.describe Polyrun::RSpec::ExampleDebug do
+RSpec.describe Polyrun::RSpecSupport::ExampleDebug do
   describe ".sql_with_interpolated_binds" do
     it "replaces positional bind placeholders" do
       sql = "UPDATE users SET name = $1 WHERE id = $2"

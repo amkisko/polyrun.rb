@@ -72,6 +72,23 @@ module Polyrun
         cmd_run_shards(combined, config_path)
       end
 
+      # Same as parallel-rspec but runs +bundle exec sus+ after +--+ (one Sus process per shard).
+      # Does not run +start+ prepare/database bootstrap (use +polyrun start+ or bare +polyrun+ for that).
+      # Prefer OS-process shards here when workers need isolated databases; Sus's own +sus-parallel+ is in-process threads.
+      def cmd_parallel_sus(argv, config_path)
+        sep = argv.index("--")
+        combined =
+          if sep
+            head = argv[0...sep]
+            tail = argv[sep..]
+            head + ["--merge-coverage"] + tail
+          else
+            argv + ["--merge-coverage", "--", "bundle", "exec", "sus"]
+          end
+        Polyrun::Debug.log_kv(parallel_sus: "combined argv", argv: combined)
+        cmd_run_shards(combined, config_path)
+      end
+
       def minitest_parallel_cmd
         rails_bin = File.expand_path("bin/rails", Dir.pwd)
         if File.file?(rails_bin)

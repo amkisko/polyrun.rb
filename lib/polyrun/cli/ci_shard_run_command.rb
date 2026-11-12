@@ -141,6 +141,37 @@ module Polyrun
         Polyrun::Log.warn "polyrun ci-shard-rspec: #{paths.size} path(s) → #{shard_processes} process(es) on this host (NxM: matrix jobs × local processes)"
         ci_shard_run_fanout!(ctx)
       end
+
+      # Same as +ci-shard-run -- bundle exec sus+ with an optional second segment for Sus-only flags:
+      # +polyrun ci-shard-sus [plan options] [-- [sus args]]+
+      def cmd_ci_shard_sus(argv, config_path)
+        sep = argv.index("--")
+        plan_argv = sep ? argv[0...sep] : argv
+        sus_argv = sep ? argv[(sep + 1)..] : []
+
+        cfg = Polyrun::Config.load(path: config_path || ENV["POLYRUN_CONFIG"])
+        pc = cfg.partition
+        shard_processes, perr = ci_shard_parse_shard_processes!(plan_argv, pc)
+        return perr if perr
+
+        shard_processes, err = ci_shard_normalize_shard_processes(shard_processes)
+        return err if err
+
+        paths, code = ci_shard_planned_paths!(plan_argv, config_path, command_label: "ci-shard-sus")
+        return code if code != 0
+
+        cmd = ["bundle", "exec", "sus", *sus_argv]
+
+        if shard_processes <= 1
+          return ci_shard_run_single!(cmd, paths, cfg, pc, config_path)
+        end
+
+        ctx = ci_shard_fanout_context(
+          cfg: cfg, pc: pc, paths: paths, shard_processes: shard_processes, cmd: cmd, config_path: config_path
+        )
+        Polyrun::Log.warn "polyrun ci-shard-sus: #{paths.size} path(s) → #{shard_processes} process(es) on this host (NxM: matrix jobs × local processes)"
+        ci_shard_run_fanout!(ctx)
+      end
     end
   end
 end

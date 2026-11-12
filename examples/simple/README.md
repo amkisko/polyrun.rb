@@ -15,7 +15,7 @@
 
 ## Polyrun::Data (fixtures / parallel hooks)
 
-The demo includes **`spec/support/polyrun_parallel_data.rb`** and **`Polyrun::RSpec.install_parallel_provisioning!`** in **`rails_helper`**, plus **`spec/polyrun/polyrun_data_optimizations_spec.rb`** (**`CachedFixtures`**). See **[../fixtures_and_parallel_data.md](../fixtures_and_parallel_data.md)**.
+The demo includes **`spec/support/polyrun_parallel_data.rb`** and **`Polyrun::RSpecSupport.install_parallel_provisioning!`** in **`rails_helper`**, plus **`spec/polyrun/polyrun_data_optimizations_spec.rb`** (**`CachedFixtures`**). See **[../fixtures_and_parallel_data.md](../fixtures_and_parallel_data.md)**.
 
 ## Spec volume (partition demos)
 
@@ -26,7 +26,7 @@ The demo includes **`spec/support/polyrun_parallel_data.rb`** and **`Polyrun::RS
 | Feature | Where |
 |--------|--------|
 | Coverage fragments | `spec/spec_helper.rb` → `Polyrun::Coverage::Rails.start!`, optional `config/polyrun_coverage.yml` |
-| Spec quality (opt-in) | `POLYRUN_SPEC_QUALITY=1`, `Polyrun::RSpec.install_spec_quality!`, `config/polyrun_spec_quality.yml`, `run-shards --merge-spec-quality` |
+| Spec quality (opt-in) | `POLYRUN_SPEC_QUALITY=1`, `Polyrun::RSpecSupport.install_spec_quality!`, `config/polyrun_spec_quality.yml`, `run-shards --merge-spec-quality` |
 | Shard index → fragment name | `POLYRUN_SHARD_INDEX` → `coverage/polyrun-fragment-<shard>.json` |
 | Partition + parallel | `polyrun.yml` → `partition.paths_file`, `partition.suite` if needed, `run-shards` (default strategy: **`round_robin`**; see **[../partition_strategies/README.md](../partition_strategies/README.md)** for others) |
 | DB naming for shards | `polyrun.yml` → `databases` (PostgreSQL template + pattern) |

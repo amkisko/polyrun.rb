@@ -44,6 +44,7 @@ Rule: anything expensive (compile, `yarn`, Playwright download) belongs in prepa
 | Field | Options |
 |--------|---------|
 | Plain glob | `partition.paths_build.all_glob: spec/**/*_spec.rb` and empty or minimal `stages` |
+| Sus suite | `partition.suite: sus` (or auto via `config/sus.rb`); default glob `test/**/*.rb`; CLI `parallel-sus` / `ci-shard-sus`; wire `polyrun/sus_support` in `config/sus.rb`. Prefer Polyrun collector fragments for shard merge; do not enable Covered::Sus in the same process |
 | Ordered stages | `partition.paths_build.stages`: regex (e.g. slow integration first) or `sort_by_substring_order` for stable ordering |
 | Exclude prefixes | `partition.paths_build.exclude_prefixes`: omit paths (e.g. `spec/benchmark/`) from `paths_file` while keeping them runnable outside polyrun |
 
@@ -77,7 +78,7 @@ Orchestration tracing stays on `DEBUG=1` / `POLYRUN_DEBUG=1`. Per-example toolin
 | `DEBUG_LOG_LEVEL` | Rails / ActiveRecord logger severity: `debug`, `info`, `warn`, `error`, `fatal`, or Ruby Logger integers (`0` debug … `4` fatal); default `debug` |
 | `RSPEC_EXAMPLE_TIMEOUT_SEC` | Per-example timeout (disabled while example debug is on); on timeout, ActiveRecord connection pools are disconnected so the next example gets fresh connections (any adapter) |
 
-In `spec_helper` / `spec/support`: `require "polyrun/rspec"` then `Polyrun::RSpec.install_sharded_formatter_compat!` (silences per-worker seed/summary/pending under `POLYRUN_SHARD_*`), `install_example_debug!`, `install_example_rails_logging!`, `install_example_prosopite!`, `install_example_timeout!`. Pair with `install_worker_ping!` for idle timeouts.
+In `spec_helper` / `spec/support`: `require "polyrun/rspec_support"` then `Polyrun::RSpecSupport.install_sharded_formatter_compat!` (silences per-worker seed/summary/pending under `POLYRUN_SHARD_*`), `install_example_debug!`, `install_example_rails_logging!`, `install_example_prosopite!`, `install_example_timeout!`. Pair with `install_worker_ping!` for idle timeouts.
 
 ## 6. Coverage and CI reports
 

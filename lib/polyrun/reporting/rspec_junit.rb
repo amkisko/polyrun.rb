@@ -21,8 +21,8 @@ module Polyrun
         require "rspec/core"
         require "rspec/core/formatters/json_formatter"
 
-        RSpec.configure do |config|
-          config.add_formatter RSpec::Core::Formatters::JsonFormatter, json_abs
+        ::RSpec.configure do |config|
+          config.add_formatter ::RSpec::Core::Formatters::JsonFormatter, json_abs
         end
 
         at_exit do

@@ -62,13 +62,37 @@ RSpec.describe Polyrun::Partition::Suite do
         expect(r[:suite]).to eq(:rspec)
       end
     end
+
+    it "resolves sus when partition.suite is sus" do
+      Dir.mktmpdir do |dir|
+        FileUtils.mkdir_p(File.join(dir, "test", "demo"))
+        File.write(File.join(dir, "test", "demo", "thing.rb"), "")
+
+        r = described_class.resolve_default(cwd: dir, partition: {"suite" => "sus"})
+        expect(r[:suite]).to eq(:sus)
+        expect(r[:error]).to be_nil
+      end
+    end
+
+    it "auto-detects sus from config/sus.rb" do
+      Dir.mktmpdir do |dir|
+        FileUtils.mkdir_p(File.join(dir, "config"))
+        FileUtils.mkdir_p(File.join(dir, "test", "demo"))
+        File.write(File.join(dir, "config", "sus.rb"), "# sus\n")
+        File.write(File.join(dir, "test", "demo", "thing.rb"), "")
+
+        r = described_class.resolve_default(cwd: dir, partition: {"suite" => "auto"})
+        expect(r[:suite]).to eq(:sus)
+      end
+    end
   end
 
   describe ".infer_from_command" do
-    it "detects rspec, minitest, and quick commands" do
+    it "detects rspec, minitest, sus, and quick commands" do
       expect(described_class.infer_from_command(%w[bundle exec rspec])).to eq(:rspec)
       expect(described_class.infer_from_command(%w[bundle exec rails test])).to eq(:minitest)
       expect(described_class.infer_from_command(%w[bundle exec ruby -I test])).to eq(:minitest)
+      expect(described_class.infer_from_command(%w[bundle exec sus])).to eq(:sus)
       expect(described_class.infer_from_command(%w[bundle exec polyrun quick])).to eq(:quick)
       expect(described_class.infer_from_command([RbConfig.ruby, "stub.rb"])).to be_nil
     end
@@ -76,6 +100,10 @@ RSpec.describe Polyrun::Partition::Suite do
     it "detects bin/rails test and compact ruby -Itest" do
       expect(described_class.infer_from_command(%w[bin/rails test])).to eq(:minitest)
       expect(described_class.infer_from_command(%w[bundle exec ruby -Itest])).to eq(:minitest)
+    end
+
+    it "detects sus-parallel as sus" do
+      expect(described_class.infer_from_command(%w[bundle exec sus-parallel])).to eq(:sus)
     end
   end
 
@@ -99,6 +127,15 @@ RSpec.describe Polyrun::Partition::Suite do
       mixed = %w[spec/a_spec.rb test/b_test.rb]
       expect(described_class.command_mismatch_message(mixed, %w[bundle exec rspec])).to include("mixing")
       expect(described_class.command_mismatch_message(mixed, [RbConfig.ruby, "stub.rb"])).to be_nil
+    end
+
+    it "reports sus path vs rspec command mismatch" do
+      msg = described_class.command_mismatch_message(
+        ["test/demo/thing.rb"],
+        %w[bundle exec rspec]
+      )
+      expect(msg).to include("sus")
+      expect(msg).to include("rspec")
     end
 
     it "treats path:line RSpec locators as rspec" do

@@ -2,17 +2,23 @@ module Polyrun
   module Partition
     # Shared spec path listing for run-shards, queue init, and plan helpers.
     module Paths
+      SUS_CONFIG_REL = "config/sus.rb"
+      SUS_TEST_GLOB = "test/**/*.rb"
+
       module_function
 
       def read_lines(path)
         File.read(File.expand_path(path.to_s, Dir.pwd)).split("\n").map(&:strip).reject(&:empty?)
       end
 
-      # Prefer +spec/+ RSpec files, then +test/+ Minitest, then Polyrun Quick files (same globs as +polyrun quick+).
-      # Order avoids running the broader Quick glob when RSpec or Minitest files already exist.
+      # Prefer +spec/+ RSpec files, then Sus (+config/sus.rb+ + +test/**/*.rb+), then +test/+ Minitest,
+      # then Polyrun Quick files (same globs as +polyrun quick+).
       def detect_auto_suite(cwd = Dir.pwd)
         base = File.expand_path(cwd)
         return :rspec if Dir.glob(File.join(base, "spec/**/*_spec.rb")).any?
+
+        sus = sus_test_paths(base)
+        return :sus if sus_configured?(base) && sus.any?
 
         return :minitest if Dir.glob(File.join(base, "test/**/*_test.rb")).any?
 
@@ -22,32 +28,25 @@ module Polyrun
         nil
       end
 
-      # Infer parallel suite from explicit paths (+_spec.rb+ vs +_test.rb+ vs Polyrun quick-style +.rb+).
+      # Infer parallel suite from explicit paths.
       # Recognizes RSpec-style +path:line+ locators (strips a trailing numeric locator before classifying).
-      # Returns +:rspec+, +:minitest+, +:quick+, +:invalid+ (mixed spec and test), or +nil+ (empty).
+      # Returns +:rspec+, +:minitest+, +:sus+, +:quick+, +:invalid+ (mixed families), or +nil+ (empty).
       def infer_suite_from_paths(paths)
-        paths = Array(paths).map { |p| suite_classify_path(p) }
-        return nil if paths.empty?
+        families = Array(paths).map { |p| suite_family_for_path(p) }.compact
+        return nil if families.empty?
 
-        specs = paths.count { |p| File.basename(p).end_with?("_spec.rb") }
-        tests = paths.count { |p| File.basename(p).end_with?("_test.rb") }
-        return :invalid if specs.positive? && tests.positive?
+        uniq = families.uniq
+        return :invalid if uniq.size > 1
 
-        return :rspec if specs.positive?
-        return :minitest if tests.positive?
-
-        others = paths.size - specs - tests
-        return :quick if others.positive?
-
-        nil
+        uniq.first
       end
 
       # When +paths_file+ is set but missing, returns +{ error: "..." }+.
       # Otherwise returns +{ items:, source: }+ (human-readable source label).
       #
-      # +partition.suite+ (optional): +auto+ (default), +rspec+, +minitest+, +quick+ — used when resolving
+      # +partition.suite+ (optional): +auto+ (default), +rspec+, +minitest+, +sus+, +quick+ — used when resolving
       # from globs. Legacy +spec/spec_paths.txt+ is used only for +auto+/+rspec+ (RSpec-oriented); an
-      # explicit +minitest+/+quick+ suite skips it and globs instead. Bare +polyrun+ suite selection is
+      # explicit +minitest+/+sus+/+quick+ suite skips it and globs instead. Bare +polyrun+ suite selection is
       # {Suite.resolve_default} (explicit suite → paths_file inference → {detect_auto_suite}).
       def resolve_run_shard_items(paths_file: nil, cwd: Dir.pwd, partition: {})
         if paths_file
@@ -70,6 +69,7 @@ module Polyrun
         base = File.expand_path(cwd)
         spec = Dir.glob(File.join(base, "spec/**/*_spec.rb")).sort
         test = Dir.glob(File.join(base, "test/**/*_test.rb")).sort
+        sus = sus_test_paths(base)
         quick = quick_parallel_default_paths(base)
 
         case suite
@@ -81,6 +81,10 @@ module Polyrun
           return {error: "partition.suite is minitest but no test/**/*_test.rb files"} if test.empty?
 
           {items: test, source: "test/**/*_test.rb glob"}
+        when "sus"
+          return {error: "partition.suite is sus but no test/**/*.rb files"} if sus.empty?
+
+          {items: sus, source: "test/**/*.rb glob (sus)"}
         when "quick"
           return {error: "partition.suite is quick but no Polyrun quick files under spec/ or test/"} if quick.empty?
 
@@ -88,6 +92,8 @@ module Polyrun
         when "auto"
           if spec.any?
             {items: spec, source: "spec/**/*_spec.rb glob"}
+          elsif sus_configured?(base) && sus.any?
+            {items: sus, source: "test/**/*.rb glob (sus)"}
           elsif test.any?
             {items: test, source: "test/**/*_test.rb glob"}
           elsif quick.any?
@@ -95,11 +101,11 @@ module Polyrun
           else
             {
               error: "no spec paths (spec/spec_paths.txt, partition.paths_file, or spec/**/*_spec.rb); " \
-                     "no test/**/*_test.rb; no Polyrun quick files"
+                     "no Sus test/**/*.rb (with config/sus.rb); no test/**/*_test.rb; no Polyrun quick files"
             }
           end
         else
-          {error: "unknown partition.suite: #{suite.inspect} (expected auto, rspec, minitest, quick)"}
+          {error: "unknown partition.suite: #{suite.inspect} (expected auto, rspec, minitest, sus, quick)"}
         end
       end
 
@@ -108,12 +114,32 @@ module Polyrun
         Polyrun::Quick::Runner.parallel_default_paths(base)
       end
 
+      def sus_configured?(base)
+        File.file?(File.join(base, SUS_CONFIG_REL))
+      end
+
+      def sus_test_paths(base)
+        Dir.glob(File.join(base, SUS_TEST_GLOB)).sort
+      end
+
       # Strip trailing numeric locators (+path:line+ or +path:line:column+), then expand.
       def suite_classify_path(path)
         raw = path.to_s.sub(/(?::\d+)+\z/, "")
         File.expand_path(raw)
       end
       private_class_method :suite_classify_path
+
+      def suite_family_for_path(path)
+        abs = suite_classify_path(path)
+        base = File.basename(abs)
+        return :rspec if base.end_with?("_spec.rb")
+        return :minitest if base.end_with?("_test.rb")
+        return :quick if abs.include?("polyrun_quick")
+        return :sus if abs.match?(%r{(?:^|/)test/})
+
+        :quick
+      end
+      private_class_method :suite_family_for_path
 
       def use_legacy_spec_paths?(cwd, partition)
         return false unless File.file?(File.join(cwd, "spec", "spec_paths.txt"))

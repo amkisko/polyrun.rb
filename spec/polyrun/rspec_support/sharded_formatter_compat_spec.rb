@@ -1,7 +1,7 @@
 require "spec_helper"
-require "polyrun/rspec/sharded_formatter_compat"
+require "polyrun/rspec_support/sharded_formatter_compat"
 
-RSpec.describe Polyrun::RSpec::ShardedFormatterCompat do
+RSpec.describe Polyrun::RSpecSupport::ShardedFormatterCompat do
   describe ".install!" do
     around do |example|
       old = ENV["POLYRUN_SHARD_TOTAL"]

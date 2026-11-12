@@ -1,5 +1,5 @@
 module Polyrun
-  module RSpec
+  module RSpecSupport
     module ExampleDebug
       SKIPPED_SQL_PREFIX = /\A(?:SELECT|SET|SHOW|BEGIN|COMMIT|ROLLBACK|RELEASE|SAVEPOINT)/
 

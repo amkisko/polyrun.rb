@@ -26,17 +26,21 @@ module Polyrun
         qloc = quick_example_location(block)
         Polyrun::WorkerPing.ping!(location: qloc)
         Polyrun::SpecQuality.start_example!(location: qloc) if Polyrun::SpecQuality.started?
+        error = nil
+        started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         begin
           run_before_hooks_from_chain(ancestor_chain)
-          instance_eval(&block)
-          @reporter.pass(group_name, description)
+          invoke_arounds(ancestor_chain.flat_map(&:around_hooks), 0) { instance_eval(&block) }
+          @reporter.pass(group_name, description, duration_seconds: elapsed_since(started))
         rescue AssertionFailed => e
-          @reporter.fail(group_name, description, e)
+          error = e
+          @reporter.fail(group_name, description, e, duration_seconds: elapsed_since(started))
         rescue => e
-          @reporter.error(group_name, description, e)
+          error = e
+          @reporter.error(group_name, description, e, duration_seconds: elapsed_since(started))
         ensure
           Polyrun::SpecQuality.finish_example!(location: qloc) if Polyrun::SpecQuality.started?
-          run_after_hooks_from_chain(ancestor_chain)
+          run_after_hooks_from_chain(ancestor_chain, error: error)
           reset_capybara_if_enabled!
           @_let_cache = {}
           Polyrun::WorkerPing.ping!(location: qloc)
@@ -44,6 +48,10 @@ module Polyrun
       end
 
       private
+
+      def elapsed_since(started)
+        Process.clock_gettime(Process::CLOCK_MONOTONIC) - started
+      end
 
       def quick_example_location(block)
         loc = block&.source_location
@@ -79,10 +87,25 @@ module Polyrun
         end
       end
 
-      def run_after_hooks_from_chain(ancestor_chain)
+      def run_after_hooks_from_chain(ancestor_chain, error: nil)
         ancestor_chain.reverse_each do |g|
-          g.after_hooks.reverse_each { |h| instance_eval(&h) }
+          g.after_hooks.reverse_each { |h| instance_exec(error, &h) }
         end
+      end
+
+      def invoke_arounds(arounds, index, &body)
+        if index >= arounds.size
+          body.call
+          return
+        end
+
+        called = false
+        run = lambda {
+          called = true
+          invoke_arounds(arounds, index + 1, &body)
+        }
+        instance_exec(run, &arounds[index])
+        raise AssertionFailed, "around hook did not run the example" unless called
       end
 
       def extend_capybara_if_enabled!

@@ -37,4 +37,13 @@ RSpec.describe Polyrun::Quick::Matchers do
     expect { assertions.expect("abc").not_to assertions.match(/a/) }
       .to raise_error(Polyrun::Quick::AssertionFailed)
   end
+
+  it "be predicates and raise_exception" do
+    assertions.expect(2).to(assertions.be == 2)
+    assertions.expect(3).to(assertions.be > 2)
+    assertions.expect("x").to assertions.be_a(String)
+    assertions.expect { raise KeyError, "k" }.to assertions.raise_exception(KeyError)
+    expect { assertions.expect { 1 }.to assertions.raise_exception(RuntimeError) }
+      .to raise_error(Polyrun::Quick::AssertionFailed, /raise/)
+  end
 end

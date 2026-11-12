@@ -137,6 +137,7 @@ RSpec.describe Polyrun::Coverage::Collector do
       old_cov = ENV["POLYRUN_COVERAGE"]
       old_dis = ENV["POLYRUN_COVERAGE_DISABLE"]
       old_simple = ENV["SIMPLECOV_DISABLE"]
+      old_covered = ENV["COVERAGE"]
       example.run
       if old_cov
         ENV["POLYRUN_COVERAGE"] = old_cov
@@ -152,6 +153,11 @@ RSpec.describe Polyrun::Coverage::Collector do
         ENV["SIMPLECOV_DISABLE"] = old_simple
       else
         ENV.delete("SIMPLECOV_DISABLE")
+      end
+      if old_covered
+        ENV["COVERAGE"] = old_covered
+      else
+        ENV.delete("COVERAGE")
       end
     end
 
@@ -174,9 +180,24 @@ RSpec.describe Polyrun::Coverage::Collector do
       expect(described_class.coverage_requested_for_quick?(Dir.pwd)).to be true
     end
 
+    it "is true when COVERAGE is set to a Covered report name" do
+      ENV.delete("POLYRUN_COVERAGE")
+      ENV.delete("POLYRUN_COVERAGE_DISABLE")
+      ENV["COVERAGE"] = "PartialSummary"
+      expect(described_class.coverage_requested_for_quick?(Dir.pwd)).to be true
+    end
+
+    it "is false when COVERAGE is a falsey token" do
+      ENV.delete("POLYRUN_COVERAGE")
+      ENV.delete("POLYRUN_COVERAGE_DISABLE")
+      ENV["COVERAGE"] = "false"
+      expect(described_class.coverage_requested_for_quick?(Dir.pwd)).to be false
+    end
+
     it "is true when config/polyrun_coverage.yml exists and POLYRUN_QUICK_COVERAGE=1" do
       ENV.delete("POLYRUN_COVERAGE")
       ENV.delete("POLYRUN_COVERAGE_DISABLE")
+      ENV.delete("COVERAGE")
       ENV["POLYRUN_QUICK_COVERAGE"] = "1"
       Dir.mktmpdir do |dir|
         FileUtils.mkdir_p(File.join(dir, "config"))
@@ -191,6 +212,7 @@ RSpec.describe Polyrun::Coverage::Collector do
       ENV.delete("POLYRUN_COVERAGE")
       ENV.delete("POLYRUN_COVERAGE_DISABLE")
       ENV.delete("POLYRUN_QUICK_COVERAGE")
+      ENV.delete("COVERAGE")
       Dir.mktmpdir do |dir|
         FileUtils.mkdir_p(File.join(dir, "config"))
         File.write(File.join(dir, "config", "polyrun_coverage.yml"), "{}\n")
@@ -201,6 +223,7 @@ RSpec.describe Polyrun::Coverage::Collector do
     it "is false when unset and no config file" do
       ENV.delete("POLYRUN_COVERAGE")
       ENV.delete("POLYRUN_COVERAGE_DISABLE")
+      ENV.delete("COVERAGE")
       Dir.mktmpdir do |dir|
         expect(described_class.coverage_requested_for_quick?(dir)).to be false
       end

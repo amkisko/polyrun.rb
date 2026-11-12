@@ -2,15 +2,17 @@ module Polyrun
   module Partition
     # Chooses the parallel runner suite for bare +polyrun+ and validates command vs path lists.
     module Suite
+      ALLOWED = %w[auto rspec minitest sus quick].freeze
+
       module_function
 
       # Resolve suite for default CLI dispatch.
       # Order: explicit +partition.suite+ (not auto) → infer from +paths_file+ → +detect_auto_suite+.
-      # Returns +{ suite: :rspec|:minitest|:quick }+ or +{ error: "..." }+.
+      # Returns +{ suite: :rspec|:minitest|:sus|:quick }+ or +{ error: "..." }+.
       def resolve_default(cwd: Dir.pwd, partition: {})
         configured = configured_suite(partition)
-        return {error: "unknown partition.suite: #{configured.inspect} (expected auto, rspec, minitest, quick)"} unless
-          %w[auto rspec minitest quick].include?(configured)
+        return {error: "unknown partition.suite: #{configured.inspect} (expected auto, rspec, minitest, sus, quick)"} unless
+          ALLOWED.include?(configured)
 
         inferred = infer_from_paths_file(cwd, partition)
         return inferred if inferred.is_a?(Hash) && inferred[:error]
@@ -32,7 +34,8 @@ module Polyrun
         return {suite: auto} if auto
 
         {
-          error: "no tests found (spec/**/*_spec.rb, test/**/*_test.rb, or Polyrun quick files). See polyrun help."
+          error: "no tests found (spec/**/*_spec.rb, Sus config/sus.rb + test/**/*.rb, " \
+                 "test/**/*_test.rb, or Polyrun quick files). See polyrun help."
         }
       end
 
@@ -41,6 +44,7 @@ module Polyrun
         return nil if tokens.empty?
 
         return :rspec if tokens.any? { |t| File.basename(t) == "rspec" }
+        return :sus if tokens.any? { |t| %w[sus sus-parallel].include?(File.basename(t)) }
         return :quick if tokens.include?("quick") && tokens.any? { |t| File.basename(t).include?("polyrun") }
         return :minitest if minitest_command?(tokens)
 
@@ -54,7 +58,7 @@ module Polyrun
         if path_suite == :invalid
           return nil unless cmd_suite
 
-          return "mixing _spec.rb and _test.rb paths is not supported with a #{cmd_suite} command " \
+          return "mixing path families is not supported with a #{cmd_suite} command " \
                  "(use a suite-agnostic custom command, or split the path list)"
         end
 
@@ -81,7 +85,7 @@ module Polyrun
 
         items = Paths.read_lines(abs)
         inferred = Paths.infer_suite_from_paths(items)
-        return {error: "paths_file mixes _spec.rb and _test.rb (not supported in one run)"} if inferred == :invalid
+        return {error: "paths_file mixes path families (not supported in one run)"} if inferred == :invalid
 
         inferred
       end

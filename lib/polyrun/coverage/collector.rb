@@ -96,11 +96,13 @@ module Polyrun
         instance_variable_defined?(:@config) && @config
       end
 
-      # Whether +polyrun quick+ should call {Rails.start!} before loading quick files: not disabled,
-      # and (+POLYRUN_COVERAGE=1+ or (+config/polyrun_coverage.yml+ exists and +POLYRUN_QUICK_COVERAGE=1+)).
+      # Whether +polyrun quick+ / Sus helpers should call {Rails.start!} / {start!} before loading tests:
+      # not disabled, and (+POLYRUN_COVERAGE=1+ or Covered-style +COVERAGE+ set, or
+      # (+config/polyrun_coverage.yml+ exists and +POLYRUN_QUICK_COVERAGE=1+)).
       def self.coverage_requested_for_quick?(root = Dir.pwd)
         return false if disabled?
-        return true if %w[1 true yes].include?(ENV["POLYRUN_COVERAGE"]&.to_s&.downcase)
+        return true if polyrun_coverage_env_enabled?
+        return true if covered_env_enabled?
 
         path = File.join(File.expand_path(root), "config", "polyrun_coverage.yml")
         return false unless File.file?(path)
@@ -108,6 +110,21 @@ module Polyrun
         # Config file alone is for merge/report defaults; opt-in so test suites that only
         # keep polyrun_coverage.yml for gates do not start Collector during `polyrun quick`.
         %w[1 true yes].include?(ENV["POLYRUN_QUICK_COVERAGE"]&.to_s&.downcase)
+      end
+
+      # +POLYRUN_COVERAGE=1/true/yes+.
+      def self.polyrun_coverage_env_enabled?
+        %w[1 true yes].include?(ENV["POLYRUN_COVERAGE"]&.to_s&.downcase)
+      end
+
+      # Covered sets +COVERAGE+ to a report name (e.g. +PartialSummary+) or +true+.
+      # Empty / +0+ / +false+ / +no+ / +off+ stay off.
+      def self.covered_env_enabled?
+        value = ENV["COVERAGE"].to_s
+        return false if value.empty?
+        return false if %w[0 false no off].include?(value.downcase)
+
+        true
       end
 
       # When +POLYRUN_SHARD_TOTAL+ > 1, each worker only writes the JSON fragment; merged reports

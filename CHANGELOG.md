@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 3.0.0 (2026-11-12)
+
+- Rename `Polyrun::RSpec` to `Polyrun::RSpecSupport` and `Polyrun::Minitest` to `Polyrun::MinitestSupport` (requires `polyrun/rspec_support` / `polyrun/minitest_support`). Hard cut: old constants and require paths are removed (RFC-0007).
+- Fix `Polyrun::Reporting::RspecJunit.install!` raising `NoMethodError` on `configure` when RSpec wiring was already required (`::RSpec` qualification).
+- Add Sus as a first-class suite: `partition.suite: sus`, `test/**/*.rb` globs, auto-detect via `config/sus.rb`, `parallel-sus`, `ci-shard-sus`, and `Polyrun::SusSupport` (RFC-0008).
+- Treat Covered-style `COVERAGE` (non-falsey) as coverage-wanted for `Coverage::Collector` / SusSupport `install_coverage!` (RFC-0008).
+- Classify Sus-style `test/**/*.rb` paths as `:sus` instead of `:quick` during suite inference.
+- Extend `Polyrun::Quick`: `config/polyrun_quick.rb` suite hooks and `add_load_path`, `around`, error-aware `after`, `with` / `subject`, `be` / `be_a` / `raise_exception`, slowest-example summary (RFC-0009).
+
 ## 2.2.9 (2026-11-07)
 
 - Add `Polyrun::Benchmark::Pressure` for load benches: wall/CPU/RSS/heap/GC plus optional storage and network byte deltas, with target ceilings for iterative pressure runs.
@@ -86,8 +95,8 @@
 
 - Add `Polyrun::WorkerOutput` for per-shard worker stdout/stderr routing (`POLYRUN_WORKER_OUTPUT_ROUTING=1` or `POLYRUN_WORKER_LOG_DIR`); optional prefixed TTY echo (`POLYRUN_WORKER_OUTPUT_PREFIX=0` for log-only).
 - Add `partition.paths_build.exclude_prefixes` to omit path prefixes from `build-paths` / `start` while keeping files runnable outside polyrun.
-- Add `Polyrun::RSpec.install_example_debug!`, `install_example_timeout!`, `install_example_rails_logging!`, `install_example_prosopite!` (`POLYRUN_EXAMPLE_DEBUG=1` and related env vars).
-- Add `Polyrun::RSpec.install_sharded_formatter_compat!` for progress formatters (e.g. Fuubar) under `POLYRUN_SHARD_*`.
+- Add `Polyrun::RSpecSupport.install_example_debug!`, `install_example_timeout!`, `install_example_rails_logging!`, `install_example_prosopite!` (`POLYRUN_EXAMPLE_DEBUG=1` and related env vars).
+- Add `Polyrun::RSpecSupport.install_sharded_formatter_compat!` for progress formatters (e.g. Fuubar) under `POLYRUN_SHARD_*`.
 
 ## 2.1.2 (2026-07-05)
 
@@ -100,7 +109,7 @@
 ## 2.1.0 (2026-07-03)
 
 - Add experimental per-example spec quality (`Polyrun::SpecQuality`): `POLYRUN_SPEC_QUALITY=1`, worker JSONL fragments, `merge-spec-quality`, `report-spec-quality`, and `run-shards --merge-spec-quality`.
-- Add `Polyrun::RSpec.install_spec_quality!`, `Polyrun::Minitest.install_spec_quality!`, and Quick example hooks; `polyrun init --profile spec-quality`.
+- Add `Polyrun::RSpecSupport.install_spec_quality!`, `Polyrun::MinitestSupport.install_spec_quality!`, and Quick example hooks; `polyrun init --profile spec-quality`.
 - Add `Polyrun::Coverage::ExampleDiff` for per-example line hit deltas from `Coverage.peek_result`; record per-example factory counts via `Data::FactoryCounts`.
 - Report zero-hit examples, line churn, hot lines, shard attribution, optional partition hints (`report-spec-quality --plan`), optional CPU/GC/IO profiling (stdlib), and CI gate thresholds in `config/polyrun_spec_quality.yml`.
 - Document spec quality in `docs/SPEC_QUALITY.md`.
@@ -127,13 +136,13 @@
 
 - Add `run-shards --worker-timeout SEC` and `POLYRUN_WORKER_TIMEOUT_SEC` (wall time per worker since spawn); stop stuck workers; record exit 124 for that shard.
 - Add `run-shards --worker-idle-timeout SEC` and `POLYRUN_WORKER_IDLE_TIMEOUT_SEC`; parent reads monotonic timestamps from `POLYRUN_WORKER_PING_FILE`; record exit 125 when the last ping is stale. Idle applies only after a valid positive ping (use wall timeout until the first ping).
-- Add `Polyrun::WorkerPing` (`ping!`, `ensure_interval_ping_thread!` when `POLYRUN_WORKER_PING_THREAD`). Add `Polyrun::RSpec.install_worker_ping!` and `Polyrun::Minitest.install_worker_ping!`; Polyrun Quick calls `WorkerPing.ping!` around each example. Parent creates ping paths under `tmp/polyrun/` and unlinks files after workers exit.
+- Add `Polyrun::WorkerPing` (`ping!`, `ensure_interval_ping_thread!` when `POLYRUN_WORKER_PING_THREAD`). Add `Polyrun::RSpecSupport.install_worker_ping!` and `Polyrun::MinitestSupport.install_worker_ping!`; Polyrun Quick calls `WorkerPing.ping!` around each example. Parent creates ping paths under `tmp/polyrun/` and unlinks files after workers exit.
 - Poll every live shard worker together when timeouts are enabled so idle and wall limits apply to all children, not only the first waiter.
 - Split parallel worker teardown into `RunShardsParallelWait` and `RunShardsWorkerInterrupt`; keep spawn logic in `RunShardsParallelChildren`.
 - Add `Polyrun::Log.orchestration_warn`; when `POLYRUN_ORCHESTRATION_STDERR=1`, copy one line to process `$stderr` if `Log.stderr` is not the same object (custom/null sinks).
 - Wire `env_worker_timeout_sec` / `env_worker_idle_timeout_sec` into `ci-shard-run` plan context. Rescue `Interrupt` around `after_suite` in `run-shards` and `ci-shard` orchestration where suite hooks run.
 - In `Polyrun::Hooks#run_phase`, rescue `Interrupt` for Ruby DSL and shell hook phases (return 130).
-- Document worker timeout, idle ping, and `POLYRUN_ORCHESTRATION_STDERR` in `polyrun help`. Add `sig/polyrun/worker_ping.rbs` and extend `Polyrun::RSpec` / `Polyrun::Minitest` installer signatures.
+- Document worker timeout, idle ping, and `POLYRUN_ORCHESTRATION_STDERR` in `polyrun help`. Add `sig/polyrun/worker_ping.rbs` and extend `Polyrun::RSpecSupport` / `Polyrun::MinitestSupport` installer signatures.
 
 ## 1.4.2 (2026-04-24)
 
@@ -145,7 +154,7 @@
 ## 1.4.1 (2026-04-16)
 
 - Add `polyrun merge-failures` and `run-shards --merge-failures` / `--merge-failures-output` / `--merge-failures-format`; merge per-worker JSONL under `tmp/polyrun_failures/polyrun-failure-fragment-*.jsonl` (or RSpec JSON via `-i`). Run merge after all workers exit, including when a shard failed (`--merge-coverage` still runs only after all shards succeed).
-- Add `Polyrun::Reporting::FailureMerge`, `Polyrun::RSpec.install_failure_fragments!`, and `Polyrun::Reporting::RspecFailureFragmentFormatter`; parent sets `POLYRUN_FAILURE_FRAGMENTS=1` on workers when merge-failures is enabled.
+- Add `Polyrun::Reporting::FailureMerge`, `Polyrun::RSpecSupport.install_failure_fragments!`, and `Polyrun::Reporting::RspecFailureFragmentFormatter`; parent sets `POLYRUN_FAILURE_FRAGMENTS=1` on workers when merge-failures is enabled.
 - Add optional `reporting:` in `polyrun.yml` and `Polyrun::Config#reporting` for merge-failures toggles and paths; honor `POLYRUN_MERGE_FAILURES`, `POLYRUN_MERGED_FAILURES_OUT`, `POLYRUN_MERGED_FAILURES_FORMAT`; set `POLYRUN_MERGED_FAILURES_PATH` for `after_suite` when merge wrote a file.
 - On bad JSONL or non-RSpec JSON, raise `Polyrun::Error` with path and line where applicable; `merge-failures` exits 1 without a full stack trace; a failed merge after successful workers forces `run-shards` exit 1.
 - Fix `run_shards_plan_ready_log` to take `cfg` so debug logging for merge-failures does not raise `NameError`.
@@ -180,11 +189,11 @@
 ## 1.1.0 (2026-04-15)
 
 - Add `ci-shard-run` / `ci-shard-rspec` for matrix-style sharding (one job per `POLYRUN_SHARD_INDEX` / `POLYRUN_SHARD_TOTAL`): resolve paths via the same plan as `polyrun plan`, then `exec` the given command with this shard’s paths (unlike `run-shards`, which fans out multiple workers on one host).
-- Add experimental per-example partition timing: `partition.timing_granularity` / `--timing-granularity` (`file` default, `example` for `path:line` items), `POLYRUN_TIMING_GRANULARITY`, merged timing JSON with `absolute_path:line` keys, `TimingKeys.load_costs_json_file`, constraints matching pins/globs on the file part of locators, queue init support, and optional `Polyrun::Timing::RSpecExampleFormatter` plus `Polyrun::RSpec.install_example_timing!`.
+- Add experimental per-example partition timing: `partition.timing_granularity` / `--timing-granularity` (`file` default, `example` for `path:line` items), `POLYRUN_TIMING_GRANULARITY`, merged timing JSON with `absolute_path:line` keys, `TimingKeys.load_costs_json_file`, constraints matching pins/globs on the file part of locators, queue init support, and optional `Polyrun::Timing::RSpecExampleFormatter` plus `Polyrun::RSpecSupport.install_example_timing!`.
 - Add `Polyrun::ProcessStdio.inherit_stdio_spawn_wait` and `spawn_wait` for subprocesses with inherited stdio (or temp-file capture when `silent: true`) to avoid Open3 pipe-thread noise on interrupt; used by prepare (shell / custom assets), `Prepare::Assets.precompile!`, and `Provision.prepare_template!` (`bin/rails db:prepare`). On failure, `db:prepare` / `assets:precompile` embed captured stdout/stderr in `Polyrun::Error` (truncated when huge).
 - Refactor `polyrun plan` around `plan_command_compute_manifest` and `plan_command_build_manifest`; `cmd_plan` output stays aligned with `plan_command_compute_manifest` (tests guard drift).
 - `TimingKeys.load_costs_json_file` accepts optional `root:` for key normalization; warns when two JSON keys normalize to the same entry with different seconds; `TimingKeys.canonical_file_path` / `normalize_locator` resolve directory symlinks so `/var/…` and `/private/var/…` (macOS) map to one key.
-- `Polyrun::RSpec.install_example_timing!(output_path:)` no longer sets `ENV` when an explicit path is passed; formatter uses `timing_output_path` (override or `ENV` / default filename).
+- `Polyrun::RSpecSupport.install_example_timing!(output_path:)` no longer sets `ENV` when an explicit path is passed; formatter uses `timing_output_path` (override or `ENV` / default filename).
 - Fix noisy `IOError` / broken-pipe behavior when interrupting long-running prepare / Rails subprocesses that previously used `Open3.capture3`.
 
 ## 1.0.0 (2026-04-14)

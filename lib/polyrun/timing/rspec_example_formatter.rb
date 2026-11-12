@@ -10,7 +10,7 @@ module Polyrun
     # Use after RSpec is loaded:
     #   require "polyrun/timing/rspec_example_formatter"
     #   RSpec.configure { |c| c.add_formatter Polyrun::Timing::RSpecExampleFormatter }
-    # Or {Polyrun::RSpec.install_example_timing!} (+output_path:+ avoids touching +ENV+).
+    # Or {Polyrun::RSpecSupport.install_example_timing!} (+output_path:+ avoids touching +ENV+).
     #
     # Default output path: +ENV["POLYRUN_EXAMPLE_TIMING_OUT"]+ if set, else +polyrun_timing_examples.json+.
     class RSpecExampleFormatter
@@ -44,7 +44,7 @@ module Polyrun
         File.write(timing_output_path, JSON.pretty_generate(@times))
       end
 
-      # Override in a subclass from {Polyrun::RSpec.install_example_timing!(output_path: ...)}.
+      # Override in a subclass from {Polyrun::RSpecSupport.install_example_timing!(output_path: ...)}.
       def timing_output_path
         ENV["POLYRUN_EXAMPLE_TIMING_OUT"] || "polyrun_timing_examples.json"
       end

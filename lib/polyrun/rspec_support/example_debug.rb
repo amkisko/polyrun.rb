@@ -3,7 +3,7 @@ require "timeout"
 require_relative "example_debug_instrumentation"
 
 module Polyrun
-  module RSpec
+  module RSpecSupport
     # Per-example RSpec debugging for local investigation (SQL, TracePoint, timeouts).
     #
     # +POLYRUN_EXAMPLE_DEBUG=1+ enables print helpers, Rails logging, and disables per-example timeouts.

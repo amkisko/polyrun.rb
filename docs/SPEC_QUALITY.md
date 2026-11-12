@@ -12,8 +12,8 @@ export POLYRUN_COVERAGE=1   # stdlib Coverage must be running for line deltas
 In `spec/spec_helper.rb` (after coverage starts):
 
 ```ruby
-require "polyrun/rspec"
-Polyrun::RSpec.install_spec_quality!
+require "polyrun/rspec_support"
+Polyrun::RSpecSupport.install_spec_quality!
 ```
 
 Optional config: `config/polyrun_spec_quality.yml` (see `lib/polyrun/templates/polyrun_spec_quality.yml`).

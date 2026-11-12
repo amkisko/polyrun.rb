@@ -30,14 +30,15 @@ module Polyrun
   class CLI
     CI_SHARD_COMMANDS = {
       "ci-shard-run" => :cmd_ci_shard_run,
-      "ci-shard-rspec" => :cmd_ci_shard_rspec
+      "ci-shard-rspec" => :cmd_ci_shard_rspec,
+      "ci-shard-sus" => :cmd_ci_shard_sus
     }.freeze
 
     # Keep in sync with +dispatch_cli_command_subcommands+ (+when+ branches). Used for implicit path routing.
     DISPATCH_SUBCOMMAND_NAMES = %w[
       plan prepare merge-coverage merge-failures merge-spec-quality report-coverage report-junit report-timing report-spec-quality report-benchmark bench
       env config merge-timing db:setup-template db:setup-shard db:clone-shards
-      run-shards parallel-rspec parallel-minitest parallel-quick start build-paths init queue run-queue quick hook validate doctor
+      run-shards parallel-rspec parallel-minitest parallel-sus parallel-quick start build-paths init queue run-queue quick hook validate doctor
     ].freeze
 
     # First argv token that is a normal subcommand (not a path); if argv[0] is not here but looks like paths, run implicit parallel.
@@ -219,6 +220,8 @@ module Polyrun
         cmd_parallel_rspec(argv, config_path)
       when "parallel-minitest"
         cmd_parallel_minitest(argv, config_path)
+      when "parallel-sus"
+        cmd_parallel_sus(argv, config_path)
       when "parallel-quick"
         cmd_parallel_quick(argv, config_path)
       when "start"

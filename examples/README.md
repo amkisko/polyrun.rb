@@ -18,7 +18,7 @@ Each runnable demo uses 120+ generated lattice specs for partition demos: `lib/d
 ## CLI features (binstub, defaults, config, matrix)
 
 - **Executable in the app**: add `gem "polyrun"` then `bundle binstubs polyrun` to create `bin/polyrun` (same idea as `bundle binstubs rspec`). Demos use `bundle exec polyrun` or a path to the gem checkout `bin/polyrun`.
-- **No subcommand**: from the app root, `polyrun` (or `./bin/polyrun`) with **no** subcommand runs parallel tests using the resolved suite: `partition.suite` when set (`rspec` / `minitest` / `quick`); else suite inferred from `partition.paths_file` when that file lists `_spec.rb` / `_test.rb` / other Quick `.rb` files; else filesystem auto-detect (RSpec under `spec/` before Minitest under `test/`, then Polyrun Quick). Explicit subcommands: `parallel-rspec`, `parallel-minitest`, `parallel-quick`, or `start`.
+- **No subcommand**: from the app root, `polyrun` (or `./bin/polyrun`) with **no** subcommand runs parallel tests using the resolved suite: `partition.suite` when set (`rspec` / `minitest` / `sus` / `quick`); else suite inferred from `partition.paths_file`; else filesystem auto-detect (RSpec under `spec/`, Sus when `config/sus.rb` + `test/**/*.rb`, Minitest `*_test.rb`, then Polyrun Quick). Explicit subcommands: `parallel-rspec`, `parallel-minitest`, `parallel-sus`, `parallel-quick`, or `start`.
 - **Path-only argv**: `polyrun --workers 4 spec/models/foo_spec.rb` shards only those files (optional `run-shards` flags before paths); suite is inferred from `_spec.rb` / `_test.rb` vs other `.rb` files. The first token wins if it is a known subcommand; otherwise path-like tokens trigger implicit parallel.
 - **Parallel Quick**: default Quick sharding runs `bundle exec polyrun quick` in each worker—use the app root and Bundler (same idea as `bundle exec rspec`) so workers pick up the intended gem version.
 - **Effective config**: `Polyrun::Config::Effective` is the single nested map Polyrun uses (loaded YAML plus merged `prepare.env`, resolved `partition.shard_index` / `shard_total` / `timing_granularity`, and top-level `workers`). Inspect from the shell: `bin/polyrun config partition.paths_file`, `bin/polyrun config prepare.env.SOME_VAR`, `bin/polyrun config workers`, etc.
@@ -34,7 +34,7 @@ Supported `partition.strategy` values: `round_robin` (default), `random_round_ro
 
 ## Fixtures / factories / parallel DB hooks
 
-`Polyrun::Data` (CachedFixtures, ParallelProvisioning, optional FactoryBot instrumentation) is documented in [fixtures_and_parallel_data.md](fixtures_and_parallel_data.md). The simple demo wires `Polyrun::RSpec.install_parallel_provisioning!` and a CachedFixtures example in `simple/simple_demo/spec/polyrun/polyrun_data_optimizations_spec.rb`.
+`Polyrun::Data` (CachedFixtures, ParallelProvisioning, optional FactoryBot instrumentation) is documented in [fixtures_and_parallel_data.md](fixtures_and_parallel_data.md). The simple demo wires `Polyrun::RSpecSupport.install_parallel_provisioning!` and a CachedFixtures example in `simple/simple_demo/spec/polyrun/polyrun_data_optimizations_spec.rb`.
 
 ## Mandatory parallel / CI practices
 
@@ -47,7 +47,7 @@ Shared assets, fixtures, database contention, and the Ruby GVL are covered in [T
 | Coverage across shards | `Polyrun::Coverage::Rails` in spec_helper → `coverage/polyrun-fragment-<shard>.json` → merge-coverage |
 | CPU-bound Ruby | Multi-process splits (`run-shards`), not threads alone |
 | Cached expensive fixture setup | `Polyrun::Data::CachedFixtures` (see fixtures_and_parallel_data.md) |
-| Serial vs parallel DB seeds | `Polyrun::Data::ParallelProvisioning` + `polyrun/rspec` or `polyrun/minitest` |
+| Serial vs parallel DB seeds | `Polyrun::Data::ParallelProvisioning` + `polyrun/rspec_support` or `polyrun/minitest_support` |
 
 The [multi_capybara](multi_capybara/README.md) demo covers named Capybara sessions (admin, store, platform), Playwright options, and REST, GraphQL, and gRPC over the same domain—useful for coverage maps and partition splits under `spec/grpc`, `spec/requests`, `spec/integration`, and `spec/system`.
 

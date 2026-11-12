@@ -1,7 +1,7 @@
 require "spec_helper"
-require "polyrun/rspec/example_debug"
+require "polyrun/rspec_support/example_debug"
 
-RSpec.describe Polyrun::RSpec::ExampleDebug do
+RSpec.describe Polyrun::RSpecSupport::ExampleDebug do
   describe ".install_example_timeout!" do
     around do |example|
       old = ENV["POLYRUN_EXAMPLE_DEBUG"]
@@ -18,10 +18,10 @@ RSpec.describe Polyrun::RSpec::ExampleDebug do
 
     it "disconnects ActiveRecord pools when an example times out" do
       recovery = class_double(
-        "Polyrun::RSpec::ActiveRecordTimeoutRecovery",
+        "Polyrun::RSpecSupport::ActiveRecordTimeoutRecovery",
         disconnect_all_connection_pools!: nil
       )
-      stub_const("Polyrun::RSpec::ActiveRecordTimeoutRecovery", recovery)
+      stub_const("Polyrun::RSpecSupport::ActiveRecordTimeoutRecovery", recovery)
 
       config = ::RSpec::Core::Configuration.new
       config.expect_with :rspec
@@ -46,10 +46,10 @@ RSpec.describe Polyrun::RSpec::ExampleDebug do
 
     it "does not disconnect ActiveRecord pools when an example fails for other reasons" do
       recovery = class_double(
-        "Polyrun::RSpec::ActiveRecordTimeoutRecovery",
+        "Polyrun::RSpecSupport::ActiveRecordTimeoutRecovery",
         disconnect_all_connection_pools!: nil
       )
-      stub_const("Polyrun::RSpec::ActiveRecordTimeoutRecovery", recovery)
+      stub_const("Polyrun::RSpecSupport::ActiveRecordTimeoutRecovery", recovery)
 
       config = ::RSpec::Core::Configuration.new
       config.expect_with :rspec

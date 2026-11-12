@@ -29,6 +29,11 @@ module Polyrun
           return code if code != 0
 
           cmd_parallel_minitest([], config_path)
+        when :sus
+          code = start_bootstrap!(cfg, [], config_path)
+          return code if code != 0
+
+          cmd_parallel_sus([], config_path)
         when :quick
           code = start_bootstrap!(cfg, [], config_path)
           return code if code != 0
@@ -69,7 +74,7 @@ module Polyrun
 
         suite = Polyrun::Partition::Paths.infer_suite_from_paths(expanded)
         if suite == :invalid
-          Polyrun::Log.warn "polyrun: mixing _spec.rb and _test.rb paths in one run is not supported"
+          Polyrun::Log.warn "polyrun: mixing path families in one run is not supported"
           return 2
         end
         if suite.nil?
@@ -88,6 +93,8 @@ module Polyrun
             cmd_start(combined, config_path)
           when :minitest
             cmd_parallel_minitest(combined, config_path)
+          when :sus
+            cmd_parallel_sus(combined, config_path)
           when :quick
             cmd_parallel_quick(combined, config_path)
           else
@@ -119,10 +126,10 @@ module Polyrun
           if File.directory?(abs)
             spec = Dir.glob(File.join(abs, "**", "*_spec.rb")).sort
             test = Dir.glob(File.join(abs, "**", "*_test.rb")).sort
-            quick = Dir.glob(File.join(abs, "**", "*.rb")).sort.reject do |f|
+            other = Dir.glob(File.join(abs, "**", "*.rb")).sort.reject do |f|
               File.basename(f).end_with?("_spec.rb", "_test.rb")
             end
-            spec + test + quick
+            spec + test + other
           elsif /[*?\[]/.match?(p)
             Dir.glob(abs).sort
           elsif File.file?(abs)

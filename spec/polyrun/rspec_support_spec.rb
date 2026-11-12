@@ -1,6 +1,6 @@
 require "spec_helper"
 
-RSpec.describe Polyrun::RSpec do
+RSpec.describe Polyrun::RSpecSupport do
   def failure_fragment_formatter_registered?
     formatter = Polyrun::Reporting::RspecFailureFragmentFormatter
     ::RSpec.configuration.formatters.any? { |entry| entry.is_a?(formatter) }
