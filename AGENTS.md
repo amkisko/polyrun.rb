@@ -65,11 +65,11 @@ Related: `engineering-audit` security mode asks whether a parameter establishes 
 - `usr/support/` holds product and customer support console scripts that mutate or write; a person pastes or runs them after review; programmable agents do not run them against a live process;
 - `usr/migrate/` holds schema and data migration scripts for manual running before new code is on the process; later schema migrate is schema-only and idempotent;
 - six `docs/` timestamp trees, no README index, filename `YYYYMMDDHHMMSS_<kebab-case-title>.md`: `plans` (uncertain future: design-only notes before work is committed), `issues` (certain current: live work in play; contract, findings, open next; the open queue stays here), `reviews` (one review episode: session or CI scope, coverage, recommendations, outcome), `changelogs` (factual past: what shipped), `meetings` (one sitting: who was there and what they agreed), `dependencies` (upstream defects from real work);
-- issues, reviews, changelogs, and meetings make five things findable with `##` headings or equivalent: Participants (humans), Decisions (what was agreed), Effects (done, failed, recovered, rolled back), Next (todo, planned, open questions), Source (links upstream and downstream);
-- name the current operator under Participants when the current session provides their display name or that person confirms it; solo sessions still get one Participants line;
-- if the current operator cannot be identified without inference, omit Participants rather than guess from git configuration, commit history, filesystem paths, OS accounts, or login names;
+- plans, issues, reviews, changelogs, and meetings make five things findable with `##` headings or equivalent: Participants (humans), Decisions (what was agreed), Effects (done, failed, recovered, rolled back), Next (todo, planned, open questions), Source (links upstream and downstream); plans stay design-only until an issue opens;
+- always name the current human operator under Participants; that person is present for every note; solo sessions still get one Participants line; do not omit Participants;
+- take the operator name from the session display name or that person's confirmation; do not invent a name from git configuration, commit history, filesystem paths, OS accounts, or login names;
 - list other humans who decided or reported in that episode when known; do not list agents, tools, binaries, or every person who touched related code;
-- omit other empty sections; git history is the edit log; add an explicit note only when a later pass changes meaning (scope cut, rollback, decision reversed);
+- omit other empty sections (not Participants); git history is the edit log; add an explicit note only when a later pass changes meaning (scope cut, rollback, decision reversed);
 - Problem / Fix and similar ticket outlines do not replace the five headings; map that content into Decisions and Effects; keep Participants, Next, and Source as their own headings;
 - mention software, tools, agents, or binaries in a note only when that detail is needed for execution or later analysis; put it under Decisions, Effects, or Source, not under Participants;
 - never put local absolute paths or private material in `docs/` or under `usr/`: no home-directory or machine-specific filesystem paths, secrets, credentials, tokens, API keys, or personal private data; prefer repository-relative paths;
@@ -81,7 +81,7 @@ Related: `engineering-audit` security mode asks whether a parameter establishes 
 
 When work surfaces a clearly visible bug or defect in a dependency (wrong behavior, broken API contract, regression between versions, or a fix already merged upstream but not released), say so in the task output and suggest a concrete fix path: upgrade, pin, patch, vendor, workaround, or upstream report.
 
-Store evidence under `docs/dependencies/#{YYYYMMDDHHMMSS}_<kebab-case-title>.md`; no README index in that tree. Each file should make these findable (use `##` headings or equivalent; omit empty sections): Dependency (name, version constraint, lockfile entry if any), Symptom (what breaks and where), Evidence (repro steps, logs, stack traces, links to issues or commits), Suggested fix (upgrade, pin, patch, workaround, or upstream report), Next (todo, planned, open questions), Source (links upstream: issue, PR, release note, commit, and downstream materializations in this repo). Git history is the edit log.
+Store evidence under `docs/dependencies/#{YYYYMMDDHHMMSS}_<kebab-case-title>.md`; no README index in that tree. Each file should make these findable (use `##` headings or equivalent; omit empty sections other than Participants): Participants (current human operator, always; plus other humans when known), Dependency (name, version constraint, lockfile entry if any), Symptom (what breaks and where), Evidence (repro steps, logs, stack traces, links to issues or commits), Suggested fix (upgrade, pin, patch, workaround, or upstream report), Next (todo, planned, open questions), Source (links upstream: issue, PR, release note, commit, and downstream materializations in this repo). Copy the blank skeleton from `usr/templates/note/dependency.md` when that tree is provisioned. Git history is the edit log.
 
 Do not open drive-by dependency hunts; record only issues encountered while doing the requested work and only when the defect is evident from behavior or published upstream facts, not speculation.
 
@@ -108,12 +108,15 @@ Stop until one of these applies before adding a dependency:
 
 Run dependency-audit for direct dependency changes, graph audits, releases with hot-path package changes, and plausible dependency vulnerability or exploitation signals found during ordinary work. Keep the evidence and assessment in the live-work or dependency record.
 
-Related: `dependency-issues` records upstream defects found during real work; `minimal-implementation` covers YAGNI before adding deps; `engineering-audit` covers code and pipeline review.
+On resolved lockfile graph or runtime-pin upgrades (automated or human), map upstream changelog or release notes to this tree's usage, then gather before/after resource samples for install or graph storage, resident memory, CPU or a stated proxy, and shipped bundle or image size when the product ships bytes. Use isolated checkouts and the same consumer-owned measure commands on both revisions. Report the comparison; write to a change request only when authorized. Cheaper or smaller without comparable samples is inference. Absolute ship-path ceilings stay in `delivery-budgets`. When measured load shows a dependency no longer meets named requirements, reassess replace, remove, or narrow first-party work through dependency-audit before custom code.
+
+Related: `dependency-issues` records upstream defects found during real work; `minimal-implementation` covers YAGNI before adding deps and before custom replacement; `engineering-audit` covers code and pipeline review; `delivery-budgets` owns continuous size and build-timing gates; `pressure-benchmarking` owns load ladders and ceiling ratchet episodes, not one-change upgrade deltas.
 <!-- pray:3ac5d6ce -->
 
 <!-- pray:ad13bd27 -->
 - test coverage must follow @spec/README.md guidelines;
 - use ruby and Rails features according to the codebase versions;
+- prefer host APIs, toolchains, and the tree's ordinary process model; keep its declared runtime; add virtualization, containerization, or emulation only for a named requirement the ordinary host execution cannot meet;
 - follow ruby and Rails coding conventions, principles, and best practices;
 - schema DDL in `db/migrate`; row backfills in `db/data_migrations`; keep `up` and `change` as schema DDL;
 - page large backfills with an id cursor or `offset`/`limit`; pass `total_records` and `processed_count`; `enqueue` the next page; when `enqueue` is absent (console `new.perform`), drain remaining pages in the same `perform`;
@@ -126,6 +129,10 @@ Related: `dependency-issues` records upstream defects found during real work; `m
 - person-facing date and datetime fields are text (or a widget bound to the product form), not native `date` or `datetime-local`, when the product locale is not the browser locale;
 - ActiveRecord `TimeZoneConverter` converts strings through `in_time_zone` before DateTime cast; a parse prepend on Date or DateTime does not see those strings unless the converter is also prepended; ISO JSON and params stay on the default caster;
 - association pickers reuse the existing admin list API with a bounded page; they do not pluck the full table into the form;
+- local app host for development, system and request specs, `default_url_options`, OAuth callbacks, Capybara app host, and curl against the running app: `https://<app>.rails.fi` or `http://rails.fi` (`rails.fi` and wildcard `*.rails.fi` resolve to `127.0.0.1`); prefer project `HOST` / `RAILS_HOST`;
+- do not use `example.com`, `example.org`, or `example.net` in fixtures, stubs, mocks, allowlists, documentation hosts, or fake email; those names resolve on the public Internet;
+- fictional remote host, external-service mock, or fake email that must not hit the local app: `<title>.<hash>` (product label plus short hex, for example `demo.7c3e9a1b` / `user@demo.7c3e9a1b`); keep house fake mail on `@rails.fi` when the address is local-app shaped;
+- keep `config.hosts`, Capybara, and mailer host on `*.rails.fi`; remove leftover `example.com` names from local allowlists;
 
 Related: `docs-conventions` names `usr/scripts` for maintainer scripts run from a checkout or CI, `usr/reports` for read-only investigation scripts, `usr/support` for support console scripts that mutate, and `usr/migrate` for schema and data migration scripts for manual running.
 <!-- pray:ad13bd27 -->
@@ -154,6 +161,7 @@ Rules:
 - match the tree's structural height; a consistent absence of a layer is a convention; do not introduce a second pattern for the same job;
 - no abstractions unless three real variations need them; drop unused public methods;
 - no new dependency when stdlib, the framework for this tree, or an installed dependency suffices;
+- when measured load or a named requirement shows an existing dependency no longer fits, reassess through dependency-audit before writing custom replacement code; custom stays last after replace, remove, and narrow first-party options;
 - no boilerplate the task did not ask for;
 - deletion over addition; boring over clever; fewest files that stay readable;
 - when a request sounds overbuilt, ask whether a simpler existing path already covers it;
@@ -168,7 +176,7 @@ Not optional even when minimizing scope:
 - anything explicitly requested in the task or ticket;
 - tests for non-trivial behavior per @spec/README.md; trivial one-liners need no new spec.
 
-Related: `keep-the-work` covers the failed place after a refusal; `dependency-policy` covers third-party registry packages; `infer-conventions` encodes how this tree writes as checks.
+Related: `preferred-stack` covers native-first language choice and proximity when no tree language owns the path yet; `keep-the-work` covers the failed place after a refusal; `dependency-policy` covers third-party registry packages, upgrade impact, and fitness reassessment before custom replacement; `infer-conventions` encodes how this tree writes as checks.
 <!-- pray:bf7304a6 -->
 
 <!-- pray:120c3507 -->
@@ -202,16 +210,18 @@ Examples:
 - `trunk/2026-august-pack`
 - `plan/auth-redesign-notes`
 - `plan/2026-q2-roadmap`
+
+Related: `planned-release` names commitment, collection period, period label, and prepare/deliver events; its skill owns defaults, binding, and process signals. The `trunk/<title>` prefix names a candidate branch. The stable line is a separate role.
 <!-- pray:26f3566a -->
 
 <!-- pray:f528eeca -->
 ## Preferred stack and tools
 
-- native-first approach for all platforms and languages
-- ruby for web application and API development, and for its rich ecosystem of libraries and frameworks
-- elixir for concurrent and distributed systems, and for its actor model and fault tolerance
-- rust for system programming and performance-critical code
-- javascript, html, css for native browser experience
+- native-first means: name the nearest semantic authority for the job (CPU and OS ABI, browser host, language runtime, database engine, GPU pipeline, build or cluster orchestrator, game or media engine, and similar), then prefer a language whose ordinary execution form lives there
+- a portable sandbox, managed VM guest, or engine guest is not OS-native when the job is that host's contract
+- match the language of the directory you are changing; follow the matching language pack when the project composes one
+- when starting a new tree or an independent package with no owning language yet, choose by nearest authority and proximity band; ask only when two candidates sit in the same band and the choice changes the outcome; record language, authority, band, and why not a closer option
+- house shortcuts when proximity and team practice agree: ruby for web application and API work; elixir for concurrent and distributed systems on the BEAM; rust for system programming and performance-critical native code; javascript, html, css for the browser document and style surface
 - humane and accessible visual-surface principles for UI/UX, and for clear communication of intent and feedback; label icon-only controls; hide decorative duplicates from the accessibility tree
 - when the change presents a screen, document, or other person-facing surface, name that surface in the work product (reply, pull request, live-work note) and record a visual assessment: hierarchy, copy, interactive states, empty/loading/error, a narrow surface, and whether a person can finish the task; record what was assessed and what remains for a human; skip and say so when there is no such surface
 - pictures, previews, tickets, and chat threads are source locators for that signal; the assessment is the running product plus the written need
@@ -221,7 +231,7 @@ Examples:
 - catalog assignment starts empty when a default first row would apply a change
 - a command that writes a record must look like a command
 
-Related: `keep-the-work` covers staying on the failed place after a refusal.
+Related: the `preferred-stack` skill owns proximity bands and the selection procedure; `minimal-implementation` keeps scope small and repeats the tree-language match; language packs (`ruby-conventions`, `rust-conventions`, `elixir-conventions`, `kotlin-conventions`, `swift-conventions`) own how to write after the choice; `keep-the-work` covers staying on the failed place after a refusal.
 <!-- pray:f528eeca -->
 
 <!-- pray:d3b0d939 -->
