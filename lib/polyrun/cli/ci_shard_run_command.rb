@@ -67,7 +67,7 @@ module Polyrun
           config_path: config_path,
           matrix_shard_index: mx,
           matrix_shard_total: mt,
-          worker_timeout_sec: env_worker_timeout_sec,
+          worker_timeout_sec: env_worker_timeout_sec(cfg),
           worker_idle_timeout_sec: env_worker_idle_timeout_sec
         }
       end

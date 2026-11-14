@@ -7,7 +7,7 @@ module Polyrun
 
           With no command, runs parallel tests for the resolved suite: partition.suite when set; else suite inferred from partition.paths_file; else filesystem auto-detect (RSpec under spec/, then Sus when config/sus.rb + test/**/*.rb, then Minitest *_test.rb, then Polyrun Quick). If the first argument is a known subcommand name, it is dispatched. Otherwise, path-like tokens (optionally with run-shards flags such as --workers) shard those files in parallel; see commands below.
 
-          global:
+          global options:
             -c, --config PATH    polyrun.yml path (or POLYRUN_CONFIG)
             --suite NAME         apply suites.NAME overlay from polyrun.yml (or POLYRUN_SUITE)
             -v, --verbose
@@ -38,6 +38,10 @@ module Polyrun
 
           commands:
             version              print version
+            graph                opt-in Ruby graph edits (--enable or graph.enabled); index, inspect, plan, check, apply
+            mutate               opt-in mutation testing (--enable or mutation.enabled); configurable subjects, workers, and CI shards
+            measure              opt-in command measurements (--enable or quality settings), optional JSON ceilings
+            observe              opt-in Ruby call observation (--enable or quality settings); --output PATH required
             plan                 emit partition manifest JSON
             prepare              run prepare recipe: default | assets (optional prepare.command overrides bin/rails assets:precompile) | shell (prepare.command required)
             merge-coverage       merge SimpleCov JSON fragments (json/lcov/cobertura/console/html/csv/markdown)

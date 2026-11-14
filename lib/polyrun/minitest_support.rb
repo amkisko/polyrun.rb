@@ -50,7 +50,7 @@ module Polyrun
 
     # Per-test spec quality when +POLYRUN_SPEC_QUALITY=1+ (requires stdlib +Coverage+ for line deltas).
     def install_spec_quality!(only_if: nil, root: nil, output_path: nil)
-      pred = only_if || -> { Polyrun::SpecQuality.enabled? }
+      pred = only_if || -> { Polyrun::SpecQuality.enabled?(root: root || Dir.pwd) }
       return unless pred.call
 
       require_relative "spec_quality/minitest_hook"

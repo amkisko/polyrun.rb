@@ -2,6 +2,8 @@
 
 Ruby gem for parallel test runs, merged coverage (SimpleCov-compatible JSON to JSON, LCOV, Cobertura, or console output), CI reporting (JUnit, timing), and parallel-test hygiene (fixtures, snapshots, per-shard databases, asset preparation). Ship it as one development dependency: no runtime gem dependencies beyond the standard library and vendored code.
 
+Use `polyrun graph` for guarded Ruby graph edits, `polyrun mutate` for mutation testing, and `polyrun observe` / `measure` for Ruby call evidence and command resource reports. These tools are opt-in, share configurable defaults, and are implemented inside Polyrun using Ruby's standard libraries. See [Quality tools](docs/QUALITY.md) for setup, CI recipes, and limits (RFC-0010).
+
 Design changes go through `rfcs/` (RFC 0001).
 
 ## Why?

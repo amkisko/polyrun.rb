@@ -1,0 +1,17 @@
+{
+  "workload": "native_polyrun_graph_mutation_observation",
+  "basis": "max",
+  "headroom": 1.15,
+  "load": 50,
+  "samples": 3,
+  "ceilings": {
+    "wall_s": 1.1528266999946934,
+    "cpu_s": 1.1605961,
+    "peak_rss_bytes": 62365695.99999999,
+    "storage_bytes": 80866.84999999999,
+    "graph_wall_s": 0.4026655999958166,
+    "mutation_wall_s": 0.5114797500002168,
+    "observe_wall_s": 0.2594009000011283
+  },
+  "decision": "New native workload baseline; fixed during this episode. See docs/issues/20261114090000_graph-and-mutation-adoption.md"
+}

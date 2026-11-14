@@ -1,3 +1,5 @@
+require_relative "tool_defaults"
+
 module Polyrun
   class Config
     # Lightweight top-level key checks for +polyrun validate+.
@@ -11,9 +13,11 @@ module Polyrun
         start
         hooks
         reporting
-        workers
         suites
-      ].freeze
+        graph
+        mutation
+        quality
+      ].concat(ToolDefaults::SHARED.keys).freeze
 
       module_function
 
@@ -27,7 +31,8 @@ module Polyrun
 
         unknown = raw.keys.map(&:to_s) - KNOWN_TOP_LEVEL
         messages = unknown.sort.map { |k| "polyrun validate: unknown top-level key #{k.inspect}" }
-        {ok: messages.empty?, messages: messages}
+        messages.concat(Polyrun::Config::Tools.validate(raw).map { |message| "polyrun validate: #{message}" })
+        {ok: messages.empty?, messages: messages.uniq}
       end
     end
   end

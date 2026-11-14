@@ -1,4 +1,5 @@
 require "yaml"
+require_relative "../config"
 
 module Polyrun
   module SpecQuality
@@ -25,10 +26,12 @@ module Polyrun
 
       module_function
 
-      def enabled?(env = ENV)
+      def enabled?(env = ENV, root: Dir.pwd)
         return false if disabled?(env)
 
-        truthy?(env["POLYRUN_SPEC_QUALITY"]) || truthy?(env["POLYRUN_SPEC_QUALITY_FRAGMENTS"])
+        return true if truthy?(env["POLYRUN_SPEC_QUALITY"]) || truthy?(env["POLYRUN_SPEC_QUALITY_FRAGMENTS"])
+
+        Polyrun::Config::Tools.spec_quality(root: root, env: env)["enabled"] == true
       end
 
       def disabled?(env = ENV)
@@ -38,7 +41,9 @@ module Polyrun
       def load(root:, config_path: nil, env: ENV, **overrides)
         root = File.expand_path(root)
         file_cfg = load_yaml(root, config_path)
-        merged = DEFAULTS.merge(stringify_keys(file_cfg))
+        shared = Polyrun::Config::Tools.spec_quality(root: root, env: env).except("enabled")
+        merged = DEFAULTS.merge(stringify_keys(file_cfg)).merge(shared)
+        merged.merge!(stringify_keys(file_cfg)) if config_path
         apply_env!(merged, env)
         merged.merge!(stringify_keys(overrides).transform_keys(&:to_s))
         merged["root"] = root

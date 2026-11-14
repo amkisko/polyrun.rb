@@ -1,0 +1,3482 @@
+{
+  "started_at": "2026-11-14T12:27:49Z",
+  "accepted": true,
+  "repository_revision": "6d96c53751ca7afd54c94ad97dacee0d9fbd771d",
+  "production_source_sha256": "d878d2d20412b3a95d0440b978dd8c23f89b51dfd8144d08fcf022d81e92a0fa",
+  "machine_class": "arm64-darwin24",
+  "ruby_version": "4.0.2",
+  "iterations": [
+    {
+      "iteration": 1,
+      "primary_series": "observe_wall_s",
+      "hypothesis": "cache canonical paths",
+      "change": "cache canonical paths",
+      "decision": "retained for the next temporary trial; production acceptance is separate",
+      "source_sha256": "2de46d1b2c51fd7e1543734c833446030efc6af189684f3676ed7eadf4591a70",
+      "prove": {
+        "load": 50,
+        "n": 3,
+        "series": {
+          "wall_s": {
+            "samples": [
+              0.8374919999987469,
+              0.8953939999992144,
+              0.8966939999954775
+            ],
+            "median": 0.8953939999992144,
+            "p95": 0.8966939999954775,
+            "max": 0.8966939999954775
+          },
+          "cpu_s": {
+            "samples": [
+              0.868752,
+              0.9050360000000001,
+              0.906049
+            ],
+            "median": 0.9050360000000001,
+            "p95": 0.906049,
+            "max": 0.906049
+          },
+          "peak_rss_bytes": {
+            "samples": [
+              49610752,
+              51658752,
+              52445184
+            ],
+            "median": 51658752,
+            "p95": 52445184,
+            "max": 52445184
+          },
+          "storage_bytes": {
+            "samples": [
+              70319,
+              70319,
+              70319
+            ],
+            "median": 70319,
+            "p95": 70319,
+            "max": 70319
+          },
+          "graph_wall_s": {
+            "samples": [
+              0.252794999993057,
+              0.2533259999981965,
+              0.2816780000066501
+            ],
+            "median": 0.2533259999981965,
+            "p95": 0.2816780000066501,
+            "max": 0.2816780000066501
+          },
+          "mutation_wall_s": {
+            "samples": [
+              0.30153599999903236,
+              0.3403470000048401,
+              0.35062099999777274
+            ],
+            "median": 0.3403470000048401,
+            "p95": 0.35062099999777274,
+            "max": 0.35062099999777274
+          },
+          "observe_wall_s": {
+            "samples": [
+              0.2553249999982654,
+              0.27538900000217836,
+              0.2949979999975767
+            ],
+            "median": 0.27538900000217836,
+            "p95": 0.2949979999975767,
+            "max": 0.2949979999975767
+          }
+        },
+        "raw": [
+          {
+            "graph_wall_s": 0.2533259999981965,
+            "mutation_wall_s": 0.3403470000048401,
+            "observe_wall_s": 0.2949979999975767,
+            "wall_s": 0.8966939999954775,
+            "cpu_s": 0.906049,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 51658752
+          },
+          {
+            "graph_wall_s": 0.2816780000066501,
+            "mutation_wall_s": 0.35062099999777274,
+            "observe_wall_s": 0.2553249999982654,
+            "wall_s": 0.8953939999992144,
+            "cpu_s": 0.9050360000000001,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 52445184
+          },
+          {
+            "graph_wall_s": 0.252794999993057,
+            "mutation_wall_s": 0.30153599999903236,
+            "observe_wall_s": 0.27538900000217836,
+            "wall_s": 0.8374919999987469,
+            "cpu_s": 0.868752,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 49610752
+          }
+        ],
+        "network": "not_in_scope",
+        "memory_probe_class": "process_lifetime",
+        "propose_basis": "max",
+        "headroom": 1.15,
+        "failures": [
+          "observe_wall_s"
+        ],
+        "pass": false
+      }
+    },
+    {
+      "iteration": 2,
+      "primary_series": "observe_wall_s",
+      "hypothesis": "delay method string conversion",
+      "change": "delay method string conversion",
+      "decision": "retained for the next temporary trial; production acceptance is separate",
+      "source_sha256": "459fbc35e665a14d17f111daf1477a90d0441d32f8bc3c16d628cfcf1442c62e",
+      "prove": {
+        "load": 50,
+        "n": 3,
+        "series": {
+          "wall_s": {
+            "samples": [
+              0.8047870000009425,
+              0.8639149999944493,
+              0.8748590000031982
+            ],
+            "median": 0.8639149999944493,
+            "p95": 0.8748590000031982,
+            "max": 0.8748590000031982
+          },
+          "cpu_s": {
+            "samples": [
+              0.860839,
+              0.8714439999999999,
+              0.8870360000000002
+            ],
+            "median": 0.8714439999999999,
+            "p95": 0.8870360000000002,
+            "max": 0.8870360000000002
+          },
+          "peak_rss_bytes": {
+            "samples": [
+              50348032,
+              51101696,
+              51314688
+            ],
+            "median": 51101696,
+            "p95": 51314688,
+            "max": 51314688
+          },
+          "storage_bytes": {
+            "samples": [
+              70319,
+              70319,
+              70319
+            ],
+            "median": 70319,
+            "p95": 70319,
+            "max": 70319
+          },
+          "graph_wall_s": {
+            "samples": [
+              0.22432099999423372,
+              0.25986399999965215,
+              0.292911999997159
+            ],
+            "median": 0.25986399999965215,
+            "p95": 0.292911999997159,
+            "max": 0.292911999997159
+          },
+          "mutation_wall_s": {
+            "samples": [
+              0.3009520000050543,
+              0.32719799999904353,
+              0.3404420000006212
+            ],
+            "median": 0.32719799999904353,
+            "p95": 0.3404420000006212,
+            "max": 0.3404420000006212
+          },
+          "observe_wall_s": {
+            "samples": [
+              0.24533399999927497,
+              0.2622190000038245,
+              0.26621699999668635
+            ],
+            "median": 0.2622190000038245,
+            "p95": 0.26621699999668635,
+            "max": 0.26621699999668635
+          }
+        },
+        "raw": [
+          {
+            "graph_wall_s": 0.22432099999423372,
+            "mutation_wall_s": 0.32719799999904353,
+            "observe_wall_s": 0.24533399999927497,
+            "wall_s": 0.8047870000009425,
+            "cpu_s": 0.860839,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 51101696
+          },
+          {
+            "graph_wall_s": 0.292911999997159,
+            "mutation_wall_s": 0.3009520000050543,
+            "observe_wall_s": 0.2622190000038245,
+            "wall_s": 0.8639149999944493,
+            "cpu_s": 0.8714439999999999,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 50348032
+          },
+          {
+            "graph_wall_s": 0.25986399999965215,
+            "mutation_wall_s": 0.3404420000006212,
+            "observe_wall_s": 0.26621699999668635,
+            "wall_s": 0.8748590000031982,
+            "cpu_s": 0.8870360000000002,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 51314688
+          }
+        ],
+        "network": "not_in_scope",
+        "memory_probe_class": "process_lifetime",
+        "propose_basis": "max",
+        "headroom": 1.15,
+        "failures": [
+          "observe_wall_s"
+        ],
+        "pass": false
+      }
+    },
+    {
+      "iteration": 3,
+      "primary_series": "observe_wall_s",
+      "hypothesis": "try bounded owner-name cache",
+      "change": "try bounded owner-name cache",
+      "decision": "rejected: extra state without an established gain",
+      "source_sha256": "c7c4cd5094ec3f066b8a2308cf26328c726b17eff0a23603a7eae01155e39590",
+      "prove": {
+        "load": 50,
+        "n": 3,
+        "series": {
+          "wall_s": {
+            "samples": [
+              0.8435129999998026,
+              0.848933000001125,
+              0.8565699999962817
+            ],
+            "median": 0.848933000001125,
+            "p95": 0.8565699999962817,
+            "max": 0.8565699999962817
+          },
+          "cpu_s": {
+            "samples": [
+              0.8622509999999999,
+              0.8749379999999999,
+              0.90392
+            ],
+            "median": 0.8749379999999999,
+            "p95": 0.90392,
+            "max": 0.90392
+          },
+          "peak_rss_bytes": {
+            "samples": [
+              49332224,
+              49512448,
+              50610176
+            ],
+            "median": 49512448,
+            "p95": 50610176,
+            "max": 50610176
+          },
+          "storage_bytes": {
+            "samples": [
+              70319,
+              70319,
+              70319
+            ],
+            "median": 70319,
+            "p95": 70319,
+            "max": 70319
+          },
+          "graph_wall_s": {
+            "samples": [
+              0.2485309999974561,
+              0.2614979999998468,
+              0.2914050000035786
+            ],
+            "median": 0.2614979999998468,
+            "p95": 0.2914050000035786,
+            "max": 0.2914050000035786
+          },
+          "mutation_wall_s": {
+            "samples": [
+              0.30652199999894947,
+              0.3239140000005136,
+              0.33285199999954784
+            ],
+            "median": 0.3239140000005136,
+            "p95": 0.33285199999954784,
+            "max": 0.33285199999954784
+          },
+          "observe_wall_s": {
+            "samples": [
+              0.23743899999681162,
+              0.2592720000029658,
+              0.2625430000043707
+            ],
+            "median": 0.2592720000029658,
+            "p95": 0.2625430000043707,
+            "max": 0.2625430000043707
+          }
+        },
+        "raw": [
+          {
+            "graph_wall_s": 0.2614979999998468,
+            "mutation_wall_s": 0.3239140000005136,
+            "observe_wall_s": 0.2625430000043707,
+            "wall_s": 0.8565699999962817,
+            "cpu_s": 0.8622509999999999,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 49332224
+          },
+          {
+            "graph_wall_s": 0.2485309999974561,
+            "mutation_wall_s": 0.33285199999954784,
+            "observe_wall_s": 0.2592720000029658,
+            "wall_s": 0.848933000001125,
+            "cpu_s": 0.90392,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 50610176
+          },
+          {
+            "graph_wall_s": 0.2914050000035786,
+            "mutation_wall_s": 0.30652199999894947,
+            "observe_wall_s": 0.23743899999681162,
+            "wall_s": 0.8435129999998026,
+            "cpu_s": 0.8749379999999999,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 49512448
+          }
+        ],
+        "network": "not_in_scope",
+        "memory_probe_class": "process_lifetime",
+        "propose_basis": "max",
+        "headroom": 1.15,
+        "failures": [
+          "observe_wall_s"
+        ],
+        "pass": false
+      }
+    },
+    {
+      "iteration": 4,
+      "primary_series": "observe_wall_s",
+      "hypothesis": "nested counters instead of tuple allocation",
+      "change": "nested counters instead of tuple allocation",
+      "decision": "retained for the next temporary trial; production acceptance is separate",
+      "source_sha256": "f00cacf9e37312ef1f476aa0f948800a57c6cab293e855b73c6d5edbf763d213",
+      "prove": {
+        "load": 50,
+        "n": 3,
+        "series": {
+          "wall_s": {
+            "samples": [
+              0.72549699999945,
+              0.7578009999997448,
+              0.7691540000014356
+            ],
+            "median": 0.7578009999997448,
+            "p95": 0.7691540000014356,
+            "max": 0.7691540000014356
+          },
+          "cpu_s": {
+            "samples": [
+              0.7783760000000001,
+              0.812061,
+              0.8218000000000001
+            ],
+            "median": 0.812061,
+            "p95": 0.8218000000000001,
+            "max": 0.8218000000000001
+          },
+          "peak_rss_bytes": {
+            "samples": [
+              49364992,
+              49971200,
+              51429376
+            ],
+            "median": 49971200,
+            "p95": 51429376,
+            "max": 51429376
+          },
+          "storage_bytes": {
+            "samples": [
+              70319,
+              70319,
+              70319
+            ],
+            "median": 70319,
+            "p95": 70319,
+            "max": 70319
+          },
+          "graph_wall_s": {
+            "samples": [
+              0.2271580000015092,
+              0.23589499999798136,
+              0.24671099999977741
+            ],
+            "median": 0.23589499999798136,
+            "p95": 0.24671099999977741,
+            "max": 0.24671099999977741
+          },
+          "mutation_wall_s": {
+            "samples": [
+              0.29483500000060303,
+              0.32312999999703607,
+              0.33618399999977555
+            ],
+            "median": 0.32312999999703607,
+            "p95": 0.33618399999977555,
+            "max": 0.33618399999977555
+          },
+          "observe_wall_s": {
+            "samples": [
+              0.17603100000269478,
+              0.17763900000136346,
+              0.21094299999822397
+            ],
+            "median": 0.17763900000136346,
+            "p95": 0.21094299999822397,
+            "max": 0.21094299999822397
+          }
+        },
+        "raw": [
+          {
+            "graph_wall_s": 0.2271580000015092,
+            "mutation_wall_s": 0.32312999999703607,
+            "observe_wall_s": 0.21094299999822397,
+            "wall_s": 0.7691540000014356,
+            "cpu_s": 0.8218000000000001,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 49971200
+          },
+          {
+            "graph_wall_s": 0.23589499999798136,
+            "mutation_wall_s": 0.33618399999977555,
+            "observe_wall_s": 0.17763900000136346,
+            "wall_s": 0.7578009999997448,
+            "cpu_s": 0.812061,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 51429376
+          },
+          {
+            "graph_wall_s": 0.24671099999977741,
+            "mutation_wall_s": 0.29483500000060303,
+            "observe_wall_s": 0.17603100000269478,
+            "wall_s": 0.72549699999945,
+            "cpu_s": 0.7783760000000001,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 49364992
+          }
+        ],
+        "network": "not_in_scope",
+        "memory_probe_class": "process_lifetime",
+        "propose_basis": "max",
+        "headroom": 1.15,
+        "failures": [],
+        "pass": true
+      }
+    },
+    {
+      "iteration": 5,
+      "primary_series": "observe_wall_s",
+      "hypothesis": "check process ownership only when writing",
+      "change": "check process ownership only when writing",
+      "decision": "retained for the next temporary trial; production acceptance is separate",
+      "source_sha256": "298dd939ebee7ae174855b4d086e57d4bc860e75f0e9ae355d2961744afc8479",
+      "prove": {
+        "load": 50,
+        "n": 3,
+        "series": {
+          "wall_s": {
+            "samples": [
+              0.7537670000019716,
+              0.7837490000019898,
+              0.8278250000003027
+            ],
+            "median": 0.7837490000019898,
+            "p95": 0.8278250000003027,
+            "max": 0.8278250000003027
+          },
+          "cpu_s": {
+            "samples": [
+              0.7833690000000001,
+              0.8123500000000001,
+              0.8172780000000001
+            ],
+            "median": 0.8123500000000001,
+            "p95": 0.8172780000000001,
+            "max": 0.8172780000000001
+          },
+          "peak_rss_bytes": {
+            "samples": [
+              48218112,
+              48906240,
+              53428224
+            ],
+            "median": 48906240,
+            "p95": 53428224,
+            "max": 53428224
+          },
+          "storage_bytes": {
+            "samples": [
+              70319,
+              70319,
+              70319
+            ],
+            "median": 70319,
+            "p95": 70319,
+            "max": 70319
+          },
+          "graph_wall_s": {
+            "samples": [
+              0.22606200000154786,
+              0.26168999999936204,
+              0.2823500000013155
+            ],
+            "median": 0.26168999999936204,
+            "p95": 0.2823500000013155,
+            "max": 0.2823500000013155
+          },
+          "mutation_wall_s": {
+            "samples": [
+              0.31369500000437256,
+              0.3194909999947413,
+              0.3372849999941536
+            ],
+            "median": 0.3194909999947413,
+            "p95": 0.3372849999941536,
+            "max": 0.3372849999941536
+          },
+          "observe_wall_s": {
+            "samples": [
+              0.20007199999963632,
+              0.20024199999897974,
+              0.20047599999816157
+            ],
+            "median": 0.20024199999897974,
+            "p95": 0.20047599999816157,
+            "max": 0.20047599999816157
+          }
+        },
+        "raw": [
+          {
+            "graph_wall_s": 0.22606200000154786,
+            "mutation_wall_s": 0.3194909999947413,
+            "observe_wall_s": 0.20024199999897974,
+            "wall_s": 0.7537670000019716,
+            "cpu_s": 0.7833690000000001,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 48906240
+          },
+          {
+            "graph_wall_s": 0.26168999999936204,
+            "mutation_wall_s": 0.31369500000437256,
+            "observe_wall_s": 0.20007199999963632,
+            "wall_s": 0.7837490000019898,
+            "cpu_s": 0.8172780000000001,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 48218112
+          },
+          {
+            "graph_wall_s": 0.2823500000013155,
+            "mutation_wall_s": 0.3372849999941536,
+            "observe_wall_s": 0.20047599999816157,
+            "wall_s": 0.8278250000003027,
+            "cpu_s": 0.8123500000000001,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 53428224
+          }
+        ],
+        "network": "not_in_scope",
+        "memory_probe_class": "process_lifetime",
+        "propose_basis": "max",
+        "headroom": 1.15,
+        "failures": [],
+        "pass": true
+      }
+    },
+    {
+      "iteration": 6,
+      "primary_series": "observe_wall_s",
+      "hypothesis": "completion poll 20ms to 5ms",
+      "change": "completion poll 20ms to 5ms",
+      "decision": "retained for the next temporary trial; production acceptance is separate",
+      "source_sha256": "59a84efdc9e759c27e3535b37575a288811e6630bd92128f3a0398ac77b0971b",
+      "prove": {
+        "load": 50,
+        "n": 3,
+        "series": {
+          "wall_s": {
+            "samples": [
+              0.7418509999988601,
+              0.7742169999983162,
+              0.819084999995539
+            ],
+            "median": 0.7742169999983162,
+            "p95": 0.819084999995539,
+            "max": 0.819084999995539
+          },
+          "cpu_s": {
+            "samples": [
+              0.810472,
+              0.8312160000000001,
+              0.875619
+            ],
+            "median": 0.8312160000000001,
+            "p95": 0.875619,
+            "max": 0.875619
+          },
+          "peak_rss_bytes": {
+            "samples": [
+              49823744,
+              51216384,
+              51970048
+            ],
+            "median": 51216384,
+            "p95": 51970048,
+            "max": 51970048
+          },
+          "storage_bytes": {
+            "samples": [
+              70319,
+              70319,
+              70319
+            ],
+            "median": 70319,
+            "p95": 70319,
+            "max": 70319
+          },
+          "graph_wall_s": {
+            "samples": [
+              0.23667800000112038,
+              0.24772800000209827,
+              0.25111499999911757
+            ],
+            "median": 0.24772800000209827,
+            "p95": 0.25111499999911757,
+            "max": 0.25111499999911757
+          },
+          "mutation_wall_s": {
+            "samples": [
+              0.3044489999956568,
+              0.3261159999965457,
+              0.3687510000017937
+            ],
+            "median": 0.3261159999965457,
+            "p95": 0.3687510000017937,
+            "max": 0.3687510000017937
+          },
+          "observe_wall_s": {
+            "samples": [
+              0.18888899999728892,
+              0.19271499999740627,
+              0.19448199999897042
+            ],
+            "median": 0.19271499999740627,
+            "p95": 0.19448199999897042,
+            "max": 0.19448199999897042
+          }
+        },
+        "raw": [
+          {
+            "graph_wall_s": 0.25111499999911757,
+            "mutation_wall_s": 0.3261159999965457,
+            "observe_wall_s": 0.18888899999728892,
+            "wall_s": 0.7742169999983162,
+            "cpu_s": 0.8312160000000001,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 51216384
+          },
+          {
+            "graph_wall_s": 0.24772800000209827,
+            "mutation_wall_s": 0.3687510000017937,
+            "observe_wall_s": 0.19448199999897042,
+            "wall_s": 0.819084999995539,
+            "cpu_s": 0.875619,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 51970048
+          },
+          {
+            "graph_wall_s": 0.23667800000112038,
+            "mutation_wall_s": 0.3044489999956568,
+            "observe_wall_s": 0.19271499999740627,
+            "wall_s": 0.7418509999988601,
+            "cpu_s": 0.810472,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 49823744
+          }
+        ],
+        "network": "not_in_scope",
+        "memory_probe_class": "process_lifetime",
+        "propose_basis": "max",
+        "headroom": 1.15,
+        "failures": [],
+        "pass": true
+      }
+    },
+    {
+      "iteration": 7,
+      "primary_series": "observe_wall_s",
+      "hypothesis": "single counter lookup",
+      "change": "single counter lookup",
+      "decision": "retained for the next temporary trial; production acceptance is separate",
+      "source_sha256": "a6882566e779ed121cb495b32b6cf19a98cb014a02d182e3ec27e2a76421fc88",
+      "prove": {
+        "load": 50,
+        "n": 3,
+        "series": {
+          "wall_s": {
+            "samples": [
+              0.7590689999997267,
+              0.7704459999949904,
+              0.7803100000019185
+            ],
+            "median": 0.7704459999949904,
+            "p95": 0.7803100000019185,
+            "max": 0.7803100000019185
+          },
+          "cpu_s": {
+            "samples": [
+              0.8283659999999998,
+              0.846505,
+              0.850851
+            ],
+            "median": 0.846505,
+            "p95": 0.850851,
+            "max": 0.850851
+          },
+          "peak_rss_bytes": {
+            "samples": [
+              50659328,
+              50741248,
+              51511296
+            ],
+            "median": 50741248,
+            "p95": 51511296,
+            "max": 51511296
+          },
+          "storage_bytes": {
+            "samples": [
+              70319,
+              70319,
+              70319
+            ],
+            "median": 70319,
+            "p95": 70319,
+            "max": 70319
+          },
+          "graph_wall_s": {
+            "samples": [
+              0.23346699999819975,
+              0.24469300000055227,
+              0.26166899999952875
+            ],
+            "median": 0.24469300000055227,
+            "p95": 0.26166899999952875,
+            "max": 0.26166899999952875
+          },
+          "mutation_wall_s": {
+            "samples": [
+              0.3172800000029383,
+              0.32026200000109384,
+              0.323381000001973
+            ],
+            "median": 0.32026200000109384,
+            "p95": 0.323381000001973,
+            "max": 0.323381000001973
+          },
+          "observe_wall_s": {
+            "samples": [
+              0.1851840000017546,
+              0.19308799999998882,
+              0.20503699999972014
+            ],
+            "median": 0.19308799999998882,
+            "p95": 0.20503699999972014,
+            "max": 0.20503699999972014
+          }
+        },
+        "raw": [
+          {
+            "graph_wall_s": 0.23346699999819975,
+            "mutation_wall_s": 0.323381000001973,
+            "observe_wall_s": 0.20503699999972014,
+            "wall_s": 0.7704459999949904,
+            "cpu_s": 0.846505,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 50741248
+          },
+          {
+            "graph_wall_s": 0.26166899999952875,
+            "mutation_wall_s": 0.3172800000029383,
+            "observe_wall_s": 0.19308799999998882,
+            "wall_s": 0.7803100000019185,
+            "cpu_s": 0.850851,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 50659328
+          },
+          {
+            "graph_wall_s": 0.24469300000055227,
+            "mutation_wall_s": 0.32026200000109384,
+            "observe_wall_s": 0.1851840000017546,
+            "wall_s": 0.7590689999997267,
+            "cpu_s": 0.8283659999999998,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 51511296
+          }
+        ],
+        "network": "not_in_scope",
+        "memory_probe_class": "process_lifetime",
+        "propose_basis": "max",
+        "headroom": 1.15,
+        "failures": [],
+        "pass": true
+      }
+    },
+    {
+      "iteration": 8,
+      "primary_series": "observe_wall_s",
+      "hypothesis": "try mutable counter cells",
+      "change": "try mutable counter cells",
+      "decision": "rejected: extra state without an established gain",
+      "source_sha256": "fbf33f7198070c367eb89487f3646278cac6ac39ef832f05f4210c08ca98ba0d",
+      "prove": {
+        "load": 50,
+        "n": 3,
+        "series": {
+          "wall_s": {
+            "samples": [
+              0.7232120000044233,
+              0.7338049999962095,
+              0.7346590000015567
+            ],
+            "median": 0.7338049999962095,
+            "p95": 0.7346590000015567,
+            "max": 0.7346590000015567
+          },
+          "cpu_s": {
+            "samples": [
+              0.8037909999999999,
+              0.811296,
+              0.8175150000000001
+            ],
+            "median": 0.811296,
+            "p95": 0.8175150000000001,
+            "max": 0.8175150000000001
+          },
+          "peak_rss_bytes": {
+            "samples": [
+              49266688,
+              49315840,
+              49430528
+            ],
+            "median": 49315840,
+            "p95": 49430528,
+            "max": 49430528
+          },
+          "storage_bytes": {
+            "samples": [
+              70319,
+              70319,
+              70319
+            ],
+            "median": 70319,
+            "p95": 70319,
+            "max": 70319
+          },
+          "graph_wall_s": {
+            "samples": [
+              0.2395059999980731,
+              0.2408209999994142,
+              0.24100699999689823
+            ],
+            "median": 0.2408209999994142,
+            "p95": 0.24100699999689823,
+            "max": 0.24100699999689823
+          },
+          "mutation_wall_s": {
+            "samples": [
+              0.30008599999564467,
+              0.3074560000022757,
+              0.30783399999927497
+            ],
+            "median": 0.3074560000022757,
+            "p95": 0.30783399999927497,
+            "max": 0.30783399999927497
+          },
+          "observe_wall_s": {
+            "samples": [
+              0.1760470000008354,
+              0.17705800000112504,
+              0.17764799999713432
+            ],
+            "median": 0.17705800000112504,
+            "p95": 0.17764799999713432,
+            "max": 0.17764799999713432
+          }
+        },
+        "raw": [
+          {
+            "graph_wall_s": 0.24100699999689823,
+            "mutation_wall_s": 0.3074560000022757,
+            "observe_wall_s": 0.17705800000112504,
+            "wall_s": 0.7338049999962095,
+            "cpu_s": 0.8175150000000001,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 49266688
+          },
+          {
+            "graph_wall_s": 0.2408209999994142,
+            "mutation_wall_s": 0.30783399999927497,
+            "observe_wall_s": 0.17764799999713432,
+            "wall_s": 0.7346590000015567,
+            "cpu_s": 0.811296,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 49430528
+          },
+          {
+            "graph_wall_s": 0.2395059999980731,
+            "mutation_wall_s": 0.30008599999564467,
+            "observe_wall_s": 0.1760470000008354,
+            "wall_s": 0.7232120000044233,
+            "cpu_s": 0.8037909999999999,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 49315840
+          }
+        ],
+        "network": "not_in_scope",
+        "memory_probe_class": "process_lifetime",
+        "propose_basis": "max",
+        "headroom": 1.15,
+        "failures": [],
+        "pass": true
+      }
+    },
+    {
+      "iteration": 9,
+      "primary_series": "observe_wall_s",
+      "hypothesis": "direct positive and negative path-cache lookup",
+      "change": "direct positive and negative path-cache lookup",
+      "decision": "retained for the next temporary trial; production acceptance is separate",
+      "source_sha256": "73dd13fa41af31749b6b923162469fc4e14fb9a3940f5b509000b2119e37a6b1",
+      "prove": {
+        "load": 50,
+        "n": 3,
+        "series": {
+          "wall_s": {
+            "samples": [
+              0.7327939999959199,
+              0.7592479999948409,
+              0.7770569999993313
+            ],
+            "median": 0.7592479999948409,
+            "p95": 0.7770569999993313,
+            "max": 0.7770569999993313
+          },
+          "cpu_s": {
+            "samples": [
+              0.8150820000000001,
+              0.823966,
+              0.843218
+            ],
+            "median": 0.823966,
+            "p95": 0.843218,
+            "max": 0.843218
+          },
+          "peak_rss_bytes": {
+            "samples": [
+              49774592,
+              49823744,
+              49938432
+            ],
+            "median": 49823744,
+            "p95": 49938432,
+            "max": 49938432
+          },
+          "storage_bytes": {
+            "samples": [
+              70319,
+              70319,
+              70319
+            ],
+            "median": 70319,
+            "p95": 70319,
+            "max": 70319
+          },
+          "graph_wall_s": {
+            "samples": [
+              0.23508299999957671,
+              0.24512800000229618,
+              0.2522370000006049
+            ],
+            "median": 0.24512800000229618,
+            "p95": 0.2522370000006049,
+            "max": 0.2522370000006049
+          },
+          "mutation_wall_s": {
+            "samples": [
+              0.31393799999932526,
+              0.31511000000318745,
+              0.32734000000345986
+            ],
+            "median": 0.31511000000318745,
+            "p95": 0.32734000000345986,
+            "max": 0.32734000000345986
+          },
+          "observe_wall_s": {
+            "samples": [
+              0.1761419999966165,
+              0.18985499999689637,
+              0.19092700000328477
+            ],
+            "median": 0.18985499999689637,
+            "p95": 0.19092700000328477,
+            "max": 0.19092700000328477
+          }
+        },
+        "raw": [
+          {
+            "graph_wall_s": 0.23508299999957671,
+            "mutation_wall_s": 0.31393799999932526,
+            "observe_wall_s": 0.1761419999966165,
+            "wall_s": 0.7327939999959199,
+            "cpu_s": 0.8150820000000001,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 49823744
+          },
+          {
+            "graph_wall_s": 0.2522370000006049,
+            "mutation_wall_s": 0.32734000000345986,
+            "observe_wall_s": 0.18985499999689637,
+            "wall_s": 0.7770569999993313,
+            "cpu_s": 0.843218,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 49774592
+          },
+          {
+            "graph_wall_s": 0.24512800000229618,
+            "mutation_wall_s": 0.31511000000318745,
+            "observe_wall_s": 0.19092700000328477,
+            "wall_s": 0.7592479999948409,
+            "cpu_s": 0.823966,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 49938432
+          }
+        ],
+        "network": "not_in_scope",
+        "memory_probe_class": "process_lifetime",
+        "propose_basis": "max",
+        "headroom": 1.15,
+        "failures": [],
+        "pass": true
+      }
+    },
+    {
+      "iteration": 10,
+      "primary_series": "observe_wall_s",
+      "hypothesis": "completion poll 5ms to 1ms",
+      "change": "completion poll 5ms to 1ms",
+      "decision": "retained for the next temporary trial; production acceptance is separate",
+      "source_sha256": "55a371136aff13ddc8f251acc56bf7e880ac95083a749716a8cd8a9f993fea8e",
+      "prove": {
+        "load": 50,
+        "n": 3,
+        "series": {
+          "wall_s": {
+            "samples": [
+              0.72981499999878,
+              0.7356440000003204,
+              0.7534809999997378
+            ],
+            "median": 0.7356440000003204,
+            "p95": 0.7534809999997378,
+            "max": 0.7534809999997378
+          },
+          "cpu_s": {
+            "samples": [
+              0.813207,
+              0.816946,
+              0.838556
+            ],
+            "median": 0.816946,
+            "p95": 0.838556,
+            "max": 0.838556
+          },
+          "peak_rss_bytes": {
+            "samples": [
+              49430528,
+              49971200,
+              50741248
+            ],
+            "median": 49971200,
+            "p95": 50741248,
+            "max": 50741248
+          },
+          "storage_bytes": {
+            "samples": [
+              70319,
+              70319,
+              70319
+            ],
+            "median": 70319,
+            "p95": 70319,
+            "max": 70319
+          },
+          "graph_wall_s": {
+            "samples": [
+              0.22823000000062166,
+              0.23975899999641115,
+              0.24262100000487408
+            ],
+            "median": 0.23975899999641115,
+            "p95": 0.24262100000487408,
+            "max": 0.24262100000487408
+          },
+          "mutation_wall_s": {
+            "samples": [
+              0.30451199999515666,
+              0.30508300000656163,
+              0.31322600000567036
+            ],
+            "median": 0.30508300000656163,
+            "p95": 0.31322600000567036,
+            "max": 0.31322600000567036
+          },
+          "observe_wall_s": {
+            "samples": [
+              0.1824819999965257,
+              0.18925100000342354,
+              0.1895169999988866
+            ],
+            "median": 0.18925100000342354,
+            "p95": 0.1895169999988866,
+            "max": 0.1895169999988866
+          }
+        },
+        "raw": [
+          {
+            "graph_wall_s": 0.24262100000487408,
+            "mutation_wall_s": 0.31322600000567036,
+            "observe_wall_s": 0.1895169999988866,
+            "wall_s": 0.7534809999997378,
+            "cpu_s": 0.838556,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 49971200
+          },
+          {
+            "graph_wall_s": 0.23975899999641115,
+            "mutation_wall_s": 0.30508300000656163,
+            "observe_wall_s": 0.1824819999965257,
+            "wall_s": 0.7356440000003204,
+            "cpu_s": 0.816946,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 50741248
+          },
+          {
+            "graph_wall_s": 0.22823000000062166,
+            "mutation_wall_s": 0.30451199999515666,
+            "observe_wall_s": 0.18925100000342354,
+            "wall_s": 0.72981499999878,
+            "cpu_s": 0.813207,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 49430528
+          }
+        ],
+        "network": "not_in_scope",
+        "memory_probe_class": "process_lifetime",
+        "propose_basis": "max",
+        "headroom": 1.15,
+        "failures": [],
+        "pass": true
+      }
+    }
+  ],
+  "binding": "benchmarks/quality-binding.md",
+  "ceilings_before": {
+    "wall_s": 1.1528266999946934,
+    "cpu_s": 1.1605961,
+    "peak_rss_bytes": 62365695.99999999,
+    "storage_bytes": 80866.84999999999,
+    "graph_wall_s": 0.4026655999958166,
+    "mutation_wall_s": 0.5114797500002168,
+    "observe_wall_s": 1.3959826999936922
+  },
+  "ceilings_after": {
+    "wall_s": 1.1528266999946934,
+    "cpu_s": 1.1605961,
+    "peak_rss_bytes": 62365695.99999999,
+    "storage_bytes": 80866.84999999999,
+    "graph_wall_s": 0.4026655999958166,
+    "mutation_wall_s": 0.5114797500002168,
+    "observe_wall_s": 0.2594009000011283
+  },
+  "network": "not_in_scope",
+  "memory_probe_class": "process_lifetime",
+  "propose_basis": "max",
+  "headroom": 1.15,
+  "calibration": {
+    "pass": true,
+    "known_medians": {
+      "wall_s": 102,
+      "cpu_s": 202,
+      "peak_rss_bytes": 302,
+      "storage_bytes": 402,
+      "graph_wall_s": 502,
+      "mutation_wall_s": 602,
+      "observe_wall_s": 702
+    },
+    "known_p95": {
+      "wall_s": 103,
+      "cpu_s": 203,
+      "peak_rss_bytes": 303,
+      "storage_bytes": 403,
+      "graph_wall_s": 503,
+      "mutation_wall_s": 603,
+      "observe_wall_s": 703
+    },
+    "direct_harness_peak_rss_bytes": 15187968,
+    "direct_command_wall_s": 0.06728199999633944,
+    "direct_aggregate_wall_s": 0.06740600000193808
+  },
+  "baseline": {
+    "load": 5,
+    "n": 3,
+    "series": {
+      "wall_s": {
+        "samples": [
+          0.7323489999980666,
+          0.7462129999985336,
+          0.7498650000052294
+        ],
+        "median": 0.7462129999985336,
+        "p95": 0.7498650000052294,
+        "max": 0.7498650000052294
+      },
+      "cpu_s": {
+        "samples": [
+          0.7615190000000001,
+          0.780772,
+          0.783111
+        ],
+        "median": 0.780772,
+        "p95": 0.783111,
+        "max": 0.783111
+      },
+      "peak_rss_bytes": {
+        "samples": [
+          35700736,
+          36962304,
+          37306368
+        ],
+        "median": 36962304,
+        "p95": 37306368,
+        "max": 37306368
+      },
+      "storage_bytes": {
+        "samples": [
+          7367,
+          7367,
+          7367
+        ],
+        "median": 7367,
+        "p95": 7367,
+        "max": 7367
+      },
+      "graph_wall_s": {
+        "samples": [
+          0.21489699999801815,
+          0.24662700000044424,
+          0.2549589999980526
+        ],
+        "median": 0.24662700000044424,
+        "p95": 0.2549589999980526,
+        "max": 0.2549589999980526
+      },
+      "mutation_wall_s": {
+        "samples": [
+          0.24012799999763956,
+          0.24425499999779277,
+          0.2494559999977355
+        ],
+        "median": 0.24425499999779277,
+        "p95": 0.2494559999977355,
+        "max": 0.2494559999977355
+      },
+      "observe_wall_s": {
+        "samples": [
+          0.24832700000115437,
+          0.25295899999764515,
+          0.27088799999910407
+        ],
+        "median": 0.25295899999764515,
+        "p95": 0.27088799999910407,
+        "max": 0.27088799999910407
+      }
+    },
+    "raw": [
+      {
+        "graph_wall_s": 0.21489699999801815,
+        "mutation_wall_s": 0.24425499999779277,
+        "observe_wall_s": 0.27088799999910407,
+        "wall_s": 0.7323489999980666,
+        "cpu_s": 0.7615190000000001,
+        "storage_bytes": 7367,
+        "peak_rss_bytes": 36962304
+      },
+      {
+        "graph_wall_s": 0.2549589999980526,
+        "mutation_wall_s": 0.24012799999763956,
+        "observe_wall_s": 0.25295899999764515,
+        "wall_s": 0.7498650000052294,
+        "cpu_s": 0.783111,
+        "storage_bytes": 7367,
+        "peak_rss_bytes": 35700736
+      },
+      {
+        "graph_wall_s": 0.24662700000044424,
+        "mutation_wall_s": 0.2494559999977355,
+        "observe_wall_s": 0.24832700000115437,
+        "wall_s": 0.7462129999985336,
+        "cpu_s": 0.780772,
+        "storage_bytes": 7367,
+        "peak_rss_bytes": 37306368
+      }
+    ],
+    "network": "not_in_scope",
+    "memory_probe_class": "process_lifetime",
+    "propose_basis": "max",
+    "headroom": 1.15
+  },
+  "stress": {
+    "load": 50,
+    "n": 3,
+    "series": {
+      "wall_s": {
+        "samples": [
+          1.789067999998224,
+          1.7931190000017523,
+          1.8138399999952526
+        ],
+        "median": 1.7931190000017523,
+        "p95": 1.8138399999952526,
+        "max": 1.8138399999952526
+      },
+      "cpu_s": {
+        "samples": [
+          1.823409,
+          1.8299750000000001,
+          1.8516199999999998
+        ],
+        "median": 1.8299750000000001,
+        "p95": 1.8516199999999998,
+        "max": 1.8516199999999998
+      },
+      "peak_rss_bytes": {
+        "samples": [
+          49332224,
+          51363840,
+          51412992
+        ],
+        "median": 51363840,
+        "p95": 51412992,
+        "max": 51412992
+      },
+      "storage_bytes": {
+        "samples": [
+          70319,
+          70319,
+          70319
+        ],
+        "median": 70319,
+        "p95": 70319,
+        "max": 70319
+      },
+      "graph_wall_s": {
+        "samples": [
+          0.25424800000473624,
+          0.2570190000042203,
+          0.25825199999962933
+        ],
+        "median": 0.2570190000042203,
+        "p95": 0.25825199999962933,
+        "max": 0.25825199999962933
+      },
+      "mutation_wall_s": {
+        "samples": [
+          0.31720900000073016,
+          0.3372289999970235,
+          0.3378699999957462
+        ],
+        "median": 0.3372289999970235,
+        "p95": 0.3378699999957462,
+        "max": 0.3378699999957462
+      },
+      "observe_wall_s": {
+        "samples": [
+          1.1899819999962347,
+          1.2072659999976167,
+          1.213897999994515
+        ],
+        "median": 1.2072659999976167,
+        "p95": 1.213897999994515,
+        "max": 1.213897999994515
+      }
+    },
+    "raw": [
+      {
+        "graph_wall_s": 0.2570190000042203,
+        "mutation_wall_s": 0.31720900000073016,
+        "observe_wall_s": 1.2072659999976167,
+        "wall_s": 1.789067999998224,
+        "cpu_s": 1.823409,
+        "storage_bytes": 70319,
+        "peak_rss_bytes": 51412992
+      },
+      {
+        "graph_wall_s": 0.25825199999962933,
+        "mutation_wall_s": 0.3372289999970235,
+        "observe_wall_s": 1.1899819999962347,
+        "wall_s": 1.7931190000017523,
+        "cpu_s": 1.8299750000000001,
+        "storage_bytes": 70319,
+        "peak_rss_bytes": 49332224
+      },
+      {
+        "graph_wall_s": 0.25424800000473624,
+        "mutation_wall_s": 0.3378699999957462,
+        "observe_wall_s": 1.213897999994515,
+        "wall_s": 1.8138399999952526,
+        "cpu_s": 1.8516199999999998,
+        "storage_bytes": 70319,
+        "peak_rss_bytes": 51363840
+      }
+    ],
+    "network": "not_in_scope",
+    "memory_probe_class": "process_lifetime",
+    "propose_basis": "max",
+    "headroom": 1.15
+  },
+  "ratchet": {
+    "primary_series": "observe_wall_s",
+    "basis": "initial stress maximum times 1.15",
+    "before": 1.3959826999936922,
+    "after": 0.2594009000011283
+  },
+  "production_gate": {
+    "load": 50,
+    "n": 3,
+    "series": {
+      "wall_s": {
+        "samples": [
+          0.698460999999952,
+          0.7178990000029444,
+          0.808097999994061
+        ],
+        "median": 0.7178990000029444,
+        "p95": 0.808097999994061,
+        "max": 0.808097999994061
+      },
+      "cpu_s": {
+        "samples": [
+          0.7814349999999999,
+          0.8000050000000001,
+          0.858012
+        ],
+        "median": 0.8000050000000001,
+        "p95": 0.858012,
+        "max": 0.858012
+      },
+      "peak_rss_bytes": {
+        "samples": [
+          49905664,
+          51740672,
+          52314112
+        ],
+        "median": 51740672,
+        "p95": 52314112,
+        "max": 52314112
+      },
+      "storage_bytes": {
+        "samples": [
+          70319,
+          70319,
+          70319
+        ],
+        "median": 70319,
+        "p95": 70319,
+        "max": 70319
+      },
+      "graph_wall_s": {
+        "samples": [
+          0.2223459999950137,
+          0.22234900000330526,
+          0.22412900000199443
+        ],
+        "median": 0.22234900000330526,
+        "p95": 0.22412900000199443,
+        "max": 0.22412900000199443
+      },
+      "mutation_wall_s": {
+        "samples": [
+          0.29595599999447586,
+          0.3103689999989001,
+          0.39288200000009965
+        ],
+        "median": 0.3103689999989001,
+        "p95": 0.39288200000009965,
+        "max": 0.39288200000009965
+      },
+      "observe_wall_s": {
+        "samples": [
+          0.17239700000209268,
+          0.1768999999985681,
+          0.18325100000220118
+        ],
+        "median": 0.1768999999985681,
+        "p95": 0.18325100000220118,
+        "max": 0.18325100000220118
+      }
+    },
+    "raw": [
+      {
+        "graph_wall_s": 0.2223459999950137,
+        "mutation_wall_s": 0.3103689999989001,
+        "observe_wall_s": 0.1768999999985681,
+        "wall_s": 0.7178990000029444,
+        "cpu_s": 0.8000050000000001,
+        "storage_bytes": 70319,
+        "peak_rss_bytes": 51740672
+      },
+      {
+        "graph_wall_s": 0.22234900000330526,
+        "mutation_wall_s": 0.29595599999447586,
+        "observe_wall_s": 0.17239700000209268,
+        "wall_s": 0.698460999999952,
+        "cpu_s": 0.7814349999999999,
+        "storage_bytes": 70319,
+        "peak_rss_bytes": 49905664
+      },
+      {
+        "graph_wall_s": 0.22412900000199443,
+        "mutation_wall_s": 0.39288200000009965,
+        "observe_wall_s": 0.18325100000220118,
+        "wall_s": 0.808097999994061,
+        "cpu_s": 0.858012,
+        "storage_bytes": 70319,
+        "peak_rss_bytes": 52314112
+      }
+    ],
+    "network": "not_in_scope",
+    "memory_probe_class": "process_lifetime",
+    "propose_basis": "max",
+    "headroom": 1.15,
+    "failures": [],
+    "pass": true
+  },
+  "integration_prove": {
+    "primary_series": "observe_wall_s",
+    "change": "Use the complete production recorder after the temporary historical alternatives",
+    "prove": {
+      "load": 50,
+      "n": 3,
+      "series": {
+        "wall_s": {
+          "samples": [
+            0.698460999999952,
+            0.7178990000029444,
+            0.808097999994061
+          ],
+          "median": 0.7178990000029444,
+          "p95": 0.808097999994061,
+          "max": 0.808097999994061
+        },
+        "cpu_s": {
+          "samples": [
+            0.7814349999999999,
+            0.8000050000000001,
+            0.858012
+          ],
+          "median": 0.8000050000000001,
+          "p95": 0.858012,
+          "max": 0.858012
+        },
+        "peak_rss_bytes": {
+          "samples": [
+            49905664,
+            51740672,
+            52314112
+          ],
+          "median": 51740672,
+          "p95": 52314112,
+          "max": 52314112
+        },
+        "storage_bytes": {
+          "samples": [
+            70319,
+            70319,
+            70319
+          ],
+          "median": 70319,
+          "p95": 70319,
+          "max": 70319
+        },
+        "graph_wall_s": {
+          "samples": [
+            0.2223459999950137,
+            0.22234900000330526,
+            0.22412900000199443
+          ],
+          "median": 0.22234900000330526,
+          "p95": 0.22412900000199443,
+          "max": 0.22412900000199443
+        },
+        "mutation_wall_s": {
+          "samples": [
+            0.29595599999447586,
+            0.3103689999989001,
+            0.39288200000009965
+          ],
+          "median": 0.3103689999989001,
+          "p95": 0.39288200000009965,
+          "max": 0.39288200000009965
+        },
+        "observe_wall_s": {
+          "samples": [
+            0.17239700000209268,
+            0.1768999999985681,
+            0.18325100000220118
+          ],
+          "median": 0.1768999999985681,
+          "p95": 0.18325100000220118,
+          "max": 0.18325100000220118
+        }
+      },
+      "raw": [
+        {
+          "graph_wall_s": 0.2223459999950137,
+          "mutation_wall_s": 0.3103689999989001,
+          "observe_wall_s": 0.1768999999985681,
+          "wall_s": 0.7178990000029444,
+          "cpu_s": 0.8000050000000001,
+          "storage_bytes": 70319,
+          "peak_rss_bytes": 51740672
+        },
+        {
+          "graph_wall_s": 0.22234900000330526,
+          "mutation_wall_s": 0.29595599999447586,
+          "observe_wall_s": 0.17239700000209268,
+          "wall_s": 0.698460999999952,
+          "cpu_s": 0.7814349999999999,
+          "storage_bytes": 70319,
+          "peak_rss_bytes": 49905664
+        },
+        {
+          "graph_wall_s": 0.22412900000199443,
+          "mutation_wall_s": 0.39288200000009965,
+          "observe_wall_s": 0.18325100000220118,
+          "wall_s": 0.808097999994061,
+          "cpu_s": 0.858012,
+          "storage_bytes": 70319,
+          "peak_rss_bytes": 52314112
+        }
+      ],
+      "network": "not_in_scope",
+      "memory_probe_class": "process_lifetime",
+      "propose_basis": "max",
+      "headroom": 1.15,
+      "failures": [],
+      "pass": true
+    }
+  },
+  "finished_at": "2026-11-14T12:28:25Z",
+  "notes": [
+    "The strict episode repeats ten source-change experiments in an isolated checkout after complete calibration. No test suite ran concurrently. Other host activity is uncontrolled; no small comparative timing claim is made.",
+    "Observer candidates preserve the fixture trace fields but are experimental historical alternatives, not replacements for the production recorder. Final production gets its own gate.",
+    "Ceilings are read from the checked-in budget file and never changed by this script."
+  ],
+  "previous_configuration_replay": {
+    "started_at": "2026-11-14T12:20:19Z",
+    "accepted": true,
+    "repository_revision": "6d96c53751ca7afd54c94ad97dacee0d9fbd771d",
+    "production_source_sha256": "cfd9014fc3262fc1f128c48d5521cf75462c82f2eda5171e968b598fb278b4bd",
+    "machine_class": "arm64-darwin24",
+    "ruby_version": "4.0.2",
+    "iterations": [
+      {
+        "iteration": 1,
+        "primary_series": "observe_wall_s",
+        "hypothesis": "cache canonical paths",
+        "change": "cache canonical paths",
+        "decision": "retained for the next temporary trial; production acceptance is separate",
+        "source_sha256": "2de46d1b2c51fd7e1543734c833446030efc6af189684f3676ed7eadf4591a70",
+        "prove": {
+          "load": 50,
+          "n": 3,
+          "series": {
+            "wall_s": {
+              "samples": [
+                0.8299950000000536,
+                0.8715750000046683,
+                0.8723059999974794
+              ],
+              "median": 0.8715750000046683,
+              "p95": 0.8723059999974794,
+              "max": 0.8723059999974794
+            },
+            "cpu_s": {
+              "samples": [
+                0.863598,
+                0.868667,
+                0.880158
+              ],
+              "median": 0.868667,
+              "p95": 0.880158,
+              "max": 0.880158
+            },
+            "peak_rss_bytes": {
+              "samples": [
+                51478528,
+                51691520,
+                52658176
+              ],
+              "median": 51691520,
+              "p95": 52658176,
+              "max": 52658176
+            },
+            "storage_bytes": {
+              "samples": [
+                70319,
+                70319,
+                70319
+              ],
+              "median": 70319,
+              "p95": 70319,
+              "max": 70319
+            },
+            "graph_wall_s": {
+              "samples": [
+                0.24471300000004703,
+                0.25526299999910407,
+                0.27701299999898765
+              ],
+              "median": 0.25526299999910407,
+              "p95": 0.27701299999898765,
+              "max": 0.27701299999898765
+            },
+            "mutation_wall_s": {
+              "samples": [
+                0.2987229999998817,
+                0.30050699999992503,
+                0.33737200000177836
+              ],
+              "median": 0.30050699999992503,
+              "p95": 0.33737200000177836,
+              "max": 0.33737200000177836
+            },
+            "observe_wall_s": {
+              "samples": [
+                0.26822200000606244,
+                0.2818939999997383,
+                0.2872360000037588
+              ],
+              "median": 0.2818939999997383,
+              "p95": 0.2872360000037588,
+              "max": 0.2872360000037588
+            }
+          },
+          "raw": [
+            {
+              "graph_wall_s": 0.24471300000004703,
+              "mutation_wall_s": 0.33737200000177836,
+              "observe_wall_s": 0.2818939999997383,
+              "wall_s": 0.8715750000046683,
+              "cpu_s": 0.880158,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 52658176
+            },
+            {
+              "graph_wall_s": 0.25526299999910407,
+              "mutation_wall_s": 0.2987229999998817,
+              "observe_wall_s": 0.26822200000606244,
+              "wall_s": 0.8299950000000536,
+              "cpu_s": 0.863598,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 51478528
+            },
+            {
+              "graph_wall_s": 0.27701299999898765,
+              "mutation_wall_s": 0.30050699999992503,
+              "observe_wall_s": 0.2872360000037588,
+              "wall_s": 0.8723059999974794,
+              "cpu_s": 0.868667,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 51691520
+            }
+          ],
+          "network": "not_in_scope",
+          "memory_probe_class": "process_lifetime",
+          "propose_basis": "max",
+          "headroom": 1.15,
+          "failures": [
+            "observe_wall_s"
+          ],
+          "pass": false
+        }
+      },
+      {
+        "iteration": 2,
+        "primary_series": "observe_wall_s",
+        "hypothesis": "delay method string conversion",
+        "change": "delay method string conversion",
+        "decision": "retained for the next temporary trial; production acceptance is separate",
+        "source_sha256": "459fbc35e665a14d17f111daf1477a90d0441d32f8bc3c16d628cfcf1442c62e",
+        "prove": {
+          "load": 50,
+          "n": 3,
+          "series": {
+            "wall_s": {
+              "samples": [
+                0.813373999997566,
+                0.8453959999969811,
+                0.8746600000013132
+              ],
+              "median": 0.8453959999969811,
+              "p95": 0.8746600000013132,
+              "max": 0.8746600000013132
+            },
+            "cpu_s": {
+              "samples": [
+                0.8700230000000001,
+                0.876408,
+                0.900921
+              ],
+              "median": 0.876408,
+              "p95": 0.900921,
+              "max": 0.900921
+            },
+            "peak_rss_bytes": {
+              "samples": [
+                50544640,
+                51134464,
+                51789824
+              ],
+              "median": 51134464,
+              "p95": 51789824,
+              "max": 51789824
+            },
+            "storage_bytes": {
+              "samples": [
+                70319,
+                70319,
+                70319
+              ],
+              "median": 70319,
+              "p95": 70319,
+              "max": 70319
+            },
+            "graph_wall_s": {
+              "samples": [
+                0.2307619999992312,
+                0.2676549999960116,
+                0.29542299999593524
+              ],
+              "median": 0.2676549999960116,
+              "p95": 0.29542299999593524,
+              "max": 0.29542299999593524
+            },
+            "mutation_wall_s": {
+              "samples": [
+                0.31299199999921257,
+                0.32157400000141934,
+                0.32462800000212155
+              ],
+              "median": 0.32157400000141934,
+              "p95": 0.32462800000212155,
+              "max": 0.32462800000212155
+            },
+            "observe_wall_s": {
+              "samples": [
+                0.24447000000509433,
+                0.2497399999992922,
+                0.26170599999750266
+              ],
+              "median": 0.2497399999992922,
+              "p95": 0.26170599999750266,
+              "max": 0.26170599999750266
+            }
+          },
+          "raw": [
+            {
+              "graph_wall_s": 0.29542299999593524,
+              "mutation_wall_s": 0.32157400000141934,
+              "observe_wall_s": 0.2497399999992922,
+              "wall_s": 0.8746600000013132,
+              "cpu_s": 0.900921,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 51789824
+            },
+            {
+              "graph_wall_s": 0.2307619999992312,
+              "mutation_wall_s": 0.31299199999921257,
+              "observe_wall_s": 0.26170599999750266,
+              "wall_s": 0.813373999997566,
+              "cpu_s": 0.8700230000000001,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 51134464
+            },
+            {
+              "graph_wall_s": 0.2676549999960116,
+              "mutation_wall_s": 0.32462800000212155,
+              "observe_wall_s": 0.24447000000509433,
+              "wall_s": 0.8453959999969811,
+              "cpu_s": 0.876408,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 50544640
+            }
+          ],
+          "network": "not_in_scope",
+          "memory_probe_class": "process_lifetime",
+          "propose_basis": "max",
+          "headroom": 1.15,
+          "failures": [
+            "observe_wall_s"
+          ],
+          "pass": false
+        }
+      },
+      {
+        "iteration": 3,
+        "primary_series": "observe_wall_s",
+        "hypothesis": "try bounded owner-name cache",
+        "change": "try bounded owner-name cache",
+        "decision": "rejected: extra state without an established gain",
+        "source_sha256": "c7c4cd5094ec3f066b8a2308cf26328c726b17eff0a23603a7eae01155e39590",
+        "prove": {
+          "load": 50,
+          "n": 3,
+          "series": {
+            "wall_s": {
+              "samples": [
+                0.8261530000017956,
+                0.8449869999967632,
+                0.8509500000000116
+              ],
+              "median": 0.8449869999967632,
+              "p95": 0.8509500000000116,
+              "max": 0.8509500000000116
+            },
+            "cpu_s": {
+              "samples": [
+                0.857724,
+                0.867236,
+                0.8762709999999999
+              ],
+              "median": 0.867236,
+              "p95": 0.8762709999999999,
+              "max": 0.8762709999999999
+            },
+            "peak_rss_bytes": {
+              "samples": [
+                50724864,
+                51118080,
+                52346880
+              ],
+              "median": 51118080,
+              "p95": 52346880,
+              "max": 52346880
+            },
+            "storage_bytes": {
+              "samples": [
+                70319,
+                70319,
+                70319
+              ],
+              "median": 70319,
+              "p95": 70319,
+              "max": 70319
+            },
+            "graph_wall_s": {
+              "samples": [
+                0.2253430000055232,
+                0.24660399999993388,
+                0.26127899999846704
+              ],
+              "median": 0.24660399999993388,
+              "p95": 0.26127899999846704,
+              "max": 0.26127899999846704
+            },
+            "mutation_wall_s": {
+              "samples": [
+                0.30433199999970384,
+                0.3108709999942221,
+                0.3475590000016382
+              ],
+              "median": 0.3108709999942221,
+              "p95": 0.3475590000016382,
+              "max": 0.3475590000016382
+            },
+            "observe_wall_s": {
+              "samples": [
+                0.2650969999958761,
+                0.2673060000015539,
+                0.2696750000031898
+              ],
+              "median": 0.2673060000015539,
+              "p95": 0.2696750000031898,
+              "max": 0.2696750000031898
+            }
+          },
+          "raw": [
+            {
+              "graph_wall_s": 0.2253430000055232,
+              "mutation_wall_s": 0.3475590000016382,
+              "observe_wall_s": 0.2696750000031898,
+              "wall_s": 0.8509500000000116,
+              "cpu_s": 0.8762709999999999,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 51118080
+            },
+            {
+              "graph_wall_s": 0.26127899999846704,
+              "mutation_wall_s": 0.3108709999942221,
+              "observe_wall_s": 0.2650969999958761,
+              "wall_s": 0.8449869999967632,
+              "cpu_s": 0.867236,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 50724864
+            },
+            {
+              "graph_wall_s": 0.24660399999993388,
+              "mutation_wall_s": 0.30433199999970384,
+              "observe_wall_s": 0.2673060000015539,
+              "wall_s": 0.8261530000017956,
+              "cpu_s": 0.857724,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 52346880
+            }
+          ],
+          "network": "not_in_scope",
+          "memory_probe_class": "process_lifetime",
+          "propose_basis": "max",
+          "headroom": 1.15,
+          "failures": [
+            "observe_wall_s"
+          ],
+          "pass": false
+        }
+      },
+      {
+        "iteration": 4,
+        "primary_series": "observe_wall_s",
+        "hypothesis": "nested counters instead of tuple allocation",
+        "change": "nested counters instead of tuple allocation",
+        "decision": "retained for the next temporary trial; production acceptance is separate",
+        "source_sha256": "f00cacf9e37312ef1f476aa0f948800a57c6cab293e855b73c6d5edbf763d213",
+        "prove": {
+          "load": 50,
+          "n": 3,
+          "series": {
+            "wall_s": {
+              "samples": [
+                0.7347620000000461,
+                0.8164620000025025,
+                0.86548600000242
+              ],
+              "median": 0.8164620000025025,
+              "p95": 0.86548600000242,
+              "max": 0.86548600000242
+            },
+            "cpu_s": {
+              "samples": [
+                0.809773,
+                0.815307,
+                0.8167139999999999
+              ],
+              "median": 0.815307,
+              "p95": 0.8167139999999999,
+              "max": 0.8167139999999999
+            },
+            "peak_rss_bytes": {
+              "samples": [
+                52166656,
+                52412416,
+                52592640
+              ],
+              "median": 52412416,
+              "p95": 52592640,
+              "max": 52592640
+            },
+            "storage_bytes": {
+              "samples": [
+                70319,
+                70319,
+                70319
+              ],
+              "median": 70319,
+              "p95": 70319,
+              "max": 70319
+            },
+            "graph_wall_s": {
+              "samples": [
+                0.23225999999704072,
+                0.25673799999640323,
+                0.26103799999691546
+              ],
+              "median": 0.25673799999640323,
+              "p95": 0.26103799999691546,
+              "max": 0.26103799999691546
+            },
+            "mutation_wall_s": {
+              "samples": [
+                0.3117519999941578,
+                0.32980099999986123,
+                0.39153900000383146
+              ],
+              "median": 0.32980099999986123,
+              "p95": 0.39153900000383146,
+              "max": 0.39153900000383146
+            },
+            "observe_wall_s": {
+              "samples": [
+                0.182901000000129,
+                0.20892599999933736,
+                0.21751200000289828
+              ],
+              "median": 0.20892599999933736,
+              "p95": 0.21751200000289828,
+              "max": 0.21751200000289828
+            }
+          },
+          "raw": [
+            {
+              "graph_wall_s": 0.23225999999704072,
+              "mutation_wall_s": 0.3117519999941578,
+              "observe_wall_s": 0.182901000000129,
+              "wall_s": 0.7347620000000461,
+              "cpu_s": 0.8167139999999999,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 52166656
+            },
+            {
+              "graph_wall_s": 0.26103799999691546,
+              "mutation_wall_s": 0.32980099999986123,
+              "observe_wall_s": 0.21751200000289828,
+              "wall_s": 0.8164620000025025,
+              "cpu_s": 0.815307,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 52592640
+            },
+            {
+              "graph_wall_s": 0.25673799999640323,
+              "mutation_wall_s": 0.39153900000383146,
+              "observe_wall_s": 0.20892599999933736,
+              "wall_s": 0.86548600000242,
+              "cpu_s": 0.809773,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 52412416
+            }
+          ],
+          "network": "not_in_scope",
+          "memory_probe_class": "process_lifetime",
+          "propose_basis": "max",
+          "headroom": 1.15,
+          "failures": [],
+          "pass": true
+        }
+      },
+      {
+        "iteration": 5,
+        "primary_series": "observe_wall_s",
+        "hypothesis": "check process ownership only when writing",
+        "change": "check process ownership only when writing",
+        "decision": "retained for the next temporary trial; production acceptance is separate",
+        "source_sha256": "298dd939ebee7ae174855b4d086e57d4bc860e75f0e9ae355d2961744afc8479",
+        "prove": {
+          "load": 50,
+          "n": 3,
+          "series": {
+            "wall_s": {
+              "samples": [
+                0.7581839999984368,
+                0.772078000001784,
+                0.8038049999959185
+              ],
+              "median": 0.772078000001784,
+              "p95": 0.8038049999959185,
+              "max": 0.8038049999959185
+            },
+            "cpu_s": {
+              "samples": [
+                0.802163,
+                0.8078050000000001,
+                0.831323
+              ],
+              "median": 0.8078050000000001,
+              "p95": 0.831323,
+              "max": 0.831323
+            },
+            "peak_rss_bytes": {
+              "samples": [
+                49463296,
+                51445760,
+                51740672
+              ],
+              "median": 51445760,
+              "p95": 51740672,
+              "max": 51740672
+            },
+            "storage_bytes": {
+              "samples": [
+                70319,
+                70319,
+                70319
+              ],
+              "median": 70319,
+              "p95": 70319,
+              "max": 70319
+            },
+            "graph_wall_s": {
+              "samples": [
+                0.259516000005533,
+                0.2730809999993653,
+                0.28366499999538064
+              ],
+              "median": 0.2730809999993653,
+              "p95": 0.28366499999538064,
+              "max": 0.28366499999538064
+            },
+            "mutation_wall_s": {
+              "samples": [
+                0.3016649999990477,
+                0.31141399999614805,
+                0.31348399999842513
+              ],
+              "median": 0.31141399999614805,
+              "p95": 0.31348399999842513,
+              "max": 0.31348399999842513
+            },
+            "observe_wall_s": {
+              "samples": [
+                0.17720099999860395,
+                0.17898799999966286,
+                0.21085700000548968
+              ],
+              "median": 0.17898799999966286,
+              "p95": 0.21085700000548968,
+              "max": 0.21085700000548968
+            }
+          },
+          "raw": [
+            {
+              "graph_wall_s": 0.28366499999538064,
+              "mutation_wall_s": 0.3016649999990477,
+              "observe_wall_s": 0.17898799999966286,
+              "wall_s": 0.772078000001784,
+              "cpu_s": 0.802163,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 51740672
+            },
+            {
+              "graph_wall_s": 0.259516000005533,
+              "mutation_wall_s": 0.31348399999842513,
+              "observe_wall_s": 0.17720099999860395,
+              "wall_s": 0.7581839999984368,
+              "cpu_s": 0.8078050000000001,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 51445760
+            },
+            {
+              "graph_wall_s": 0.2730809999993653,
+              "mutation_wall_s": 0.31141399999614805,
+              "observe_wall_s": 0.21085700000548968,
+              "wall_s": 0.8038049999959185,
+              "cpu_s": 0.831323,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 49463296
+            }
+          ],
+          "network": "not_in_scope",
+          "memory_probe_class": "process_lifetime",
+          "propose_basis": "max",
+          "headroom": 1.15,
+          "failures": [],
+          "pass": true
+        }
+      },
+      {
+        "iteration": 6,
+        "primary_series": "observe_wall_s",
+        "hypothesis": "completion poll 20ms to 5ms",
+        "change": "completion poll 20ms to 5ms",
+        "decision": "retained for the next temporary trial; production acceptance is separate",
+        "source_sha256": "59a84efdc9e759c27e3535b37575a288811e6630bd92128f3a0398ac77b0971b",
+        "prove": {
+          "load": 50,
+          "n": 3,
+          "series": {
+            "wall_s": {
+              "samples": [
+                0.7335600000005797,
+                0.7479630000016186,
+                0.7546540000039386
+              ],
+              "median": 0.7479630000016186,
+              "p95": 0.7546540000039386,
+              "max": 0.7546540000039386
+            },
+            "cpu_s": {
+              "samples": [
+                0.808986,
+                0.8190740000000001,
+                0.8217789999999999
+              ],
+              "median": 0.8190740000000001,
+              "p95": 0.8217789999999999,
+              "max": 0.8217789999999999
+            },
+            "peak_rss_bytes": {
+              "samples": [
+                50528256,
+                51249152,
+                51789824
+              ],
+              "median": 51249152,
+              "p95": 51789824,
+              "max": 51789824
+            },
+            "storage_bytes": {
+              "samples": [
+                70319,
+                70319,
+                70319
+              ],
+              "median": 70319,
+              "p95": 70319,
+              "max": 70319
+            },
+            "graph_wall_s": {
+              "samples": [
+                0.23779600000125356,
+                0.24210999999922933,
+                0.24401099999522557
+              ],
+              "median": 0.24210999999922933,
+              "p95": 0.24401099999522557,
+              "max": 0.24401099999522557
+            },
+            "mutation_wall_s": {
+              "samples": [
+                0.3092030000043451,
+                0.3126080000001821,
+                0.3247530000007828
+              ],
+              "median": 0.3126080000001821,
+              "p95": 0.3247530000007828,
+              "max": 0.3247530000007828
+            },
+            "observe_wall_s": {
+              "samples": [
+                0.17440600000554696,
+                0.17767800000001444,
+                0.18999800000165123
+              ],
+              "median": 0.17767800000001444,
+              "p95": 0.18999800000165123,
+              "max": 0.18999800000165123
+            }
+          },
+          "raw": [
+            {
+              "graph_wall_s": 0.24401099999522557,
+              "mutation_wall_s": 0.3126080000001821,
+              "observe_wall_s": 0.18999800000165123,
+              "wall_s": 0.7546540000039386,
+              "cpu_s": 0.8190740000000001,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 50528256
+            },
+            {
+              "graph_wall_s": 0.23779600000125356,
+              "mutation_wall_s": 0.3247530000007828,
+              "observe_wall_s": 0.17767800000001444,
+              "wall_s": 0.7479630000016186,
+              "cpu_s": 0.8217789999999999,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 51789824
+            },
+            {
+              "graph_wall_s": 0.24210999999922933,
+              "mutation_wall_s": 0.3092030000043451,
+              "observe_wall_s": 0.17440600000554696,
+              "wall_s": 0.7335600000005797,
+              "cpu_s": 0.808986,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 51249152
+            }
+          ],
+          "network": "not_in_scope",
+          "memory_probe_class": "process_lifetime",
+          "propose_basis": "max",
+          "headroom": 1.15,
+          "failures": [],
+          "pass": true
+        }
+      },
+      {
+        "iteration": 7,
+        "primary_series": "observe_wall_s",
+        "hypothesis": "single counter lookup",
+        "change": "single counter lookup",
+        "decision": "retained for the next temporary trial; production acceptance is separate",
+        "source_sha256": "a6882566e779ed121cb495b32b6cf19a98cb014a02d182e3ec27e2a76421fc88",
+        "prove": {
+          "load": 50,
+          "n": 3,
+          "series": {
+            "wall_s": {
+              "samples": [
+                0.7254200000024866,
+                0.7302770000023884,
+                0.7331169999961276
+              ],
+              "median": 0.7302770000023884,
+              "p95": 0.7331169999961276,
+              "max": 0.7331169999961276
+            },
+            "cpu_s": {
+              "samples": [
+                0.7964279999999999,
+                0.7990499999999999,
+                0.8000670000000001
+              ],
+              "median": 0.7990499999999999,
+              "p95": 0.8000670000000001,
+              "max": 0.8000670000000001
+            },
+            "peak_rss_bytes": {
+              "samples": [
+                50069504,
+                50118656,
+                50233344
+              ],
+              "median": 50118656,
+              "p95": 50233344,
+              "max": 50233344
+            },
+            "storage_bytes": {
+              "samples": [
+                70319,
+                70319,
+                70319
+              ],
+              "median": 70319,
+              "p95": 70319,
+              "max": 70319
+            },
+            "graph_wall_s": {
+              "samples": [
+                0.23608299999614246,
+                0.24022400000103517,
+                0.24332299999514362
+              ],
+              "median": 0.24022400000103517,
+              "p95": 0.24332299999514362,
+              "max": 0.24332299999514362
+            },
+            "mutation_wall_s": {
+              "samples": [
+                0.30657500000233995,
+                0.3076080000028014,
+                0.30780899999808753
+              ],
+              "median": 0.3076080000028014,
+              "p95": 0.30780899999808753,
+              "max": 0.30780899999808753
+            },
+            "observe_wall_s": {
+              "samples": [
+                0.17364400000224123,
+                0.1741039999978966,
+                0.1756050000039977
+              ],
+              "median": 0.1741039999978966,
+              "p95": 0.1756050000039977,
+              "max": 0.1756050000039977
+            }
+          },
+          "raw": [
+            {
+              "graph_wall_s": 0.23608299999614246,
+              "mutation_wall_s": 0.3076080000028014,
+              "observe_wall_s": 0.17364400000224123,
+              "wall_s": 0.7254200000024866,
+              "cpu_s": 0.7990499999999999,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 50233344
+            },
+            {
+              "graph_wall_s": 0.24022400000103517,
+              "mutation_wall_s": 0.30657500000233995,
+              "observe_wall_s": 0.1756050000039977,
+              "wall_s": 0.7302770000023884,
+              "cpu_s": 0.7964279999999999,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 50118656
+            },
+            {
+              "graph_wall_s": 0.24332299999514362,
+              "mutation_wall_s": 0.30780899999808753,
+              "observe_wall_s": 0.1741039999978966,
+              "wall_s": 0.7331169999961276,
+              "cpu_s": 0.8000670000000001,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 50069504
+            }
+          ],
+          "network": "not_in_scope",
+          "memory_probe_class": "process_lifetime",
+          "propose_basis": "max",
+          "headroom": 1.15,
+          "failures": [],
+          "pass": true
+        }
+      },
+      {
+        "iteration": 8,
+        "primary_series": "observe_wall_s",
+        "hypothesis": "try mutable counter cells",
+        "change": "try mutable counter cells",
+        "decision": "rejected: extra state without an established gain",
+        "source_sha256": "fbf33f7198070c367eb89487f3646278cac6ac39ef832f05f4210c08ca98ba0d",
+        "prove": {
+          "load": 50,
+          "n": 3,
+          "series": {
+            "wall_s": {
+              "samples": [
+                0.7076259999957983,
+                0.7225860000035027,
+                0.7368370000040159
+              ],
+              "median": 0.7225860000035027,
+              "p95": 0.7368370000040159,
+              "max": 0.7368370000040159
+            },
+            "cpu_s": {
+              "samples": [
+                0.7797799999999999,
+                0.7929229999999999,
+                0.7950260000000001
+              ],
+              "median": 0.7929229999999999,
+              "p95": 0.7950260000000001,
+              "max": 0.7950260000000001
+            },
+            "peak_rss_bytes": {
+              "samples": [
+                49233920,
+                50069504,
+                50987008
+              ],
+              "median": 50069504,
+              "p95": 50987008,
+              "max": 50987008
+            },
+            "storage_bytes": {
+              "samples": [
+                70319,
+                70319,
+                70319
+              ],
+              "median": 70319,
+              "p95": 70319,
+              "max": 70319
+            },
+            "graph_wall_s": {
+              "samples": [
+                0.229817000006733,
+                0.23903399999835528,
+                0.24299900000187336
+              ],
+              "median": 0.23903399999835528,
+              "p95": 0.24299900000187336,
+              "max": 0.24299900000187336
+            },
+            "mutation_wall_s": {
+              "samples": [
+                0.2959520000003977,
+                0.30166599999938626,
+                0.3043259999976726
+              ],
+              "median": 0.30166599999938626,
+              "p95": 0.3043259999976726,
+              "max": 0.3043259999976726
+            },
+            "observe_wall_s": {
+              "samples": [
+                0.17377800000394927,
+                0.1739579999994021,
+                0.18164900000556372
+              ],
+              "median": 0.1739579999994021,
+              "p95": 0.18164900000556372,
+              "max": 0.18164900000556372
+            }
+          },
+          "raw": [
+            {
+              "graph_wall_s": 0.229817000006733,
+              "mutation_wall_s": 0.2959520000003977,
+              "observe_wall_s": 0.17377800000394927,
+              "wall_s": 0.7076259999957983,
+              "cpu_s": 0.7797799999999999,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 49233920
+            },
+            {
+              "graph_wall_s": 0.23903399999835528,
+              "mutation_wall_s": 0.30166599999938626,
+              "observe_wall_s": 0.1739579999994021,
+              "wall_s": 0.7225860000035027,
+              "cpu_s": 0.7929229999999999,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 50069504
+            },
+            {
+              "graph_wall_s": 0.24299900000187336,
+              "mutation_wall_s": 0.3043259999976726,
+              "observe_wall_s": 0.18164900000556372,
+              "wall_s": 0.7368370000040159,
+              "cpu_s": 0.7950260000000001,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 50987008
+            }
+          ],
+          "network": "not_in_scope",
+          "memory_probe_class": "process_lifetime",
+          "propose_basis": "max",
+          "headroom": 1.15,
+          "failures": [],
+          "pass": true
+        }
+      },
+      {
+        "iteration": 9,
+        "primary_series": "observe_wall_s",
+        "hypothesis": "direct positive and negative path-cache lookup",
+        "change": "direct positive and negative path-cache lookup",
+        "decision": "retained for the next temporary trial; production acceptance is separate",
+        "source_sha256": "73dd13fa41af31749b6b923162469fc4e14fb9a3940f5b509000b2119e37a6b1",
+        "prove": {
+          "load": 50,
+          "n": 3,
+          "series": {
+            "wall_s": {
+              "samples": [
+                0.7154890000019805,
+                0.7330759999967995,
+                0.7595470000014757
+              ],
+              "median": 0.7330759999967995,
+              "p95": 0.7595470000014757,
+              "max": 0.7595470000014757
+            },
+            "cpu_s": {
+              "samples": [
+                0.790326,
+                0.80402,
+                0.808862
+              ],
+              "median": 0.80402,
+              "p95": 0.808862,
+              "max": 0.808862
+            },
+            "peak_rss_bytes": {
+              "samples": [
+                50233344,
+                51314688,
+                51445760
+              ],
+              "median": 51314688,
+              "p95": 51445760,
+              "max": 51445760
+            },
+            "storage_bytes": {
+              "samples": [
+                70319,
+                70319,
+                70319
+              ],
+              "median": 70319,
+              "p95": 70319,
+              "max": 70319
+            },
+            "graph_wall_s": {
+              "samples": [
+                0.23113000000012107,
+                0.23420000000623986,
+                0.23814100000163307
+              ],
+              "median": 0.23420000000623986,
+              "p95": 0.23814100000163307,
+              "max": 0.23814100000163307
+            },
+            "mutation_wall_s": {
+              "samples": [
+                0.29983000000356697,
+                0.3102119999966817,
+                0.32014299999718787
+              ],
+              "median": 0.3102119999966817,
+              "p95": 0.32014299999718787,
+              "max": 0.32014299999718787
+            },
+            "observe_wall_s": {
+              "samples": [
+                0.17361199999868404,
+                0.1823110000041197,
+                0.1906440000020666
+              ],
+              "median": 0.1823110000041197,
+              "p95": 0.1906440000020666,
+              "max": 0.1906440000020666
+            }
+          },
+          "raw": [
+            {
+              "graph_wall_s": 0.23814100000163307,
+              "mutation_wall_s": 0.32014299999718787,
+              "observe_wall_s": 0.1906440000020666,
+              "wall_s": 0.7595470000014757,
+              "cpu_s": 0.808862,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 51314688
+            },
+            {
+              "graph_wall_s": 0.23113000000012107,
+              "mutation_wall_s": 0.3102119999966817,
+              "observe_wall_s": 0.1823110000041197,
+              "wall_s": 0.7330759999967995,
+              "cpu_s": 0.80402,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 51445760
+            },
+            {
+              "graph_wall_s": 0.23420000000623986,
+              "mutation_wall_s": 0.29983000000356697,
+              "observe_wall_s": 0.17361199999868404,
+              "wall_s": 0.7154890000019805,
+              "cpu_s": 0.790326,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 50233344
+            }
+          ],
+          "network": "not_in_scope",
+          "memory_probe_class": "process_lifetime",
+          "propose_basis": "max",
+          "headroom": 1.15,
+          "failures": [],
+          "pass": true
+        }
+      },
+      {
+        "iteration": 10,
+        "primary_series": "observe_wall_s",
+        "hypothesis": "completion poll 5ms to 1ms",
+        "change": "completion poll 5ms to 1ms",
+        "decision": "retained for the next temporary trial; production acceptance is separate",
+        "source_sha256": "55a371136aff13ddc8f251acc56bf7e880ac95083a749716a8cd8a9f993fea8e",
+        "prove": {
+          "load": 50,
+          "n": 3,
+          "series": {
+            "wall_s": {
+              "samples": [
+                0.7213600000031875,
+                0.7253570000029868,
+                0.7291259999983595
+              ],
+              "median": 0.7253570000029868,
+              "p95": 0.7291259999983595,
+              "max": 0.7291259999983595
+            },
+            "cpu_s": {
+              "samples": [
+                0.7953,
+                0.79737,
+                0.810867
+              ],
+              "median": 0.79737,
+              "p95": 0.810867,
+              "max": 0.810867
+            },
+            "peak_rss_bytes": {
+              "samples": [
+                50233344,
+                50692096,
+                51609600
+              ],
+              "median": 50692096,
+              "p95": 51609600,
+              "max": 51609600
+            },
+            "storage_bytes": {
+              "samples": [
+                70319,
+                70319,
+                70319
+              ],
+              "median": 70319,
+              "p95": 70319,
+              "max": 70319
+            },
+            "graph_wall_s": {
+              "samples": [
+                0.22698900000250433,
+                0.22836699999606935,
+                0.23446599999442697
+              ],
+              "median": 0.22836699999606935,
+              "p95": 0.23446599999442697,
+              "max": 0.23446599999442697
+            },
+            "mutation_wall_s": {
+              "samples": [
+                0.30024199999752454,
+                0.30675999999948544,
+                0.31354499999724794
+              ],
+              "median": 0.30675999999948544,
+              "p95": 0.31354499999724794,
+              "max": 0.31354499999724794
+            },
+            "observe_wall_s": {
+              "samples": [
+                0.17418799999722978,
+                0.17659699999785516,
+                0.1860210000013467
+              ],
+              "median": 0.17659699999785516,
+              "p95": 0.1860210000013467,
+              "max": 0.1860210000013467
+            }
+          },
+          "raw": [
+            {
+              "graph_wall_s": 0.22698900000250433,
+              "mutation_wall_s": 0.31354499999724794,
+              "observe_wall_s": 0.17659699999785516,
+              "wall_s": 0.7253570000029868,
+              "cpu_s": 0.7953,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 50233344
+            },
+            {
+              "graph_wall_s": 0.23446599999442697,
+              "mutation_wall_s": 0.30024199999752454,
+              "observe_wall_s": 0.17418799999722978,
+              "wall_s": 0.7213600000031875,
+              "cpu_s": 0.79737,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 51609600
+            },
+            {
+              "graph_wall_s": 0.22836699999606935,
+              "mutation_wall_s": 0.30675999999948544,
+              "observe_wall_s": 0.1860210000013467,
+              "wall_s": 0.7291259999983595,
+              "cpu_s": 0.810867,
+              "storage_bytes": 70319,
+              "peak_rss_bytes": 50692096
+            }
+          ],
+          "network": "not_in_scope",
+          "memory_probe_class": "process_lifetime",
+          "propose_basis": "max",
+          "headroom": 1.15,
+          "failures": [],
+          "pass": true
+        }
+      }
+    ],
+    "binding": "benchmarks/quality-binding.md",
+    "ceilings_before": {
+      "wall_s": 1.1528266999946934,
+      "cpu_s": 1.1605961,
+      "peak_rss_bytes": 62365695.99999999,
+      "storage_bytes": 80866.84999999999,
+      "graph_wall_s": 0.4026655999958166,
+      "mutation_wall_s": 0.5114797500002168,
+      "observe_wall_s": 1.3936079500013874
+    },
+    "ceilings_after": {
+      "wall_s": 1.1528266999946934,
+      "cpu_s": 1.1605961,
+      "peak_rss_bytes": 62365695.99999999,
+      "storage_bytes": 80866.84999999999,
+      "graph_wall_s": 0.4026655999958166,
+      "mutation_wall_s": 0.5114797500002168,
+      "observe_wall_s": 0.2594009000011283
+    },
+    "network": "not_in_scope",
+    "memory_probe_class": "process_lifetime",
+    "propose_basis": "max",
+    "headroom": 1.15,
+    "calibration": {
+      "pass": true,
+      "known_medians": {
+        "wall_s": 102,
+        "cpu_s": 202,
+        "peak_rss_bytes": 302,
+        "storage_bytes": 402,
+        "graph_wall_s": 502,
+        "mutation_wall_s": 602,
+        "observe_wall_s": 702
+      },
+      "known_p95": {
+        "wall_s": 103,
+        "cpu_s": 203,
+        "peak_rss_bytes": 303,
+        "storage_bytes": 403,
+        "graph_wall_s": 503,
+        "mutation_wall_s": 603,
+        "observe_wall_s": 703
+      },
+      "direct_harness_peak_rss_bytes": 15171584,
+      "direct_command_wall_s": 0.07065399999555666,
+      "direct_aggregate_wall_s": 0.07076200000301469
+    },
+    "baseline": {
+      "load": 5,
+      "n": 3,
+      "series": {
+        "wall_s": {
+          "samples": [
+            0.7229750000042259,
+            0.7523090000031516,
+            0.8299190000034287
+          ],
+          "median": 0.7523090000031516,
+          "p95": 0.8299190000034287,
+          "max": 0.8299190000034287
+        },
+        "cpu_s": {
+          "samples": [
+            0.751138,
+            0.782496,
+            0.7985049999999999
+          ],
+          "median": 0.782496,
+          "p95": 0.7985049999999999,
+          "max": 0.7985049999999999
+        },
+        "peak_rss_bytes": {
+          "samples": [
+            36929536,
+            37699584,
+            37961728
+          ],
+          "median": 37699584,
+          "p95": 37961728,
+          "max": 37961728
+        },
+        "storage_bytes": {
+          "samples": [
+            7367,
+            7367,
+            7367
+          ],
+          "median": 7367,
+          "p95": 7367,
+          "max": 7367
+        },
+        "graph_wall_s": {
+          "samples": [
+            0.21545300000434509,
+            0.25290099999983795,
+            0.28413000000000466
+          ],
+          "median": 0.25290099999983795,
+          "p95": 0.28413000000000466,
+          "max": 0.28413000000000466
+        },
+        "mutation_wall_s": {
+          "samples": [
+            0.23393099999520928,
+            0.2415130000008503,
+            0.259172000005492
+          ],
+          "median": 0.2415130000008503,
+          "p95": 0.259172000005492,
+          "max": 0.259172000005492
+        },
+        "observe_wall_s": {
+          "samples": [
+            0.25543699999980163,
+            0.27158000000054017,
+            0.2844120000008843
+          ],
+          "median": 0.27158000000054017,
+          "p95": 0.2844120000008843,
+          "max": 0.2844120000008843
+        }
+      },
+      "raw": [
+        {
+          "graph_wall_s": 0.21545300000434509,
+          "mutation_wall_s": 0.23393099999520928,
+          "observe_wall_s": 0.27158000000054017,
+          "wall_s": 0.7229750000042259,
+          "cpu_s": 0.751138,
+          "storage_bytes": 7367,
+          "peak_rss_bytes": 37961728
+        },
+        {
+          "graph_wall_s": 0.28413000000000466,
+          "mutation_wall_s": 0.259172000005492,
+          "observe_wall_s": 0.2844120000008843,
+          "wall_s": 0.8299190000034287,
+          "cpu_s": 0.7985049999999999,
+          "storage_bytes": 7367,
+          "peak_rss_bytes": 37699584
+        },
+        {
+          "graph_wall_s": 0.25290099999983795,
+          "mutation_wall_s": 0.2415130000008503,
+          "observe_wall_s": 0.25543699999980163,
+          "wall_s": 0.7523090000031516,
+          "cpu_s": 0.782496,
+          "storage_bytes": 7367,
+          "peak_rss_bytes": 36929536
+        }
+      ],
+      "network": "not_in_scope",
+      "memory_probe_class": "process_lifetime",
+      "propose_basis": "max",
+      "headroom": 1.15
+    },
+    "stress": {
+      "load": 50,
+      "n": 3,
+      "series": {
+        "wall_s": {
+          "samples": [
+            1.7247109999952954,
+            1.7818849999966915,
+            1.8136060000033467
+          ],
+          "median": 1.7818849999966915,
+          "p95": 1.8136060000033467,
+          "max": 1.8136060000033467
+        },
+        "cpu_s": {
+          "samples": [
+            1.778149,
+            1.810532,
+            1.81391
+          ],
+          "median": 1.810532,
+          "p95": 1.81391,
+          "max": 1.81391
+        },
+        "peak_rss_bytes": {
+          "samples": [
+            50544640,
+            50642944,
+            53444608
+          ],
+          "median": 50642944,
+          "p95": 53444608,
+          "max": 53444608
+        },
+        "storage_bytes": {
+          "samples": [
+            70319,
+            70319,
+            70319
+          ],
+          "median": 70319,
+          "p95": 70319,
+          "max": 70319
+        },
+        "graph_wall_s": {
+          "samples": [
+            0.25635199999669567,
+            0.2571749999988242,
+            0.2589880000014091
+          ],
+          "median": 0.2571749999988242,
+          "p95": 0.2589880000014091,
+          "max": 0.2589880000014091
+        },
+        "mutation_wall_s": {
+          "samples": [
+            0.2974229999963427,
+            0.3348519999999553,
+            0.3374610000028042
+          ],
+          "median": 0.3348519999999553,
+          "p95": 0.3374610000028042,
+          "max": 0.3374610000028042
+        },
+        "observe_wall_s": {
+          "samples": [
+            1.1622129999959725,
+            1.1804730000003474,
+            1.2118330000012065
+          ],
+          "median": 1.1804730000003474,
+          "p95": 1.2118330000012065,
+          "max": 1.2118330000012065
+        }
+      },
+      "raw": [
+        {
+          "graph_wall_s": 0.2571749999988242,
+          "mutation_wall_s": 0.2974229999963427,
+          "observe_wall_s": 1.1622129999959725,
+          "wall_s": 1.7247109999952954,
+          "cpu_s": 1.778149,
+          "storage_bytes": 70319,
+          "peak_rss_bytes": 50642944
+        },
+        {
+          "graph_wall_s": 0.25635199999669567,
+          "mutation_wall_s": 0.3374610000028042,
+          "observe_wall_s": 1.1804730000003474,
+          "wall_s": 1.7818849999966915,
+          "cpu_s": 1.810532,
+          "storage_bytes": 70319,
+          "peak_rss_bytes": 53444608
+        },
+        {
+          "graph_wall_s": 0.2589880000014091,
+          "mutation_wall_s": 0.3348519999999553,
+          "observe_wall_s": 1.2118330000012065,
+          "wall_s": 1.8136060000033467,
+          "cpu_s": 1.81391,
+          "storage_bytes": 70319,
+          "peak_rss_bytes": 50544640
+        }
+      ],
+      "network": "not_in_scope",
+      "memory_probe_class": "process_lifetime",
+      "propose_basis": "max",
+      "headroom": 1.15
+    },
+    "ratchet": {
+      "primary_series": "observe_wall_s",
+      "basis": "initial stress maximum times 1.15",
+      "before": 1.3936079500013874,
+      "after": 0.2594009000011283
+    },
+    "production_gate": {
+      "load": 50,
+      "n": 3,
+      "series": {
+        "wall_s": {
+          "samples": [
+            0.6899239999984275,
+            0.7080490000007558,
+            0.7084770000001299
+          ],
+          "median": 0.7080490000007558,
+          "p95": 0.7084770000001299,
+          "max": 0.7084770000001299
+        },
+        "cpu_s": {
+          "samples": [
+            0.7708689999999999,
+            0.788908,
+            0.789169
+          ],
+          "median": 0.788908,
+          "p95": 0.789169,
+          "max": 0.789169
+        },
+        "peak_rss_bytes": {
+          "samples": [
+            49938432,
+            50298880,
+            50364416
+          ],
+          "median": 50298880,
+          "p95": 50364416,
+          "max": 50364416
+        },
+        "storage_bytes": {
+          "samples": [
+            70319,
+            70319,
+            70319
+          ],
+          "median": 70319,
+          "p95": 70319,
+          "max": 70319
+        },
+        "graph_wall_s": {
+          "samples": [
+            0.22080300000379793,
+            0.22516000000177883,
+            0.2256919999999809
+          ],
+          "median": 0.22516000000177883,
+          "p95": 0.2256919999999809,
+          "max": 0.2256919999999809
+        },
+        "mutation_wall_s": {
+          "samples": [
+            0.2932730000029551,
+            0.300533000001451,
+            0.3013109999956214
+          ],
+          "median": 0.300533000001451,
+          "p95": 0.3013109999956214,
+          "max": 0.3013109999956214
+        },
+        "observe_wall_s": {
+          "samples": [
+            0.16777599999477388,
+            0.17302100000233622,
+            0.1739769999985583
+          ],
+          "median": 0.17302100000233622,
+          "p95": 0.1739769999985583,
+          "max": 0.1739769999985583
+        }
+      },
+      "raw": [
+        {
+          "graph_wall_s": 0.22516000000177883,
+          "mutation_wall_s": 0.300533000001451,
+          "observe_wall_s": 0.1739769999985583,
+          "wall_s": 0.7080490000007558,
+          "cpu_s": 0.789169,
+          "storage_bytes": 70319,
+          "peak_rss_bytes": 50364416
+        },
+        {
+          "graph_wall_s": 0.22080300000379793,
+          "mutation_wall_s": 0.2932730000029551,
+          "observe_wall_s": 0.16777599999477388,
+          "wall_s": 0.6899239999984275,
+          "cpu_s": 0.7708689999999999,
+          "storage_bytes": 70319,
+          "peak_rss_bytes": 49938432
+        },
+        {
+          "graph_wall_s": 0.2256919999999809,
+          "mutation_wall_s": 0.3013109999956214,
+          "observe_wall_s": 0.17302100000233622,
+          "wall_s": 0.7084770000001299,
+          "cpu_s": 0.788908,
+          "storage_bytes": 70319,
+          "peak_rss_bytes": 50298880
+        }
+      ],
+      "network": "not_in_scope",
+      "memory_probe_class": "process_lifetime",
+      "propose_basis": "max",
+      "headroom": 1.15,
+      "failures": [],
+      "pass": true
+    },
+    "integration_prove": {
+      "primary_series": "observe_wall_s",
+      "change": "Use the complete production recorder after the temporary historical alternatives",
+      "prove": {
+        "load": 50,
+        "n": 3,
+        "series": {
+          "wall_s": {
+            "samples": [
+              0.6899239999984275,
+              0.7080490000007558,
+              0.7084770000001299
+            ],
+            "median": 0.7080490000007558,
+            "p95": 0.7084770000001299,
+            "max": 0.7084770000001299
+          },
+          "cpu_s": {
+            "samples": [
+              0.7708689999999999,
+              0.788908,
+              0.789169
+            ],
+            "median": 0.788908,
+            "p95": 0.789169,
+            "max": 0.789169
+          },
+          "peak_rss_bytes": {
+            "samples": [
+              49938432,
+              50298880,
+              50364416
+            ],
+            "median": 50298880,
+            "p95": 50364416,
+            "max": 50364416
+          },
+          "storage_bytes": {
+            "samples": [
+              70319,
+              70319,
+              70319
+            ],
+            "median": 70319,
+            "p95": 70319,
+            "max": 70319
+          },
+          "graph_wall_s": {
+            "samples": [
+              0.22080300000379793,
+              0.22516000000177883,
+              0.2256919999999809
+            ],
+            "median": 0.22516000000177883,
+            "p95": 0.2256919999999809,
+            "max": 0.2256919999999809
+          },
+          "mutation_wall_s": {
+            "samples": [
+              0.2932730000029551,
+              0.300533000001451,
+              0.3013109999956214
+            ],
+            "median": 0.300533000001451,
+            "p95": 0.3013109999956214,
+            "max": 0.3013109999956214
+          },
+          "observe_wall_s": {
+            "samples": [
+              0.16777599999477388,
+              0.17302100000233622,
+              0.1739769999985583
+            ],
+            "median": 0.17302100000233622,
+            "p95": 0.1739769999985583,
+            "max": 0.1739769999985583
+          }
+        },
+        "raw": [
+          {
+            "graph_wall_s": 0.22516000000177883,
+            "mutation_wall_s": 0.300533000001451,
+            "observe_wall_s": 0.1739769999985583,
+            "wall_s": 0.7080490000007558,
+            "cpu_s": 0.789169,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 50364416
+          },
+          {
+            "graph_wall_s": 0.22080300000379793,
+            "mutation_wall_s": 0.2932730000029551,
+            "observe_wall_s": 0.16777599999477388,
+            "wall_s": 0.6899239999984275,
+            "cpu_s": 0.7708689999999999,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 49938432
+          },
+          {
+            "graph_wall_s": 0.2256919999999809,
+            "mutation_wall_s": 0.3013109999956214,
+            "observe_wall_s": 0.17302100000233622,
+            "wall_s": 0.7084770000001299,
+            "cpu_s": 0.788908,
+            "storage_bytes": 70319,
+            "peak_rss_bytes": 50298880
+          }
+        ],
+        "network": "not_in_scope",
+        "memory_probe_class": "process_lifetime",
+        "propose_basis": "max",
+        "headroom": 1.15,
+        "failures": [],
+        "pass": true
+      }
+    },
+    "finished_at": "2026-11-14T12:20:55Z",
+    "notes": [
+      "The strict episode repeats ten source-change experiments in an isolated checkout after complete calibration. No test suite ran concurrently. Other host activity is uncontrolled; no small comparative timing claim is made.",
+      "Observer candidates preserve the fixture trace fields but are experimental historical alternatives, not replacements for the production recorder. Final production gets its own gate.",
+      "Ceilings are read from the checked-in budget file and never changed by this script."
+    ],
+    "scope": "Intermediate configuration implementation before per-feature setting ownership and graph report output were finalized."
+  },
+  "previous_native_episode": "benchmarks/quality-episode.json",
+  "package": {
+    "before": [
+      {
+        "compressed_bytes": 190976,
+        "runtime_dependencies": 0
+      },
+      {
+        "compressed_bytes": 190976,
+        "runtime_dependencies": 0
+      },
+      {
+        "compressed_bytes": 190976,
+        "runtime_dependencies": 0
+      }
+    ],
+    "after": [
+      {
+        "compressed_bytes": 198144,
+        "runtime_dependencies": 0
+      },
+      {
+        "compressed_bytes": 198144,
+        "runtime_dependencies": 0
+      },
+      {
+        "compressed_bytes": 198144,
+        "runtime_dependencies": 0
+      }
+    ],
+    "comparison": "Compressed gem bytes, three builds per source state; no runtime dependency graph changed."
+  },
+  "validation": {
+    "rspec": {
+      "duration": 64.547534,
+      "example_count": 917,
+      "failure_count": 0,
+      "pending_count": 7,
+      "errors_outside_of_examples_count": 0
+    },
+    "focused_examples": 123,
+    "focused_failures": 0,
+    "scoped_rubocop_files": 60,
+    "scoped_rubocop_offenses": 0,
+    "global_rubocop_preexisting_offenses": 9,
+    "rbs_validate_exitstatus": 0,
+    "diff_check_exitstatus": 0,
+    "native_smoke": [
+      {
+        "scenario": "polyrun_graph_edit",
+        "pass": true
+      },
+      {
+        "scenario": "polyrun_mutation_testing",
+        "totals": {
+          "ok": true,
+          "mutations": 4,
+          "killed": 4,
+          "survived": 0
+        }
+      }
+    ]
+  }
+}

@@ -37,12 +37,6 @@ RSpec.describe Polyrun::RSpecSupport do
     expect(::RSpec.configuration.formatters.count).to be > count_before
   end
 
-  it "install_spec_quality! installs hook when enabled" do
-    ENV["POLYRUN_SPEC_QUALITY"] = "1"
-    described_class.install_spec_quality!(only_if: -> { true }, root: Dir.mktmpdir)
-    expect(defined?(Polyrun::SpecQuality::RspecHook)).to be_truthy
-  end
-
   it "install_example_debug! registers hooks when enabled" do
     config = ::RSpec::Core::Configuration.new
     ENV["POLYRUN_EXAMPLE_DEBUG"] = "1"

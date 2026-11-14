@@ -5,8 +5,8 @@ module Polyrun
     attr_reader path: String?
     attr_reader raw: untyped
 
-    def self.load: (?path: String?) -> Config
-    def self.resolve_path: (String? explicit) -> String?
+    def self.load: (?path: String?, ?suite: String?, ?root: String) -> Config
+    def self.resolve_path: (String? explicit, ?root: String) -> String?
 
     def initialize: (path: String?, raw: untyped) -> void
 

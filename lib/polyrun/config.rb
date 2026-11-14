@@ -11,9 +11,9 @@ module Polyrun
 
     attr_reader :path, :raw, :suite
 
-    def self.load(path: nil, suite: nil)
+    def self.load(path: nil, suite: nil, root: Dir.pwd)
       explicit = path && !path.to_s.strip.empty?
-      resolved = resolve_path(path)
+      resolved = resolve_path(path, root: root)
       if explicit && !(resolved && File.file?(resolved))
         raise Polyrun::Error, "polyrun config not found: #{path}"
       end
@@ -32,11 +32,11 @@ module Polyrun
       new(path: resolved, raw: merged, suite: applied)
     end
 
-    def self.resolve_path(explicit)
+    def self.resolve_path(explicit, root: Dir.pwd)
       return File.expand_path(explicit) if explicit && !explicit.empty?
 
       DEFAULT_FILENAMES.each do |name|
-        full = File.expand_path(name, Dir.pwd)
+        full = File.expand_path(name, root)
         return full if File.file?(full)
       end
       nil
@@ -93,3 +93,5 @@ require_relative "config/suite"
 require_relative "config/resolver"
 require_relative "config/effective"
 require_relative "config/schema"
+
+require_relative "config/tools"

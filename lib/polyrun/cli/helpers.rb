@@ -52,8 +52,9 @@ module Polyrun
       end
 
       # Per-worker wall clock (from spawn) for run-shards / ci-shard fan-out; unset or invalid means no limit.
-      def env_worker_timeout_sec
-        s = ENV["POLYRUN_WORKER_TIMEOUT_SEC"].to_s.strip
+      def env_worker_timeout_sec(cfg = nil)
+        shared = cfg ? Polyrun::Config::Tools.stringify(cfg.raw) : {}
+        s = (ENV["POLYRUN_WORKER_TIMEOUT_SEC"] || ENV["POLYRUN_TIMEOUT"] || shared["timeout"]).to_s.strip
         return nil if s.empty?
 
         f = Float(s, exception: false)

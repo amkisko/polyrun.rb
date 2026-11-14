@@ -50,6 +50,7 @@ Dir.chdir(root_dir) do
   gem_file = "#{gem_name}-#{version}.gem"
 
   ReleaseVersionCheck.require_changelog_version!(version: version)
+  changelog_notes = ReleaseVersionCheck.require_changelog_notes!(version: version)
   ReleaseVersionCheck.warn_if_already_released(version: version, package_name: gem_name, registry: :rubygems)
 
   execute_command("gem build #{gem_name}.gemspec")
@@ -62,9 +63,13 @@ Dir.chdir(root_dir) do
     exit 1
   end
 
+  FileUtils.mkdir_p("tmp")
+  notes_path = "tmp/github-release-notes.md"
+  File.write(notes_path, changelog_notes)
+
   execute_command("gem push #{gem_file}")
   execute_command("git tag #{version}")
   execute_command("git push origin HEAD \"refs/tags/#{version}\"")
-  execute_command("gh release create #{version} --generate-notes")
+  execute_command("gh release create #{version} --title #{version} --notes-file #{notes_path}")
 end
 # rubocop:enable ThreadSafety/DirChdir

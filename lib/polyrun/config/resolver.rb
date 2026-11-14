@@ -76,6 +76,8 @@ module Polyrun
 
       # +POLYRUN_WORKERS+ then top-level YAML +workers:+ then {Config::DEFAULT_PARALLEL_WORKERS}.
       def parallel_worker_count(cfg = nil, env = ENV)
+        validate_shared_tools!(cfg) if cfg
+
         s = env["POLYRUN_WORKERS"]
         unless s.nil? || s.empty?
           i = Integer(s, exception: false)
@@ -87,6 +89,13 @@ module Polyrun
 
         Polyrun::Config::DEFAULT_PARALLEL_WORKERS
       end
+
+      def validate_shared_tools!(cfg)
+        raw = cfg.respond_to?(:raw) ? cfg.raw : cfg
+        errors = Tools.validate(raw)
+        raise Polyrun::Error, errors.join("; ") unless errors.empty?
+      end
+      private_class_method :validate_shared_tools!
 
       def yaml_top_level_workers(cfg)
         return nil unless cfg

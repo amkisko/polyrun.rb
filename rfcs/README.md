@@ -47,5 +47,7 @@ Informational: RFC 0002 (positioning).
 
 Standards Track, Stable: RFC 0003 (shard layouts), RFC 0004 (coverage merge), RFC 0005 (hooks), RFC 0006 (partition and databases), RFC 0007 (RSpecSupport / MinitestSupport rename, hard cut), RFC 0008 (Sus suite and Covered coverage bridge), RFC 0009 (Quick lifecycle and DSL).
 
+Standards Track, Experimental: RFC 0010 (graph and quality orchestration).
+
 A public API, CLI, file, or protocol change needs a new Standards Track RFC.
 

@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 3.4"
 
   spec.files = (
-    Dir["lib/**/*", "sig/**/*.rbs", "bin/polyrun", "README.md", "CHANGELOG.md", "docs/SETUP_PROFILE.md", "LICENSE", "CONTRIBUTING.md", "CODE_OF_CONDUCT.md", "SECURITY.md", "polyrun.gemspec"] +
+    Dir["lib/**/*", "sig/**/*.rbs", "bin/polyrun", "README.md", "CHANGELOG.md", "docs/SETUP_PROFILE.md", "docs/QUALITY.md", "docs/QUALITY_CONFIGURATION.md", "LICENSE", "CONTRIBUTING.md", "CODE_OF_CONDUCT.md", "SECURITY.md", "polyrun.gemspec"] +
     Dir["ext/**/extconf.rb", "ext/**/*.c", "ext/**/*.h"]
   ).uniq.reject { |f| File.directory?(f) }
   spec.bindir = "bin"

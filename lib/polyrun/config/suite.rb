@@ -1,3 +1,5 @@
+require_relative "tools"
+
 module Polyrun
   class Config
     # Applies a named +suites:+ overlay onto a loaded polyrun.yml hash.
@@ -8,7 +10,7 @@ module Polyrun
         shard_workers workers_per_shard
       ].freeze
 
-      TOP_MERGE_KEYS = %w[workers prepare start hooks reporting coverage databases].freeze
+      TOP_MERGE_KEYS = (%w[prepare start hooks reporting coverage databases graph mutation quality] + ToolDefaults::SHARED.keys).freeze
 
       module_function
 
@@ -33,6 +35,9 @@ module Polyrun
       end
 
       def apply_overlay!(base, overlay)
+        errors = Tools.validate(overlay)
+        raise Polyrun::Error, errors.join("; ") unless errors.empty?
+
         merge_partition_block!(base, overlay)
         merge_partition_shortcuts!(base, overlay)
         merge_top_keys!(base, overlay)

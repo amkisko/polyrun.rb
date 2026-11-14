@@ -1,0 +1,165 @@
+{
+  "load": 50,
+  "n": 3,
+  "series": {
+    "wall_s": {
+      "samples": [
+        0.6699289999960456,
+        0.6740199999985634,
+        0.6791620000003604
+      ],
+      "median": 0.6740199999985634,
+      "p95": 0.6791620000003604,
+      "max": 0.6791620000003604
+    },
+    "cpu_s": {
+      "samples": [
+        0.7536790000000001,
+        0.756315,
+        0.757419
+      ],
+      "median": 0.756315,
+      "p95": 0.757419,
+      "max": 0.757419
+    },
+    "peak_rss_bytes": {
+      "samples": [
+        49987584,
+        50053120,
+        51773440
+      ],
+      "median": 50053120,
+      "p95": 51773440,
+      "max": 51773440
+    },
+    "storage_bytes": {
+      "samples": [
+        70319,
+        70319,
+        70319
+      ],
+      "median": 70319,
+      "p95": 70319,
+      "max": 70319
+    },
+    "graph_wall_s": {
+      "samples": [
+        0.20995299999776762,
+        0.21051399999851128,
+        0.21512300000176765
+      ],
+      "median": 0.21051399999851128,
+      "p95": 0.21512300000176765,
+      "max": 0.21512300000176765
+    },
+    "mutation_wall_s": {
+      "samples": [
+        0.2899420000030659,
+        0.2925630000027013,
+        0.292966000000888
+      ],
+      "median": 0.2925630000027013,
+      "p95": 0.292966000000888,
+      "max": 0.292966000000888
+    },
+    "observe_wall_s": {
+      "samples": [
+        0.1625209999983781,
+        0.1633090000032098,
+        0.1636949999956414
+      ],
+      "median": 0.1633090000032098,
+      "p95": 0.1636949999956414,
+      "max": 0.1636949999956414
+    }
+  },
+  "raw": [
+    {
+      "graph_wall_s": 0.21512300000176765,
+      "mutation_wall_s": 0.292966000000888,
+      "observe_wall_s": 0.1633090000032098,
+      "wall_s": 0.6791620000003604,
+      "cpu_s": 0.757419,
+      "storage_bytes": 70319,
+      "peak_rss_bytes": 49987584
+    },
+    {
+      "graph_wall_s": 0.20995299999776762,
+      "mutation_wall_s": 0.2925630000027013,
+      "observe_wall_s": 0.1636949999956414,
+      "wall_s": 0.6740199999985634,
+      "cpu_s": 0.756315,
+      "storage_bytes": 70319,
+      "peak_rss_bytes": 50053120
+    },
+    {
+      "graph_wall_s": 0.21051399999851128,
+      "mutation_wall_s": 0.2899420000030659,
+      "observe_wall_s": 0.1625209999983781,
+      "wall_s": 0.6699289999960456,
+      "cpu_s": 0.7536790000000001,
+      "storage_bytes": 70319,
+      "peak_rss_bytes": 51773440
+    }
+  ],
+  "network": "not_in_scope",
+  "memory_probe_class": "process_lifetime",
+  "propose_basis": "max",
+  "headroom": 1.15,
+  "failures": [],
+  "pass": true,
+  "purpose": "root-default configuration regression gate, not a new optimization episode",
+  "calibration": {
+    "pass": true,
+    "known_medians": {
+      "wall_s": 102,
+      "cpu_s": 202,
+      "peak_rss_bytes": 302,
+      "storage_bytes": 402,
+      "graph_wall_s": 502,
+      "mutation_wall_s": 602,
+      "observe_wall_s": 702
+    },
+    "known_p95": {
+      "wall_s": 103,
+      "cpu_s": 203,
+      "peak_rss_bytes": 303,
+      "storage_bytes": 403,
+      "graph_wall_s": 503,
+      "mutation_wall_s": 603,
+      "observe_wall_s": 703
+    },
+    "direct_harness_peak_rss_bytes": 15482880,
+    "direct_command_wall_s": 0.06219499999861,
+    "direct_aggregate_wall_s": 0.062273999996250495
+  },
+  "production_source_sha256": "71b69ee889893f97b4c80ced39d82cb84fa17fe09386e723e7c76ee8252b8a89",
+  "repository_revision": "6d96c53751ca7afd54c94ad97dacee0d9fbd771d",
+  "ceilings": {
+    "wall_s": 1.1528266999946934,
+    "cpu_s": 1.1605961,
+    "peak_rss_bytes": 62365695.99999999,
+    "storage_bytes": 80866.84999999999,
+    "graph_wall_s": 0.4026655999958166,
+    "mutation_wall_s": 0.5114797500002168,
+    "observe_wall_s": 0.2594009000011283
+  },
+  "validation": {
+    "ruby34": {
+      "duration": 62.893224,
+      "example_count": 922,
+      "failure_count": 0,
+      "pending_count": 7,
+      "errors_outside_of_examples_count": 0
+    },
+    "ruby40": {
+      "duration": 70.805288,
+      "example_count": 922,
+      "failure_count": 0,
+      "pending_count": 7,
+      "errors_outside_of_examples_count": 0
+    }
+  },
+  "ruby_version": "4.0.2",
+  "machine_class": "arm64-darwin24"
+}

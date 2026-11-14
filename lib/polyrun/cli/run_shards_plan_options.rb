@@ -32,7 +32,7 @@ module Polyrun
           merge_spec_quality: false,
           merge_spec_quality_output: nil,
           report_spec_quality: true,
-          worker_timeout_sec: nil,
+          worker_timeout_sec: env_worker_timeout_sec(cfg),
           worker_idle_timeout_sec: nil
         }
       end

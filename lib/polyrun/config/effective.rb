@@ -1,5 +1,6 @@
 require_relative "dotted_path"
 require_relative "resolver"
+require_relative "tools"
 
 module Polyrun
   class Config
@@ -50,9 +51,17 @@ module Polyrun
           base["partition"] = part
 
           base["workers"] = r.parallel_worker_count(cfg, env)
+          apply_tools!(base, cfg, env)
           base["suite"] = cfg.suite if cfg.respond_to?(:suite) && cfg.suite
 
           base
+        rescue ArgumentError => error
+          raise Polyrun::Error, error.message
+        end
+
+        def apply_tools!(base, cfg, env)
+          %w[graph mutation].each { |feature| base[feature] = Tools.resolve(cfg, feature, env: env) }
+          base["quality"] = (base["quality"] || {}).merge(%w[observe measure].to_h { |feature| [feature, Tools.resolve(cfg, feature, env: env)] })
         end
 
         def deep_stringify_keys(obj)

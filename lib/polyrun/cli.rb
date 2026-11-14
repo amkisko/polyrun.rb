@@ -25,6 +25,10 @@ require_relative "cli/doctor_command"
 require_relative "cli/default_run"
 require_relative "cli/hooks_command"
 require_relative "cli/help"
+require_relative "cli/tool_options"
+require_relative "cli/graph_command"
+require_relative "cli/mutation_command"
+require_relative "cli/quality_commands"
 
 module Polyrun
   class CLI
@@ -36,7 +40,7 @@ module Polyrun
 
     # Keep in sync with +dispatch_cli_command_subcommands+ (+when+ branches). Used for implicit path routing.
     DISPATCH_SUBCOMMAND_NAMES = %w[
-      plan prepare merge-coverage merge-failures merge-spec-quality report-coverage report-junit report-timing report-spec-quality report-benchmark bench
+      graph mutate measure observe plan prepare merge-coverage merge-failures merge-spec-quality report-coverage report-junit report-timing report-spec-quality report-benchmark bench
       env config merge-timing db:setup-template db:setup-shard db:clone-shards
       run-shards parallel-rspec parallel-minitest parallel-sus parallel-quick start build-paths init queue run-queue quick hook validate doctor
     ].freeze
@@ -70,6 +74,10 @@ module Polyrun
     include DefaultRun
     include HooksCommand
     include Help
+    include ToolOptions
+    include GraphCommand
+    include MutationCommand
+    include QualityCommands
 
     def self.run(argv = ARGV)
       new.run(argv)
@@ -176,6 +184,14 @@ module Polyrun
     # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity -- explicit dispatch table
     def dispatch_cli_command_subcommands(command, argv, config_path)
       case command
+      when "graph"
+        cmd_graph(argv)
+      when "mutate"
+        cmd_mutate(argv)
+      when "measure"
+        cmd_measure(argv)
+      when "observe"
+        cmd_observe(argv)
       when "plan"
         cmd_plan(argv, config_path)
       when "prepare"

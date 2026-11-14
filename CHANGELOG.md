@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 3.1.0 (2026-11-14)
+
+- Add experimental opt-in `graph index`, `inspect`, `plan`, `check`, and `apply` commands for guarded Ruby source edits, with staged test commands and recovery after interrupted writes.
+- Add Polyrun's experimental mutation engine with selectable operators, a clean baseline, isolated test runs, bounded workers, deterministic shards, and explicit surviving or incomplete results.
+- Add opt-in `observe` for bounded Ruby call reports and `measure` for command resource reports and ceilings.
+- Add shared root-level defaults and validated feature and suite settings for activation, commands, source filters, resource budgets, reports, and per-example quality. Inspect effective settings with `polyrun config`.
+- Resolve configured per-example quality activation from the integration's project root.
+
 ## 3.0.1 (2026-11-12)
 
 - Stop writing `simplecov_version` from `Polyrun::VERSION` into coverage JSON meta. Keep the key only when a fragment already carried a real SimpleCov value; use `polyrun_version` for Polyrun.

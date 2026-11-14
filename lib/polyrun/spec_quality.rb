@@ -37,8 +37,8 @@ module Polyrun
         instance_variable_defined?(:@config) && @config
       end
 
-      def enabled?
-        Config.enabled? && !Config.disabled?
+      def enabled?(root: Dir.pwd)
+        Config.enabled?(ENV, root: root) && !Config.disabled?
       end
 
       attr_reader :config
@@ -130,8 +130,7 @@ module Polyrun
 
       def spec_quality_requested_for_quick?(root = Dir.pwd)
         return false if Config.disabled?
-        return true if %w[1 true yes].include?(ENV["POLYRUN_SPEC_QUALITY"]&.to_s&.downcase)
-        return true if %w[1 true yes].include?(ENV["POLYRUN_SPEC_QUALITY_FRAGMENTS"]&.to_s&.downcase)
+        return true if Config.enabled?(ENV, root: root)
 
         path = File.join(File.expand_path(root), Config::DEFAULT_CONFIG_RELATIVE)
         return false unless File.file?(path)
