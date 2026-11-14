@@ -168,9 +168,9 @@ Tests include subprocess CLI coverage (`spec/polyrun/cli_spec.rb`: merge-coverag
 Merge performance defaults align with `spec/polyrun/coverage/merge_scale_spec.rb` (~110 files × 310 lines per fragment):
 
 ```bash
-ruby benchmark/merge_coverage.rb
+ruby benchmarks/merge_coverage.rb
 bundle exec rake bench_merge
-# MERGE_FRAGMENTS=16 MERGE_REPS=2 ruby benchmark/merge_coverage.rb
+# MERGE_FRAGMENTS=16 MERGE_REPS=2 ruby benchmarks/merge_coverage.rb
 ```
 
 The script benchmarks `merge_two`, balanced `merge_blob_tree` (same reduction as `merge-coverage` / `merge_files`), a naive left-fold, JSON on disk via `merge_files`, and `merge_fragments` with `meta` and `polyrun_coverage_groups` (group recomputation).

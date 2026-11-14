@@ -2,7 +2,7 @@
 # Large-suite merge benchmark (SimpleCov-compatible blobs).
 #
 # Usage (from repo root):
-#   ruby benchmark/merge_coverage.rb
+#   ruby benchmarks/merge_coverage.rb
 #   bundle exec rake bench_merge
 #
 # Environment (defaults match spec/polyrun/coverage/merge_scale_spec.rb scale: ~100+ files × 300+ LOC):

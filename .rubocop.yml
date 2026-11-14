@@ -20,7 +20,6 @@ AllCops:
   NewCops: enable
   Exclude:
     - bin/**/*
-    - benchmark/**/*
     - benchmarks/**/*
     - examples/**/*
     - tmp/**/*

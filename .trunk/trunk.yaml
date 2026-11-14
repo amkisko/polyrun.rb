@@ -42,7 +42,7 @@ lint:
     - linters: [ALL]
       paths:
         - bin/**
-        - benchmark/**
+        - benchmarks/**
         - examples/**
         - vendor/**
         - tmp/**

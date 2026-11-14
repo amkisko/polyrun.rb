@@ -38,10 +38,10 @@ namespace :coverage do
   end
 end
 
-desc "Run coverage merge benchmark (see benchmark/merge_coverage.rb for MERGE_FILES, MERGE_LINES, MERGE_REPS, …)"
+desc "Run coverage merge benchmark (see benchmarks/merge_coverage.rb for MERGE_FILES, MERGE_LINES, MERGE_REPS, …)"
 task :bench_merge do
   ruby = Gem.ruby
-  script = File.expand_path("benchmark/merge_coverage.rb", __dir__)
+  script = File.expand_path("benchmarks/merge_coverage.rb", __dir__)
   exec(ruby, script)
 end
 

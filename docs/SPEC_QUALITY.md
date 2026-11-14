@@ -73,7 +73,7 @@ end
 
 ## Sampling
 
-`POLYRUN_SPEC_QUALITY_SAMPLE=0.1` instruments roughly 10% of examples (reduces `peek_result` overhead). See `benchmark/spec_quality_peek.rb` for a local cost estimate.
+`POLYRUN_SPEC_QUALITY_SAMPLE=0.1` instruments roughly 10% of examples (reduces `peek_result` overhead). See `benchmarks/spec_quality_peek.rb` for a local cost estimate.
 
 ## CI gates
 
