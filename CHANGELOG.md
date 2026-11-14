@@ -1,14 +1,11 @@
 # CHANGELOG
 
-## Unreleased
+## 3.1.0 (2026-11-14)
 
 - Run graph indexing, curated mutation, observe, and measure against this repository (`make quality-self`, quality CI).
 - Stage the project-root `coverage` report tree by path so nested library directories named `coverage` still copy into mutation and graph sandboxes.
 - Expand absolute `--root` only when the flag is present so a relative project path is not resolved against itself.
 - Tighten mutation and staging contracts used by the self gate; drop a redundant `master.key` basename check covered by `.key` suffix exclusion.
-
-## 3.1.0 (2026-11-14)
-
 - Add experimental opt-in `graph index`, `inspect`, `plan`, `check`, and `apply` commands for guarded Ruby source edits, with staged test commands and recovery after interrupted writes.
 - Add Polyrun's experimental mutation engine with selectable operators, a clean baseline, isolated test runs, bounded workers, deterministic shards, and explicit undetected or incomplete results.
 - Add opt-in `observe` for bounded Ruby call reports and `measure` for command resource reports and ceilings.
