@@ -18,8 +18,8 @@ max_source_bytes: 67108864
 staging:
   max_files: 10000
   max_bytes: 67108864
-  exclude: [vendor, node_modules, tmp, log, coverage, pkg, benchmarks]
-  exclude_paths: []
+  exclude: [vendor, node_modules, tmp, log, pkg, benchmarks]
+  exclude_paths: [coverage]
   include_hidden: [.rspec, .ruby-version]
 graph:
   enabled: true
@@ -86,7 +86,7 @@ Graph writes `output` in the selected CLI format. Graph also accepts `json`, `ca
 
 Mutation also accepts `subjects_file`, `observed`, `plan`, `shard`, `total`, and `output`. Mutation limits and worker ceilings are positive configurable values; increasing them is an explicit resource-budget decision. Shard numbering remains one-based. Operators select the built-in rule families; Ruby callers may provide additional operator objects through the runner API.
 
-Unknown keys, malformed types, escaping source/state paths, and nonpositive resource bounds fail validation before execution. Output truncation, process cleanup, source freshness, symlink rejection, receipt integrity, and key-file exclusions remain invariants. Limits do not turn copied test execution into an OS sandbox.
+Unknown keys, malformed types, escaping source/state paths, and nonpositive resource bounds fail validation before execution. Output truncation, process cleanup, unchanged-source checks, symlink rejection, receipt integrity, and key-file exclusions remain invariants. Limits do not turn copied test execution into an OS sandbox.
 
 ## Existing per-example quality collection
 

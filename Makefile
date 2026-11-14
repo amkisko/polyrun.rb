@@ -1,4 +1,4 @@
-.PHONY: trunk-fmt trunk-check lint native-extension release test test-coverage bench-load clean
+.PHONY: trunk-fmt trunk-check lint native-extension release test test-coverage bench-load graph mutate observe measure quality-self clean
 
 trunk-fmt:
 	trunk fmt
@@ -21,6 +21,24 @@ test: lint
 	rm -rf coverage
 	POLYRUN_WORKER_OUTPUT_ROUTING=1 POLYRUN_WORKER_OUTPUT_PREFIX=0 \
 		bundle exec polyrun parallel-rspec --workers 5 --merge-failures
+
+graph:
+	mkdir -p tmp
+	bundle exec polyrun graph index
+
+mutate:
+	mkdir -p tmp
+	bundle exec polyrun --suite self mutate
+
+observe:
+	mkdir -p tmp
+	bundle exec polyrun --suite self observe
+
+measure:
+	mkdir -p tmp
+	bundle exec polyrun --suite self measure
+
+quality-self: graph mutate observe measure
 
 bench-load:
 	bundle exec ruby benchmarks/load.rb

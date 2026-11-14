@@ -2,6 +2,7 @@ require "spec_helper"
 require "polyrun/graph/index"
 require "polyrun/quality/sandbox"
 require "polyrun/mutation/runner"
+require "polyrun/config/tool_validation"
 require "fileutils"
 
 RSpec.describe "configurable tool boundaries" do
@@ -19,6 +20,17 @@ RSpec.describe "configurable tool boundaries" do
     settings = Polyrun::Config::Tools.resolve(cfg, "mutation", root: @root,
       env: {"POLYRUN_WORKERS" => "4", "POLYRUN_TIMEOUT" => "9"}, overrides: {workers: 5})
     expect(settings).to include("enabled" => false, "workers" => 5, "timeout" => 9, "root" => @root)
+  end
+
+  it "rejects a non-mapping tool settings value with an explicit mapping diagnostic" do
+    expect(Polyrun::Config::ToolValidation.check("nope", Polyrun::Config::ToolDefaults.for("mutation"), "mutation"))
+      .to eq(["mutation must be a mapping"])
+  end
+
+  it "joins multiple validation diagnostics with a stable separator" do
+    cfg = Polyrun::Config.new(path: nil, raw: {"mutation" => {"enabled" => "false", "max_nods" => 1}})
+    expect { Polyrun::Config::Tools.resolve(cfg, "mutation", env: {}, root: @root) }
+      .to raise_error(ArgumentError, /invalid setting mutation.enabled; unknown setting mutation.max_nods/)
   end
 
   it "keeps the existing quoted top-level worker shortcut usable by the new tools" do
@@ -55,12 +67,33 @@ RSpec.describe "configurable tool boundaries" do
   it "configures staging budgets and hidden inputs while retaining key exclusions" do
     expect { Polyrun::Quality::Sandbox.new(@root, settings: {"max_bytes" => 1}) }.to raise_error(ArgumentError, /limit/)
     File.write(File.join(@root, ".inputs"), "input")
+    File.write(File.join(@root, ".secret"), "hidden")
     File.write(File.join(@root, "private.key"), "fixture only")
+    File.write(File.join(@root, "master.key"), "fixture only")
     Dir.mktmpdir do |destination|
       project = Polyrun::Quality::Sandbox.new(@root, settings: {"include_hidden" => [".inputs"]})
       project.copy_to(destination)
       expect(File).to exist(File.join(destination, ".inputs"))
+      expect(File).not_to exist(File.join(destination, ".secret"))
       expect(File).not_to exist(File.join(destination, "private.key"))
+      expect(File).not_to exist(File.join(destination, "master.key"))
+    end
+    Dir.mktmpdir do |destination|
+      Polyrun::Quality::Sandbox.new(@root).copy_to(destination)
+      expect(File).not_to exist(File.join(destination, ".inputs"))
+      expect(File).not_to exist(File.join(destination, ".secret"))
+    end
+  end
+
+  it "stages nested library coverage sources while excluding the project coverage report tree" do
+    FileUtils.mkdir_p(File.join(@root, "lib/account/coverage"))
+    FileUtils.mkdir_p(File.join(@root, "coverage"))
+    File.write(File.join(@root, "lib/account/coverage/merge.rb"), "module Merge; end")
+    File.write(File.join(@root, "coverage/index.html"), "report")
+    Dir.mktmpdir do |destination|
+      Polyrun::Quality::Sandbox.new(@root).copy_to(destination)
+      expect(File).to exist(File.join(destination, "lib/account/coverage/merge.rb"))
+      expect(File).not_to exist(File.join(destination, "coverage/index.html"))
     end
   end
 

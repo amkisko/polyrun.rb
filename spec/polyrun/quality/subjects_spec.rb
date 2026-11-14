@@ -15,6 +15,16 @@ RSpec.describe Polyrun::Mutation::Subjects do
       expect { described_class.from_observation(path) }.to raise_error(ArgumentError, /truncated/)
       File.write(path, JSON.generate(trace.merge("calls" => [nil])))
       expect { described_class.from_observation(path) }.to raise_error(ArgumentError, /subject/)
+      File.write(path, JSON.generate("provenance" => "guessed", "truncated" => false, "calls" => []))
+      expect { described_class.from_observation(path) }.to raise_error(ArgumentError, /invalid observation/)
+      File.write(path, "x" * 64)
+      expect { described_class.from_observation(path, max_bytes: 32) }.to raise_error(ArgumentError, /too large/)
+      expect { described_class.from_observation(path, max_bytes: 64) }.to raise_error(JSON::ParserError)
+      allow(File).to receive(:size).with(path).and_return(16_777_217)
+      expect { described_class.from_observation(path) }.to raise_error(ArgumentError, /too large/)
+      allow(File).to receive(:size).with(path).and_return(16_777_216)
+      File.write(path, JSON.generate(trace))
+      expect(described_class.from_observation(path)).to eq(["Account#save"])
     end
   end
 

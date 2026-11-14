@@ -2,8 +2,8 @@ module Polyrun
   class Config
     module ToolDefaults
       STAGING = {"max_bytes" => 67_108_864, "max_files" => 10_000,
-                 "exclude" => %w[vendor node_modules tmp log coverage pkg benchmarks],
-                 "exclude_paths" => [], "include_hidden" => %w[.rspec .ruby-version]}.freeze
+                 "exclude" => %w[vendor node_modules tmp log pkg benchmarks],
+                 "exclude_paths" => %w[coverage], "include_hidden" => %w[.rspec .ruby-version]}.freeze
       COMMON = {"enabled" => false, "root" => nil, "workers" => 1, "timeout" => 300,
                 "command" => [], "output" => nil, "max_output_bytes" => 1_048_576,
                 "max_input_bytes" => 1_048_576, "max_artifact_bytes" => 67_108_864,

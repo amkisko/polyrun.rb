@@ -1,0 +1,8 @@
+Polyrun::Mutation::Candidates#match?
+Polyrun::Mutation::Runner#select_subjects
+Polyrun::Mutation::Runner#valid_subject?
+Polyrun::Mutation::Subjects#from_observation
+Polyrun::Quality::Sandbox#excluded?
+Polyrun::Graph::Workspace#excluded?
+Polyrun::Config::Tools#resolve
+Polyrun::Config::ToolValidation#check

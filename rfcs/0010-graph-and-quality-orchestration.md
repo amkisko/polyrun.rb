@@ -23,9 +23,9 @@ Prism parses source without evaluating project code. A bounded JSON index under 
 
 Plans stage the project, verify syntax, and retain the expected source and staged hashes. Successful checks bind all staged bytes to a local receipt. Optional behavioral proof runs against the staged Gemfile and library directory. Apply verifies the receipt and original inventory, then writes through a backup journal and per-file replacement. Recovery refuses to overwrite outside changes. Neither a local receipt nor the journal is a security signature or whole-tree atomic commit.
 
-The mutation engine selects method definitions, generates deduplicated syntax-valid edits with extensible operator objects, and runs a clean baseline. Every mutation gets a fresh copy and a bounded test subprocess. Exit 0 survives, exit 1 kills, and infrastructure failures remain incomplete. Deterministic subject sharding and bounded local workers compose with CI. Default and absolute resource limits are documented with the commands.
+The mutation engine selects method definitions, generates deduplicated syntax-valid edits with extensible operator objects, and runs a clean baseline. Every mutation gets a new project copy and a bounded test subprocess. Exit 0 is undetected (`SURVIVED`), exit 1 is detected (`KILLED`), and infrastructure failures remain incomplete. Deterministic subject sharding and bounded local workers compose with CI. Default and absolute resource limits are documented with the commands.
 
-The command runner controls process groups, time, and output. Observation records only bounded local call evidence. Measurement distinguishes command wall time, CPU counters, and orchestrator memory. The pressure harness separately probes process-lifetime RSS; it does not claim stage RSS or energy savings.
+The command runner controls process groups, time, and output. Observation records only bounded local call evidence. Measurement distinguishes command wall time, CPU counters, and orchestrator memory. The pressure harness separately probes full-process RSS; it does not claim stage RSS or energy savings.
 
 ## Configuration and activation
 
@@ -37,11 +37,11 @@ Root shared defaults and the graph, mutation, and quality sections have validate
 
 ## Security considerations
 
-Indexing does not execute the project. Tests, mutation probes, and prove commands execute trusted project code with the caller's authority. Project copies are not OS sandboxes. Path validation, symlink rejection, freshness checks, and a workspace lock protect the cooperative local workflow. Output may contain project diagnostics and paths. No remote telemetry or persistent device identifiers are introduced.
+Indexing does not execute the project. Tests, mutation probes, and prove commands execute trusted project code with the caller's authority. Project copies are not OS sandboxes. Path validation, symlink rejection, unchanged-source checks, and a workspace lock protect the cooperative local workflow. Output may contain project diagnostics and paths. No remote telemetry or persistent device identifiers are introduced.
 
 ## Drawbacks
 
-A fresh process and project copy for each mutation repeats test startup and consumes bounded temporary storage. The initial mutation operators and static graph inference cover a deliberately limited Ruby contract. Dynamic dispatch remains uncertain. Experimental status remains until consuming projects exercise the workflow.
+A new process and project copy for each mutation repeats test startup and consumes bounded temporary storage. The initial mutation operators and static graph inference cover a deliberately limited Ruby contract. Dynamic dispatch remains uncertain. Experimental status remains until consuming projects exercise the workflow.
 
 ## Decisions
 

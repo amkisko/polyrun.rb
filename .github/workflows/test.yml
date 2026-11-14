@@ -27,6 +27,9 @@ jobs:
       - name: Run lint
         run: make lint
 
+      - name: Graph, mutation, observe, and measure against self
+        run: make quality-self
+
   test:
     runs-on: ubuntu-latest
     strategy:

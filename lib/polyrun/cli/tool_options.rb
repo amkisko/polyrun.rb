@@ -13,6 +13,8 @@ module Polyrun
       end
 
       def configured_tool(feature, overrides)
+        overrides = overrides.dup
+        overrides[:root] = File.expand_path(overrides[:root]) if overrides.key?(:root)
         root = File.expand_path(overrides[:root] || Dir.pwd)
         cfg = Config.load(path: ENV["POLYRUN_CONFIG"], root: root)
         settings = Config::Tools.resolve(cfg, feature, overrides: overrides, root: root)

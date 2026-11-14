@@ -32,7 +32,7 @@ Temporary JSON and log destinations and the isolated toolchain paths are represe
 - bundle exec polyrun build-paths: exit 0; 165 spec paths.
 - ruby benchmarks/quality.rb self-test: calibration passed.
 - LOAD=50 SAMPLES=3 ruby benchmarks/quality.rb gate benchmarks/quality-ceilings.json: exit 0; three samples, no failed series, no ceiling changes. Raw values and source digest are retained in benchmarks/quality-root-defaults-gate.json.
-- ruby benchmarks/quality_smoke.rb: exit 0; the graph edit workflow passed, four mutations killed, zero survived.
+- ruby benchmarks/quality_smoke.rb: exit 0; the graph edit workflow passed, four mutations detected, zero undetected.
 - git diff --check: exit 0.
 
 Rebuild and verify the local 3.1.0 gem and regenerate its publication notes from the updated changelog. The candidate remains 198144 compressed bytes with zero runtime gem dependencies. No tag or publication is performed.

@@ -77,7 +77,7 @@ RSpec.describe "optional quality tool configuration" do
     configure("graph" => {"enabled" => "false", "max_nods" => 12})
     output, status = run_tool("validate")
     expect(status.exitstatus).to eq(1)
-    expect(output).to include("graph.enabled", "graph.max_nods")
+    expect(output).to include("invalid setting graph.enabled", "unknown setting graph.max_nods")
   end
 
   it "applies suite overlays and exposes the effective tool settings" do

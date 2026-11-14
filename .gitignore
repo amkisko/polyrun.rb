@@ -1,7 +1,9 @@
 /.bundle/
 /vendor/bundle
 /coverage/
-/.polyrun/
+# Graph index, locks, plans, and receipts (default state_dir and common local overrides)
+.polyrun/
+/graph-state/
 /polyrun_timing_examples.json
 # run-shards worker ping timestamps: tmp/polyrun/worker-ping-*.txt
 /tmp/

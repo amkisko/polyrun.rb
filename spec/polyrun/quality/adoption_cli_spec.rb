@@ -13,6 +13,21 @@ RSpec.describe "quality CLI" do
     end
   end
 
+  it "indexes through a relative --root without resolving that path against itself" do
+    Dir.mktmpdir do |parent|
+      project = File.join(parent, "demo")
+      FileUtils.mkdir_p(File.join(project, "lib"))
+      File.write(File.join(project, "lib/account.rb"), "class Account; def save; true; end; end")
+      File.write(File.join(parent, "polyrun.yml"), "version: 1\n")
+      relative = Pathname.new(project).relative_path_from(Pathname.new(Dir.pwd)).to_s
+      output, status = polyrun("graph", "--enable", "index", "--root", relative, "--json",
+        env: {"PATH" => File.dirname(Gem.ruby), "POLYRUN_CONFIG" => File.join(parent, "polyrun.yml")})
+      expect(status.exitstatus).to eq(0), output
+      expect(JSON.parse(output)).to include("ok" => true)
+      expect(JSON.parse(output)["nodes"]).to be > 0
+    end
+  end
+
   it "rejects an unsupported graph command with a JSON diagnostic" do
     output, status = polyrun("graph", "--enable", "unsupported", "--json")
     expect(status.exitstatus).to eq(2)

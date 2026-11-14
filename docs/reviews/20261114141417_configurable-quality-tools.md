@@ -38,7 +38,7 @@ benchmarks/quality-configuration-episode.json owns the raw samples, source diges
 
 The final configuration replay calibrated its meters before baseline, raised the fixture load from five to fifty, tightened the observation primary from the measured initial stress envelope to the existing production ceiling, and completed ten source-change trials with three samples per load. Trials 1 through 3 failed the observation limit. Trials 4 through 10 passed. The complete production implementation then passed every series against the same unchanged limits. Failed samples remain in the artifact; no ceiling was raised.
 
-No test suite ran concurrently with the pressure replay. Other host activity and OS file caches remain uncontrolled; no small causal speedup or general capacity claim is made. RSS is process-lifetime, CPU is an energy proxy, and network is not_in_scope. Three final gem builds preserve the same compressed size and zero runtime dependencies; the artifact compares their bytes with the prior native package. Installed storage, stage RSS, and physical energy were not measured.
+No test suite ran concurrently with the pressure replay. Other host activity and OS file caches remain uncontrolled; no small causal speedup or general capacity claim is made. RSS is full-process, CPU is an energy proxy, and network is not_in_scope. Three final gem builds preserve the same compressed size and zero runtime dependencies; the artifact compares their bytes with the prior native package. Installed storage, stage RSS, and physical energy were not measured.
 
 ### Validation
 
@@ -51,7 +51,7 @@ Temporary report and log destinations are represented by TEMP_JSON below. The ex
 - bundle exec rubocop --cache false --format simple: exit 1; 366 files, nine pre-existing indentation offenses in spec/release_spec.rb and usr/lib/release_version_check.rb. The unrelated release files remain untouched.
 - bundle exec rubocop --cache false lib/polyrun/config lib/polyrun/config.rb lib/polyrun/cli/tool_options.rb lib/polyrun/cli/graph_command.rb lib/polyrun/cli/mutation_command.rb lib/polyrun/cli/quality_commands.rb lib/polyrun/cli/helpers.rb lib/polyrun/cli/run_shards_plan_options.rb lib/polyrun/cli/ci_shard_run_command.rb lib/polyrun/cli/help.rb lib/polyrun/cli.rb lib/polyrun/graph lib/polyrun/mutation lib/polyrun/quality lib/polyrun/spec_quality/config.rb lib/polyrun/spec_quality.rb lib/polyrun/rspec_support.rb lib/polyrun/minitest_support.rb spec/polyrun/quality polyrun.gemspec: exit 0; 60 files, no offenses.
 - QUALITY_EPISODE_OUTPUT=TEMP_JSON ruby benchmarks/quality_trials.rb: exit 0; ten cycles and a separate successful production gate. The report path was an operator-selected disposable file before retaining its measurement payload.
-- ruby benchmarks/quality_smoke.rb: exit 0; graph index, inspect, plan, staged prove, and apply succeeded; four mutations killed, zero survived.
+- ruby benchmarks/quality_smoke.rb: exit 0; graph index, inspect, plan, staged prove, and apply succeeded; four mutations detected, zero undetected.
 - bundle exec rbs -I sig validate: exit 0.
 - git diff --check: exit 0.
 

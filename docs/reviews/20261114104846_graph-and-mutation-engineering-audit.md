@@ -26,11 +26,11 @@ Medium severity, high confidence: a successful prove command could alter source 
 
 The native engine generates bounded syntax-valid byte edits without retaining a full source copy per mutation. It deduplicates edits, refuses missing or ambiguous subjects, runs a clean baseline, and gives every case a separate project copy. A copy-byte ceiling bounds repeated staging. Extensible operator objects own mutation rules; the runner owns scheduling and result integrity.
 
-Medium severity, high confidence: per-process output limits alone permit aggregate diagnostics to grow with case count. A synchronized report budget now fails incomplete with unavailable counts when exhausted. Failed baselines, timed-out mutations, excessive output, missing commands, signals, and non-test exit statuses never count as kills. Exit 1 is the consuming test command's failure contract; unrelated setup failures using that same status remain indistinguishable.
+Medium severity, high confidence: per-process output limits alone permit aggregate diagnostics to increase with case count. A synchronized report budget now fails incomplete with unavailable counts when exhausted. Failed baselines, timed-out mutations, excessive output, missing commands, signals, and non-test exit statuses never count as detections. Exit 1 is the consuming test command's failure contract; unrelated setup failures using that same status remain indistinguishable.
 
 Medium severity, high confidence: binary subprocess output could prevent JSON serialization. Normalize captured diagnostics to UTF-8. Low severity, high confidence: second-pipe allocation failure leaked the first descriptors; incremental allocation inside the cleanup scope now passes the injected EMFILE regression. Argv execution, closed stdin, process-group cancellation, descendant-held pipes, timeout, and output overflow have behavioral coverage.
 
-Existing RSpec hook tests contaminated the global test process. One real subprocess integration replaces duplicate hook installation and isolates inherited coverage settings. No production design was changed merely to expose private methods to tests.
+Existing RSpec hook tests altered shared state in the global test process. One real subprocess integration replaces duplicate hook installation and isolates inherited coverage settings. No production design was changed merely to expose private methods to tests.
 
 ### Resources, trace, and terminal surface
 
@@ -38,13 +38,13 @@ The producing measurement artifact is benchmarks/quality-episode.json. It owns c
 
 Observation emits bounded relative source paths, named subjects, call counts, and truncation state to a caller-selected local file. It records no arguments, receiver values, anonymous identities, or device identifiers. Tests cover root filtering, descendant injection, fork behavior, truncation, and preserving prior output when no replacement trace exists. No remote destination is introduced. Trusted commands can still print arbitrary diagnostics and paths; sharing remains under caller control.
 
-The person-facing surface is the terminal command family, help, and JSON reports. CLI checks cover successful edits, missing and ambiguous inputs, survivors, incomplete runs, empty shards, failed proof, stale approval, and command limits. Commands are keyboard-operated; JSON has no viewport dependency. Large diagnostic records still need human review in the consuming terminal. No graphical surface was added.
+The person-facing surface is the terminal command family, help, and JSON reports. CLI checks cover successful edits, missing and ambiguous inputs, undetected mutations, incomplete runs, empty shards, failed proof, stale approval, and command limits. Commands are keyboard-operated; JSON has no viewport dependency. Large diagnostic records still need human review in the consuming terminal. No graphical surface was added.
 
 ### Pressure outcome and limits
 
 The final replay calibrated before baseline, stepped from five to fifty fixture units, tightened the observation primary from its measured initial stress envelope, and completed ten temporary source-change trials with three samples per load. Trials 1 through 3 failed the observation ceiling; those failures remain in the raw artifact. Trials 4 through 10 passed all series. Production received a separate successful gate against the same fixed limits. A previous exploratory ten-cycle replay is retained separately, without treating it as evidence of the later explicit ratchet.
 
-The accepted ceilings were proposed from actual native indexing, native mutation execution, and observation. No test suite ran concurrently with either replay. There was no explicit warmup; OS caches and other host activity were uncontrolled. The episode establishes a local fixture result, not a causal small timing gain, a production capacity bound, or near-linear scaling for every stage. RSS is process-lifetime rather than stage RSS or summed concurrent memory. CPU is a proxy, not measured energy. Network is not_in_scope.
+The accepted ceilings were proposed from actual native indexing, native mutation execution, and observation. No test suite ran concurrently with either replay. There was no explicit warmup; OS caches and other host activity were uncontrolled. The episode establishes a local fixture result, not a causal small timing gain, a production capacity bound, or near-linear scaling for every stage. RSS is full-process rather than stage RSS or summed concurrent memory. CPU is a proxy, not measured energy. Network is not_in_scope.
 
 Three gem builds each measured the same compressed size with zero runtime dependencies. The artifact preserves prior prototype package samples and final samples; the earlier source state is not reconstructed here. Compressed package bytes are not installed storage or resident memory. No dependency graph or runtime pin changed, so a dependency-upgrade resource comparison is outside this work.
 
@@ -58,7 +58,7 @@ Temporary JSON and log destinations are omitted below; the executable commands a
 - bundle exec rubocop --cache false --format simple: exit 1; 357 files, nine pre-existing indentation offenses in spec/release_spec.rb and usr/lib/release_version_check.rb. Those files were already modified at task start and were left untouched.
 - bundle exec rbs -I sig validate: exit 0.
 - git diff --check: exit 0.
-- ruby benchmarks/quality_smoke.rb: exit 0; full graph edit workflow passed, four mutations killed and zero survived.
+- ruby benchmarks/quality_smoke.rb: exit 0; full graph edit workflow passed, four mutations detected and zero undetected.
 - ruby benchmarks/quality.rb self-test: pass, including distinct p95 series and direct meter checks.
 - LOAD=5 SAMPLES=3 ruby benchmarks/quality.rb measure: exit 0, native baseline recorded.
 - LOAD=50 SAMPLES=3 ruby benchmarks/quality.rb propose: exit 0, explicit native ceiling proposal recorded.

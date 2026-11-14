@@ -27,11 +27,22 @@ RSpec.describe Polyrun::Mutation::Runner do
 
   it "rejects malformed subjects, missing test commands, and unsafe worker bounds" do
     runner = described_class.new(root: @root)
-    expect { runner.call(["--help"]) }.to raise_error(ArgumentError)
-    expect { runner.call([]) }.to raise_error(ArgumentError)
+    expect { runner.call(["--help"]) }.to raise_error(ArgumentError, /invalid mutation subject/)
+    expect { runner.call(["bad subject"]) }.to raise_error(ArgumentError, /invalid mutation subject/)
+    expect { runner.call([]) }.to raise_error(ArgumentError, /at least one subject/)
     expect { runner.call(["Account.value"]) }.to raise_error(ArgumentError, /test command/)
-    expect { runner.call(["Account.value"], shard: 0) }.to raise_error(ArgumentError)
+    expect { runner.call(["Account.value"], shard: 0) }.to raise_error(ArgumentError, /shard must be between/)
     expect { described_class.new(root: @root, workers: 0) }.to raise_error(ArgumentError)
+  end
+
+  it "rejects selectors that match no method definition" do
+    runner = described_class.new(root: @root, arguments: @command)
+    expect { runner.call(["Missing#nope"]) }.to raise_error(ArgumentError, /unknown mutation subject/)
+  end
+
+  it "rejects subject lists above the configured subject ceiling" do
+    runner = described_class.new(root: @root, arguments: @command, settings: {"max_subjects" => 1})
+    expect { runner.call(["Account.value", "Account.other"]) }.to raise_error(ArgumentError, /too many mutation subjects/)
   end
 
   it "bounds retained diagnostics and refuses to call truncated results complete" do

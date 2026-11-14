@@ -63,7 +63,7 @@ module Polyrun
       def excluded?(name)
         return true if name.start_with?(".") && !@settings["include_hidden"].include?(name)
 
-        @settings["exclude"].any? { |pattern| File.fnmatch?(pattern, name) } || name == "master.key" || name.end_with?(".key")
+        @settings["exclude"].any? { |pattern| File.fnmatch?(pattern, name) } || name.end_with?(".key")
       end
     end
   end

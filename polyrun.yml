@@ -1,5 +1,13 @@
 version: 1
 
+workers: 4
+timeout: 120
+source_roots: [lib]
+staging:
+  exclude: [vendor, node_modules, tmp, log, pkg, benchmarks, examples, docs, usr, gemfiles, "*.gem"]
+  exclude_paths: [coverage]
+  include_hidden: [.rspec, .ruby-version]
+
 coverage:
   output_path: coverage
   formats:
@@ -11,3 +19,48 @@ coverage:
 partition:
   paths_build:
     all_glob: spec/**/*_spec.rb
+
+graph:
+  enabled: true
+  state_dir: .polyrun/graph
+  json: true
+
+mutation:
+  enabled: false
+  max_mutations: 200
+  workers: 4
+  timeout: 120
+  output: tmp/mutation-self.json
+
+quality:
+  observe:
+    enabled: false
+    output: tmp/observed-self.json
+  measure:
+    enabled: false
+    label: self-quality
+    output: tmp/measurement-self.json
+
+suites:
+  self:
+    command:
+      - bundle
+      - exec
+      - rspec
+      - spec/polyrun/quality/tool_limits_spec.rb
+      - spec/polyrun/quality/subjects_spec.rb
+      - spec/polyrun/quality/configuration_spec.rb
+      - spec/polyrun/config/root_defaults_spec.rb
+      - spec/polyrun/quality/mutation_operators_spec.rb
+      - spec/polyrun/quality/mutation_spec.rb
+    mutation:
+      enabled: true
+      subjects_file: config/mutation_subjects.txt
+      operators: [operator]
+    quality:
+      observe:
+        enabled: true
+      measure:
+        enabled: true
+        ceilings:
+          wall_s: 60
