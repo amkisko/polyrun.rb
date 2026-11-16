@@ -33,7 +33,9 @@ A change description is JSON or safe YAML:
 
 Take the snapshot and call fields from index and inspect output. Planning supports this operation only, with a default ceiling of 1,000 distinct call edits. It validates expected tokens, applies byte edits to an isolated project copy, checks Ruby syntax, and emits a bounded diff. It does not rename every definition or infer dispatch equivalence.
 
-Check verifies that sources are unchanged, syntax is valid, and the intended staged hashes match. An optional prove command runs in the staged tree; its Gemfile and library path point there. Tests that explicitly load an outside checkout cannot prove the staged edit. A successful check creates a receipt binding metadata and all staged files. A failed prove revokes previous approval. Apply rejects missing receipts, changed staged files, changed originals, added source files, symbolic links, and overlapping graph commands.
+Check verifies that sources are unchanged, syntax is valid, and the intended staged hashes match. An optional prove command runs in the staged tree; its Gemfile and library path point there. Tests that explicitly load an outside checkout do not validate the staged edit. A successful check creates a receipt binding metadata and all staged files. A failed prove revokes previous approval. Apply rejects missing receipts, changed staged files, changed originals, added source files, symbolic links, and overlapping graph commands.
+
+`--prove` accepts the selected command's exit status; it does not establish a mathematical proof. Test success covers the executions tested. The selected command must return failure when its required checks fail or remain incomplete. Receipts bind staged bytes; they do not certify external commands, loaded dependencies, or runtime method lookup.
 
 Apply uses per-file atomic replacement with backups and a recovery journal. An ordinary write failure restores originals. If the process stops during apply, the next apply attempts recovery before verifying that sources are unchanged. Recovery refuses to overwrite an unrelated edit. This is a cooperative local editing protocol; it does not provide a whole-tree atomic filesystem commit, protection from concurrent non-cooperating writers, or certified power-loss durability.
 
@@ -65,7 +67,7 @@ Run the project's normal parallel suite and coverage merge before a narrower mut
     bundle exec polyrun run-shards --workers 2 --merge-coverage -- bundle exec rspec
     bundle exec polyrun mutate --enable --subjects-file subjects.txt --shard 1 --total 3 --workers 2 --output mutation-1.json -- bundle exec rspec
 
-Repeat the mutation job for shard numbers 1 through 3 with the same subject file. Mutation shard numbers are one-based; the existing worker environment uses its own documented index convention. Keep each job's report as an artifact and use the command's status as its gate. Use `graph check PLAN --prove -- bundle exec rspec` to prove a staged edit before apply. These commands stay independently useful; a graph plan is not required for mutation testing.
+Repeat the mutation job for shard numbers 1 through 3 with the same subject file. Mutation shard numbers are one-based; the existing worker environment uses its own documented index convention. Keep each job's report as an artifact and use the command's status as its gate. Use `graph check PLAN --prove -- bundle exec rspec` to test a staged edit before apply. These commands stay independently useful; a graph plan is not required for mutation testing.
 
 ## Observation and measurement
 

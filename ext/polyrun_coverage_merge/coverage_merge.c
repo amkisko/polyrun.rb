@@ -19,6 +19,10 @@ static ID id_sort_branches_for_native;
 static ID id_keys;
 static ID id_plus;
 static ID id_gt;
+static ID id_line_hit_to_i;
+static ID id_to_i;
+
+static VALUE merge_module_value(void);
 
 static VALUE str_ignored;
 static VALUE ary_empty_lines;
@@ -42,21 +46,7 @@ line_hit_to_i(VALUE value)
     if (RB_TYPE_P(value, T_FIXNUM) || RB_TYPE_P(value, T_BIGNUM)) {
         return value;
     }
-    if (RB_TYPE_P(value, T_STRING)) {
-        const char *text = StringValueCStr(value);
-        char *end = NULL;
-        long number = strtol(text, &end, 10);
-        if (end != text && *end == '\0') {
-            return LONG2FIX(number);
-        }
-        return Qnil;
-    }
-    if (RB_TYPE_P(value, T_SYMBOL)) {
-        VALUE as_string = rb_sym2str(value);
-        return line_hit_to_i(as_string);
-    }
-
-    return Qnil;
+    return rb_funcall(merge_module_value(), id_line_hit_to_i, 1, value);
 }
 
 static int
@@ -112,7 +102,7 @@ merge_line_hits(VALUE left, VALUE right)
 
     if (!NIL_P(left_i) && !NIL_P(right_i)) {
         if (RB_FIXNUM_P(left_i) && RB_FIXNUM_P(right_i)) {
-            return LONG2FIX(FIX2LONG(left_i) + FIX2LONG(right_i));
+            return LONG2NUM(FIX2LONG(left_i) + FIX2LONG(right_i));
         }
         return rb_funcall(left_i, id_plus, 1, right_i);
     }
@@ -137,12 +127,9 @@ merge_line_arrays(VALUE left, VALUE right)
     long max_len = left_len > right_len ? left_len : right_len;
     VALUE out = rb_ary_new2(max_len);
 
-    const VALUE *left_ptr = RARRAY_CONST_PTR(left);
-    const VALUE *right_ptr = RARRAY_CONST_PTR(right);
-
     for (long index = 0; index < max_len; index++) {
-        VALUE left_hit = index < left_len ? left_ptr[index] : Qnil;
-        VALUE right_hit = index < right_len ? right_ptr[index] : Qnil;
+        VALUE left_hit = rb_ary_entry(left, index);
+        VALUE right_hit = rb_ary_entry(right, index);
         rb_ary_store(out, index, merge_line_hits(left_hit, right_hit));
     }
 
@@ -179,12 +166,10 @@ static VALUE
 coverage_count(VALUE branch)
 {
     VALUE coverage = hash_field(branch, str_coverage, id_coverage);
-    VALUE as_int = line_hit_to_i(coverage);
-    if (NIL_P(as_int)) {
-        return LONG2FIX(0);
+    if (RB_INTEGER_TYPE_P(coverage)) {
+        return coverage;
     }
-
-    return as_int;
+    return rb_funcall(coverage, id_to_i, 0);
 }
 
 static VALUE
@@ -486,6 +471,8 @@ Init_polyrun_coverage_merge(void)
     id_keys = rb_intern("keys");
     id_plus = rb_intern("+");
     id_gt = rb_intern(">");
+    id_line_hit_to_i = rb_intern("line_hit_to_i");
+    id_to_i = rb_intern("to_i");
     str_lines = rb_obj_freeze(rb_str_new_cstr("lines"));
     str_branches = rb_obj_freeze(rb_str_new_cstr("branches"));
     str_type = rb_obj_freeze(rb_str_new_cstr("type"));

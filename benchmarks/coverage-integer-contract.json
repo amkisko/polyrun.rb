@@ -1,0 +1,392 @@
+{
+  "date": "2026-11-16",
+  "baseline_revision": "da71b60599ebb0c8680c3a487d49f65800546487",
+  "ruby": "ruby 4.0.2 (2026-03-17 revision d3da9fec82) +PRISM [arm64-darwin24]",
+  "environment": {
+    "MERGE_FILES": "110",
+    "MERGE_LINES": "310",
+    "MERGE_FRAGMENTS": "8",
+    "MERGE_REPS": "5"
+  },
+  "driver": "benchmarks/merge_coverage.rb",
+  "driver_sha256": "a0067a2cbc5ad3e0f24a63bcedb706d9617ddef079a68ef6067bb8fdffbc15ca",
+  "before_source_sha256": "d6da984deaef4a4f1fdd01c660765f28da25a0c3956249170bb19bc6024c0356",
+  "after_source_sha256": "784c579ecce1aac6d445eab86e4416631a4eef7dd0450171ba54e52272b35b9b",
+  "order": [
+    "before",
+    "after",
+    "after",
+    "before",
+    "before",
+    "after",
+    "after",
+    "before"
+  ],
+  "samples": [
+    {
+      "revision": "before",
+      "rows": {
+        "merge_two (2× suite) [5]": {
+          "user_s": 0.05336,
+          "system_s": 0.000872,
+          "cpu_s": 0.054232,
+          "wall_s": 0.054448
+        },
+        "merge_blob_tree (balanced) [5]": {
+          "user_s": 0.221698,
+          "system_s": 0.003413,
+          "cpu_s": 0.225111,
+          "wall_s": 0.226072
+        },
+        "merge_two left_fold (naive) [5]": {
+          "user_s": 0.231885,
+          "system_s": 0.002975,
+          "cpu_s": 0.23486,
+          "wall_s": 0.24288
+        },
+        "merge_files (disk→merge_files) [5]": {
+          "user_s": 0.239274,
+          "system_s": 0.01356,
+          "cpu_s": 0.252834,
+          "wall_s": 0.256601
+        },
+        "merge_fragments (+meta/groups) [5]": {
+          "user_s": 0.247509,
+          "system_s": 0.013643,
+          "cpu_s": 0.261152,
+          "wall_s": 0.268452
+        }
+      },
+      "peak_rss_bytes": 99319808,
+      "stdout": "Polyrun coverage merge benchmark\n  Polyrun 3.1.0 | Ruby 4.0.2\n  files per fragment: 110\n  lines per file:     310\n  line rows / fragment: ~34100\n  fragments:          8\n  MERGE_WITH_META:    false\n  MERGE_GC_DISABLE:   false\n\n                                                 user     system      total        real\nmerge_two (2× suite) [5]                     0.053360   0.000872   0.054232 (  0.054448)\nmerge_blob_tree (balanced) [5]               0.221698   0.003413   0.225111 (  0.226072)\nmerge_two left_fold (naive) [5]              0.231885   0.002975   0.234860 (  0.242880)\nmerge_files (disk→merge_files) [5]           0.239274   0.013560   0.252834 (  0.256601)\nmerge_fragments (+meta/groups) [5]           0.247509   0.013643   0.261152 (  0.268452)\n\nSanity: merged file keys: 110 (expected 110)\nSample integer line sum (first file): 8266\n",
+      "resource_counters": "real 1.57\nuser 1.20\nsys 0.08\n            99319808  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                6833  page reclaims\n                 286  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                  25  voluntary context switches\n                2242  involuntary context switches\n         26620056904  instructions retired\n          4657848992  cycles elapsed\n            78661440  peak memory footprint\n"
+    },
+    {
+      "revision": "after",
+      "rows": {
+        "merge_two (2× suite) [5]": {
+          "user_s": 0.053327,
+          "system_s": 0.000697,
+          "cpu_s": 0.054024,
+          "wall_s": 0.054272
+        },
+        "merge_blob_tree (balanced) [5]": {
+          "user_s": 0.224792,
+          "system_s": 0.003609,
+          "cpu_s": 0.228401,
+          "wall_s": 0.232304
+        },
+        "merge_two left_fold (naive) [5]": {
+          "user_s": 0.225876,
+          "system_s": 0.002783,
+          "cpu_s": 0.228659,
+          "wall_s": 0.231336
+        },
+        "merge_files (disk→merge_files) [5]": {
+          "user_s": 0.240326,
+          "system_s": 0.014499,
+          "cpu_s": 0.254825,
+          "wall_s": 0.260944
+        },
+        "merge_fragments (+meta/groups) [5]": {
+          "user_s": 0.246338,
+          "system_s": 0.012573,
+          "cpu_s": 0.258911,
+          "wall_s": 0.266325
+        }
+      },
+      "peak_rss_bytes": 92749824,
+      "stdout": "Polyrun coverage merge benchmark\n  Polyrun 3.1.0 | Ruby 4.0.2\n  files per fragment: 110\n  lines per file:     310\n  line rows / fragment: ~34100\n  fragments:          8\n  MERGE_WITH_META:    false\n  MERGE_GC_DISABLE:   false\n\n                                                 user     system      total        real\nmerge_two (2× suite) [5]                     0.053327   0.000697   0.054024 (  0.054272)\nmerge_blob_tree (balanced) [5]               0.224792   0.003609   0.228401 (  0.232304)\nmerge_two left_fold (naive) [5]              0.225876   0.002783   0.228659 (  0.231336)\nmerge_files (disk→merge_files) [5]           0.240326   0.014499   0.254825 (  0.260944)\nmerge_fragments (+meta/groups) [5]           0.246338   0.012573   0.258911 (  0.266325)\n\nSanity: merged file keys: 110 (expected 110)\nSample integer line sum (first file): 8266\n",
+      "resource_counters": "real 1.29\nuser 1.18\nsys 0.07\n            92749824  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                6717  page reclaims\n                   5  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                  48  voluntary context switches\n                1248  involuntary context switches\n         26695172422  instructions retired\n          4575387595  cycles elapsed\n            78415424  peak memory footprint\n"
+    },
+    {
+      "revision": "after",
+      "rows": {
+        "merge_two (2× suite) [5]": {
+          "user_s": 0.054199,
+          "system_s": 0.00076,
+          "cpu_s": 0.054959,
+          "wall_s": 0.055125
+        },
+        "merge_blob_tree (balanced) [5]": {
+          "user_s": 0.224984,
+          "system_s": 0.00431,
+          "cpu_s": 0.229294,
+          "wall_s": 0.233084
+        },
+        "merge_two left_fold (naive) [5]": {
+          "user_s": 0.227606,
+          "system_s": 0.002818,
+          "cpu_s": 0.230424,
+          "wall_s": 0.233392
+        },
+        "merge_files (disk→merge_files) [5]": {
+          "user_s": 0.241058,
+          "system_s": 0.014326,
+          "cpu_s": 0.255384,
+          "wall_s": 0.261508
+        },
+        "merge_fragments (+meta/groups) [5]": {
+          "user_s": 0.261013,
+          "system_s": 0.016028,
+          "cpu_s": 0.277041,
+          "wall_s": 0.296424
+        }
+      },
+      "peak_rss_bytes": 93798400,
+      "stdout": "Polyrun coverage merge benchmark\n  Polyrun 3.1.0 | Ruby 4.0.2\n  files per fragment: 110\n  lines per file:     310\n  line rows / fragment: ~34100\n  fragments:          8\n  MERGE_WITH_META:    false\n  MERGE_GC_DISABLE:   false\n\n                                                 user     system      total        real\nmerge_two (2× suite) [5]                     0.054199   0.000760   0.054959 (  0.055125)\nmerge_blob_tree (balanced) [5]               0.224984   0.004310   0.229294 (  0.233084)\nmerge_two left_fold (naive) [5]              0.227606   0.002818   0.230424 (  0.233392)\nmerge_files (disk→merge_files) [5]           0.241058   0.014326   0.255384 (  0.261508)\nmerge_fragments (+meta/groups) [5]           0.261013   0.016028   0.277041 (  0.296424)\n\nSanity: merged file keys: 110 (expected 110)\nSample integer line sum (first file): 8266\n",
+      "resource_counters": "real 1.33\nuser 1.21\nsys 0.08\n            93798400  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                6783  page reclaims\n                   1  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                  59  voluntary context switches\n                2039  involuntary context switches\n         26706159406  instructions retired\n          4652603375  cycles elapsed\n            79955712  peak memory footprint\n"
+    },
+    {
+      "revision": "before",
+      "rows": {
+        "merge_two (2× suite) [5]": {
+          "user_s": 0.057267,
+          "system_s": 0.001877,
+          "cpu_s": 0.059144,
+          "wall_s": 0.062639
+        },
+        "merge_blob_tree (balanced) [5]": {
+          "user_s": 0.227441,
+          "system_s": 0.003615,
+          "cpu_s": 0.231056,
+          "wall_s": 0.233249
+        },
+        "merge_two left_fold (naive) [5]": {
+          "user_s": 0.228455,
+          "system_s": 0.001894,
+          "cpu_s": 0.230349,
+          "wall_s": 0.233548
+        },
+        "merge_files (disk→merge_files) [5]": {
+          "user_s": 0.239201,
+          "system_s": 0.012726,
+          "cpu_s": 0.251927,
+          "wall_s": 0.257945
+        },
+        "merge_fragments (+meta/groups) [5]": {
+          "user_s": 0.246716,
+          "system_s": 0.012365,
+          "cpu_s": 0.259081,
+          "wall_s": 0.265122
+        }
+      },
+      "peak_rss_bytes": 92585984,
+      "stdout": "Polyrun coverage merge benchmark\n  Polyrun 3.1.0 | Ruby 4.0.2\n  files per fragment: 110\n  lines per file:     310\n  line rows / fragment: ~34100\n  fragments:          8\n  MERGE_WITH_META:    false\n  MERGE_GC_DISABLE:   false\n\n                                                 user     system      total        real\nmerge_two (2× suite) [5]                     0.057267   0.001877   0.059144 (  0.062639)\nmerge_blob_tree (balanced) [5]               0.227441   0.003615   0.231056 (  0.233249)\nmerge_two left_fold (naive) [5]              0.228455   0.001894   0.230349 (  0.233548)\nmerge_files (disk→merge_files) [5]           0.239201   0.012726   0.251927 (  0.257945)\nmerge_fragments (+meta/groups) [5]           0.246716   0.012365   0.259081 (  0.265122)\n\nSanity: merged file keys: 110 (expected 110)\nSample integer line sum (first file): 8266\n",
+      "resource_counters": "real 1.29\nuser 1.19\nsys 0.07\n            92585984  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                6707  page reclaims\n                   1  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                  36  voluntary context switches\n                1518  involuntary context switches\n         26663391358  instructions retired\n          4559690468  cycles elapsed\n            81364736  peak memory footprint\n"
+    },
+    {
+      "revision": "before",
+      "rows": {
+        "merge_two (2× suite) [5]": {
+          "user_s": 0.052765,
+          "system_s": 0.000607,
+          "cpu_s": 0.053372,
+          "wall_s": 0.053494
+        },
+        "merge_blob_tree (balanced) [5]": {
+          "user_s": 0.226129,
+          "system_s": 0.003634,
+          "cpu_s": 0.229763,
+          "wall_s": 0.235166
+        },
+        "merge_two left_fold (naive) [5]": {
+          "user_s": 0.228576,
+          "system_s": 0.002279,
+          "cpu_s": 0.230855,
+          "wall_s": 0.234003
+        },
+        "merge_files (disk→merge_files) [5]": {
+          "user_s": 0.236867,
+          "system_s": 0.012686,
+          "cpu_s": 0.249553,
+          "wall_s": 0.252853
+        },
+        "merge_fragments (+meta/groups) [5]": {
+          "user_s": 0.2464,
+          "system_s": 0.012248,
+          "cpu_s": 0.258648,
+          "wall_s": 0.261197
+        }
+      },
+      "peak_rss_bytes": 103186432,
+      "stdout": "Polyrun coverage merge benchmark\n  Polyrun 3.1.0 | Ruby 4.0.2\n  files per fragment: 110\n  lines per file:     310\n  line rows / fragment: ~34100\n  fragments:          8\n  MERGE_WITH_META:    false\n  MERGE_GC_DISABLE:   false\n\n                                                 user     system      total        real\nmerge_two (2× suite) [5]                     0.052765   0.000607   0.053372 (  0.053494)\nmerge_blob_tree (balanced) [5]               0.226129   0.003634   0.229763 (  0.235166)\nmerge_two left_fold (naive) [5]              0.228576   0.002279   0.230855 (  0.234003)\nmerge_files (disk→merge_files) [5]           0.236867   0.012686   0.249553 (  0.252853)\nmerge_fragments (+meta/groups) [5]           0.246400   0.012248   0.258648 (  0.261197)\n\nSanity: merged file keys: 110 (expected 110)\nSample integer line sum (first file): 8266\n",
+      "resource_counters": "real 1.28\nuser 1.19\nsys 0.07\n           103186432  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                7354  page reclaims\n                   1  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                  35  voluntary context switches\n                1247  involuntary context switches\n         26661236707  instructions retired\n          4582900474  cycles elapsed\n            73844416  peak memory footprint\n"
+    },
+    {
+      "revision": "after",
+      "rows": {
+        "merge_two (2× suite) [5]": {
+          "user_s": 0.052428,
+          "system_s": 0.000778,
+          "cpu_s": 0.053206,
+          "wall_s": 0.053282
+        },
+        "merge_blob_tree (balanced) [5]": {
+          "user_s": 0.229511,
+          "system_s": 0.0054,
+          "cpu_s": 0.234911,
+          "wall_s": 0.245222
+        },
+        "merge_two left_fold (naive) [5]": {
+          "user_s": 0.221095,
+          "system_s": 0.003423,
+          "cpu_s": 0.224518,
+          "wall_s": 0.225922
+        },
+        "merge_files (disk→merge_files) [5]": {
+          "user_s": 0.233985,
+          "system_s": 0.012009,
+          "cpu_s": 0.245994,
+          "wall_s": 0.248486
+        },
+        "merge_fragments (+meta/groups) [5]": {
+          "user_s": 0.253781,
+          "system_s": 0.015669,
+          "cpu_s": 0.26945,
+          "wall_s": 0.281659
+        }
+      },
+      "peak_rss_bytes": 89178112,
+      "stdout": "Polyrun coverage merge benchmark\n  Polyrun 3.1.0 | Ruby 4.0.2\n  files per fragment: 110\n  lines per file:     310\n  line rows / fragment: ~34100\n  fragments:          8\n  MERGE_WITH_META:    false\n  MERGE_GC_DISABLE:   false\n\n                                                 user     system      total        real\nmerge_two (2× suite) [5]                     0.052428   0.000778   0.053206 (  0.053282)\nmerge_blob_tree (balanced) [5]               0.229511   0.005400   0.234911 (  0.245222)\nmerge_two left_fold (naive) [5]              0.221095   0.003423   0.224518 (  0.225922)\nmerge_files (disk→merge_files) [5]           0.233985   0.012009   0.245994 (  0.248486)\nmerge_fragments (+meta/groups) [5]           0.253781   0.015669   0.269450 (  0.281659)\n\nSanity: merged file keys: 110 (expected 110)\nSample integer line sum (first file): 8266\n",
+      "resource_counters": "real 1.30\nuser 1.19\nsys 0.08\n            89178112  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                6501  page reclaims\n                   1  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                  28  voluntary context switches\n                1854  involuntary context switches\n         26704214025  instructions retired\n          4596418382  cycles elapsed\n            72976128  peak memory footprint\n"
+    },
+    {
+      "revision": "after",
+      "rows": {
+        "merge_two (2× suite) [5]": {
+          "user_s": 0.05327,
+          "system_s": 0.000679,
+          "cpu_s": 0.053949,
+          "wall_s": 0.054094
+        },
+        "merge_blob_tree (balanced) [5]": {
+          "user_s": 0.221646,
+          "system_s": 0.003964,
+          "cpu_s": 0.22561,
+          "wall_s": 0.229913
+        },
+        "merge_two left_fold (naive) [5]": {
+          "user_s": 0.229016,
+          "system_s": 0.00362,
+          "cpu_s": 0.232636,
+          "wall_s": 0.235493
+        },
+        "merge_files (disk→merge_files) [5]": {
+          "user_s": 0.238942,
+          "system_s": 0.01266,
+          "cpu_s": 0.251602,
+          "wall_s": 0.272314
+        },
+        "merge_fragments (+meta/groups) [5]": {
+          "user_s": 0.244772,
+          "system_s": 0.012268,
+          "cpu_s": 0.25704,
+          "wall_s": 0.260075
+        }
+      },
+      "peak_rss_bytes": 94519296,
+      "stdout": "Polyrun coverage merge benchmark\n  Polyrun 3.1.0 | Ruby 4.0.2\n  files per fragment: 110\n  lines per file:     310\n  line rows / fragment: ~34100\n  fragments:          8\n  MERGE_WITH_META:    false\n  MERGE_GC_DISABLE:   false\n\n                                                 user     system      total        real\nmerge_two (2× suite) [5]                     0.053270   0.000679   0.053949 (  0.054094)\nmerge_blob_tree (balanced) [5]               0.221646   0.003964   0.225610 (  0.229913)\nmerge_two left_fold (naive) [5]              0.229016   0.003620   0.232636 (  0.235493)\nmerge_files (disk→merge_files) [5]           0.238942   0.012660   0.251602 (  0.272314)\nmerge_fragments (+meta/groups) [5]           0.244772   0.012268   0.257040 (  0.260075)\n\nSanity: merged file keys: 110 (expected 110)\nSample integer line sum (first file): 8266\n",
+      "resource_counters": "real 1.31\nuser 1.19\nsys 0.08\n            94519296  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                6826  page reclaims\n                   1  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                  14  voluntary context switches\n                1823  involuntary context switches\n         26701607361  instructions retired\n          4591135294  cycles elapsed\n            74270528  peak memory footprint\n"
+    },
+    {
+      "revision": "before",
+      "rows": {
+        "merge_two (2× suite) [5]": {
+          "user_s": 0.053632,
+          "system_s": 0.000764,
+          "cpu_s": 0.054396,
+          "wall_s": 0.056341
+        },
+        "merge_blob_tree (balanced) [5]": {
+          "user_s": 0.224759,
+          "system_s": 0.003533,
+          "cpu_s": 0.228292,
+          "wall_s": 0.230744
+        },
+        "merge_two left_fold (naive) [5]": {
+          "user_s": 0.233312,
+          "system_s": 0.00377,
+          "cpu_s": 0.237082,
+          "wall_s": 0.243775
+        },
+        "merge_files (disk→merge_files) [5]": {
+          "user_s": 0.238435,
+          "system_s": 0.012302,
+          "cpu_s": 0.250737,
+          "wall_s": 0.253827
+        },
+        "merge_fragments (+meta/groups) [5]": {
+          "user_s": 0.247317,
+          "system_s": 0.012417,
+          "cpu_s": 0.259734,
+          "wall_s": 0.263077
+        }
+      },
+      "peak_rss_bytes": 88834048,
+      "stdout": "Polyrun coverage merge benchmark\n  Polyrun 3.1.0 | Ruby 4.0.2\n  files per fragment: 110\n  lines per file:     310\n  line rows / fragment: ~34100\n  fragments:          8\n  MERGE_WITH_META:    false\n  MERGE_GC_DISABLE:   false\n\n                                                 user     system      total        real\nmerge_two (2× suite) [5]                     0.053632   0.000764   0.054396 (  0.056341)\nmerge_blob_tree (balanced) [5]               0.224759   0.003533   0.228292 (  0.230744)\nmerge_two left_fold (naive) [5]              0.233312   0.003770   0.237082 (  0.243775)\nmerge_files (disk→merge_files) [5]           0.238435   0.012302   0.250737 (  0.253827)\nmerge_fragments (+meta/groups) [5]           0.247317   0.012417   0.259734 (  0.263077)\n\nSanity: merged file keys: 110 (expected 110)\nSample integer line sum (first file): 8266\n",
+      "resource_counters": "real 1.28\nuser 1.19\nsys 0.07\n            88834048  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                6480  page reclaims\n                   1  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                   0  voluntary context switches\n                1747  involuntary context switches\n         26663219008  instructions retired\n          4567342749  cycles elapsed\n            79267712  peak memory footprint\n"
+    }
+  ],
+  "summary": {
+    "before": {
+      "rows": {
+        "merge_two (2× suite) [5]": {
+          "cpu_s": 0.054314,
+          "wall_s": 0.0553945
+        },
+        "merge_blob_tree (balanced) [5]": {
+          "cpu_s": 0.2290275,
+          "wall_s": 0.2319965
+        },
+        "merge_two left_fold (naive) [5]": {
+          "cpu_s": 0.2328575,
+          "wall_s": 0.2384415
+        },
+        "merge_files (disk→merge_files) [5]": {
+          "cpu_s": 0.251332,
+          "wall_s": 0.25521400000000005
+        },
+        "merge_fragments (+meta/groups) [5]": {
+          "cpu_s": 0.2594075,
+          "wall_s": 0.26409950000000004
+        }
+      },
+      "median_peak_rss_bytes": 95952896.0,
+      "extension_bytes": 52480,
+      "extension_sha256": "65ecadeb0d9b2b3697af716b64395947789bfa7d663d4843569c262a9e468464"
+    },
+    "after": {
+      "rows": {
+        "merge_two (2× suite) [5]": {
+          "cpu_s": 0.0539865,
+          "wall_s": 0.054183
+        },
+        "merge_blob_tree (balanced) [5]": {
+          "cpu_s": 0.22884749999999998,
+          "wall_s": 0.232694
+        },
+        "merge_two left_fold (naive) [5]": {
+          "cpu_s": 0.2295415,
+          "wall_s": 0.23236400000000001
+        },
+        "merge_files (disk→merge_files) [5]": {
+          "cpu_s": 0.2532135,
+          "wall_s": 0.261226
+        },
+        "merge_fragments (+meta/groups) [5]": {
+          "cpu_s": 0.26418050000000004,
+          "wall_s": 0.273992
+        }
+      },
+      "median_peak_rss_bytes": 93274112.0,
+      "extension_bytes": 52512,
+      "extension_sha256": "6da58f6f2cc0efc54d73bd08a8221d9fb7de322a64ab2b6d4622742f6a6cac1c"
+    }
+  },
+  "limitations": [
+    "Four samples per revision on one host; no statistical performance claim.",
+    "Rows include fixture creation; peak RSS covers the whole benchmark subprocess.",
+    "CPU seconds are an energy proxy, not measured electricity. Network was not instrumented."
+  ]
+}
